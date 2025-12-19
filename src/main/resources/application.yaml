@@ -1,0 +1,19 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: test
+  datasource:
+    url: "jdbc:mysql://localhost:3306/test?createDatabaseIfNotExist=true"
+    username: root
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  security:
+    admin-full-permission: true
+
+jwt:
+  singerKey: "98313f9d9222f0760eb53c29c11fd411e498bb6186b24fe2298674341cbba7e4"
