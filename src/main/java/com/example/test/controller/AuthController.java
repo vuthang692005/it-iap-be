@@ -40,7 +40,7 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse> refreshToken(@RequestBody RefreshTokenRequest request)
+    public ResponseEntity<ApiResponse> refreshToken(@RequestBody @Valid RefreshTokenRequest request)
             throws JOSEException, ParseException {
         return ResponseEntity.ok(ApiResponse.builder()
                 .data(authService.refreshToken(request))

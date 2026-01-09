@@ -1,6 +1,7 @@
 package com.example.test.controller;
 
 import com.example.test.dto.auth.request.LoginRequest;
+import com.example.test.dto.auth.request.RefreshTokenRequest;
 import com.example.test.dto.auth.request.RegisterRequest;
 import com.example.test.dto.auth.response.TokenResponse;
 import com.example.test.service.AuthService;
@@ -34,6 +35,7 @@ public class AuthControllerTest {
     private LoginRequest loginRequest;
     private TokenResponse tokenResponse;
     private RegisterRequest registerRequest;
+    private RefreshTokenRequest refreshTokenRequest;
 
     @BeforeEach
     void initData(){
@@ -52,6 +54,10 @@ public class AuthControllerTest {
                 .password("12345678")
                 .username("thang12345678")
                 .fullName("Vũ Minh Thắng")
+                .build();
+
+        refreshTokenRequest = RefreshTokenRequest.builder()
+                .refreshToken("eyJhbGciOiJIUzUxMiJ9.eyJpc3MioIJ0ZXN0IiwiaXNSZWZyZXMoVD9rZW4iO")
                 .build();
     }
 
@@ -116,8 +122,6 @@ public class AuthControllerTest {
     void register_validRequest_success() throws Exception {
         ObjectMapper objectMapper = new ObjectMapper();
         String request = objectMapper.writeValueAsString(registerRequest);
-
-        Mockito.doNothing().when(authService).register(any());
 
         mockMvc.perform(MockMvcRequestBuilders
                         .post("/api/v1/auth/register")
@@ -197,5 +201,41 @@ public class AuthControllerTest {
                 )
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("code").value(1006));
+    }
+
+    @Test
+    void refreshToken_validRequest_success() throws Exception {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String request = objectMapper.writeValueAsString(refreshTokenRequest);
+
+        Mockito.when(authService.refreshToken(any())).thenReturn(tokenResponse);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/v1/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(request)
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(0))
+                .andExpect(MockMvcResultMatchers.jsonPath("data.accessToken")
+                        .value("eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJ0ZXN0IiwiaZWZyZXNoVG9rZW4iOdwd4"))
+                .andExpect(MockMvcResultMatchers.jsonPath("data.refreshToken")
+                        .value("eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJ0ZXN0IiwiaXNSZWZyZXNoVG9rZW4iO"));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void refreshToken_refreshTokenInvalid_fail(String refreshToken) throws Exception {
+        refreshTokenRequest.setRefreshToken(refreshToken);
+        ObjectMapper objectMapper = new ObjectMapper();
+        String request = objectMapper.writeValueAsString(refreshTokenRequest);
+
+        mockMvc.perform(MockMvcRequestBuilders
+                        .post("/api/v1/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(request)
+                )
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized())
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(4002));
     }
 }

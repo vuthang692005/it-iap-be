@@ -9,12 +9,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import java.util.Objects;
 
-@Slf4j
+@Slf4j(topic = "GlobalExceptionHandler")
 @ControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(value = RuntimeException.class)
     ResponseEntity<ApiResponse> handlingRuntimeException(RuntimeException exception){
         ErrorCode errorCode = ErrorCode.SYSTEM_ERROR;
+        log.error(String.valueOf(exception));
         return ResponseEntity.status(errorCode.getStatusCode())
                 .body(ApiResponse.builder()
                         .code(errorCode.getCode())

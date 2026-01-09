@@ -14,6 +14,9 @@ spring:
     show-sql: false
   security:
     admin-full-permission: true
+  output:
+    ansi:
+      enabled: ALWAYS
 
 jwt:
   singerKey: "98313f9d9222f0760eb53c29c11fd411e498bb6186b24fe2298674341cbba7e4"

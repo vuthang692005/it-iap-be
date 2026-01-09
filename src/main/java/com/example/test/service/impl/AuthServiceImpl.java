@@ -172,7 +172,7 @@ public class AuthServiceImpl implements AuthService {
         String username = signedJWT.getJWTClaimsSet().getSubject();
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> {
-                    log.warn("Xác thực thất bại: không tìm thấy người dùng với subject '{}'",username);
+                    log.warn("Xác thực refreshToken thất bại: không tìm thấy người dùng với subject '{}'",username);
                     return new AppException(ErrorCode.AUTHENTICATION_FAILED);
                 });
 
