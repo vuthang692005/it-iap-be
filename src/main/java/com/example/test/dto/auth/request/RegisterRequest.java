@@ -1,6 +1,6 @@
 package com.example.test.dto.auth.request;
 
-import jakarta.validation.constraints.Email;
+import com.example.test.validator.annotation.Gmail;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -14,7 +14,7 @@ public class RegisterRequest {
     @Size(max = 30, message = "USERNAME_INVALID")
     private String username;
 
-    @Email(message = "EMAIL_INVALID")
+    @Gmail
     @NotBlank(message = "EMAIL_INVALID")
     private String email;
 
