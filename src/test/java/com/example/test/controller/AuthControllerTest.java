@@ -152,6 +152,7 @@ public class AuthControllerTest {
     @ParameterizedTest
     @NullAndEmptySource
     @ValueSource(strings = "hello@sss.ff") // email ko có @gmail.com ở cuối
+    @ValueSource(strings = "hello@GMail.com") // @gmail.com có chữ hoa
     void register_emailInvalid_fail(String email) throws Exception {
         registerRequest.setEmail(email);
         ObjectMapper objectMapper = new ObjectMapper();
