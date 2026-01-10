@@ -5,12 +5,12 @@ spring:
   application:
     name: test
   datasource:
-    url: "jdbc:mysql://localhost:3306/test?createDatabaseIfNotExist=true"
-    username: root
-    password:
+    url: ${DBMS_CONNECTION}
+    username: ${DBMS_USERNAME}
+    password: ${DBMS_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${DDL_AUTO}
     show-sql: false
   security:
     admin-full-permission: true
@@ -19,4 +19,4 @@ spring:
       enabled: ALWAYS
 
 jwt:
-  singerKey: "98313f9d9222f0760eb53c29c11fd411e498bb6186b24fe2298674341cbba7e4"
+  singerKey: ${SINGER_KEY}

@@ -1,7 +1,6 @@
 package com.example.test.service;
 
 import com.example.test.dto.auth.request.LoginRequest;
-import com.example.test.dto.auth.request.RefreshTokenRequest;
 import com.example.test.dto.auth.request.RegisterRequest;
 import com.example.test.dto.auth.response.TokenResponse;
 import com.example.test.entity.Permission;
