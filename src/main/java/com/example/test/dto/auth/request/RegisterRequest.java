@@ -5,15 +5,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
 public class RegisterRequest {
-    @NotBlank(message = "USERNAME_INVALID")
-    @Size(max = 30, message = "USERNAME_INVALID")
-    private String username;
-
     @Gmail
     @NotBlank(message = "EMAIL_INVALID")
     private String email;

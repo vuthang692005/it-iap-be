@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Xác thực email</title>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f4f6f8; padding: 20px;">
+<table width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+        <td align="center">
+            <table width="500" style="background:#ffffff; padding:24px; border-radius:8px;">
+                <tr>
+                    <td align="center">
+                        <h2 style="color:#333;">Xác thực địa chỉ email</h2>
+
+                        <p style="color:#555;">
+                            Xin chào <b th:text="${fullName}">Người dùng</b>,
+                        </p>
+
+                        <p style="color:#555;">
+                            Bạn vừa đăng ký tài khoản. Vui lòng sử dụng mã OTP bên dưới
+                            để xác thực địa chỉ email của bạn:
+                        </p>
+
+                        <div style="
+                            font-size:32px;
+                            letter-spacing:6px;
+                            font-weight:bold;
+                            color:#2c7be5;
+                            margin:20px 0;">
+                            <span th:text="${otp}">123456</span>
+                        </div>
+
+                        <p style="color:#777;">
+                            Mã OTP có hiệu lực trong
+                            <b th:text="${ttlMinutes}">5</b> phút.
+                        </p>
+
+                        <hr style="border:none;border-top:1px solid #eee;margin:24px 0"/>
+
+                        <p style="font-size:12px;color:#999;">
+                            Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.
+                        </p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

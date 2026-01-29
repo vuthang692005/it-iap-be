@@ -40,7 +40,7 @@ public class AuthControllerTest {
     @BeforeEach
     void initData(){
         loginRequest = LoginRequest.builder()
-                .identifier("vumitha2005@gmail.com")
+                .email("vumitha2005@gmail.com")
                 .password("12345678")
                 .build();
 
@@ -52,7 +52,6 @@ public class AuthControllerTest {
         registerRequest = RegisterRequest.builder()
                 .email("vumitha2005@gmail.com")
                 .password("12345678")
-                .username("thang12345678")
                 .fullName("Vũ Minh Thắng")
                 .build();
 
@@ -75,7 +74,7 @@ public class AuthControllerTest {
                             .content(request)
                         )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(0))
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(200))
                 .andExpect(MockMvcResultMatchers.jsonPath("data.accessToken")
                         .value("eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJ0ZXN0IiwiaZWZyZXNoVG9rZW4iOdwd4"))
                 .andExpect(MockMvcResultMatchers.jsonPath("data.refreshToken")
@@ -84,8 +83,8 @@ public class AuthControllerTest {
 
     @ParameterizedTest
     @NullAndEmptySource
-    void login_identifierInvalid_fail(String identifier) throws Exception {
-        loginRequest.setIdentifier(identifier);
+    void login_emailInvalid_fail(String email) throws Exception {
+        loginRequest.setEmail(email);
         ObjectMapper objectMapper = new ObjectMapper();
         String request = objectMapper.writeValueAsString(loginRequest);
 
@@ -95,7 +94,7 @@ public class AuthControllerTest {
                         .content(request)
                 )
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(1002));
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(400));
     }
 
     @ParameterizedTest
@@ -115,7 +114,7 @@ public class AuthControllerTest {
                         .content(request)
                 )
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(1003));
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(400));
     }
 
     @Test
@@ -129,24 +128,7 @@ public class AuthControllerTest {
                         .content(request)
                 )
                 .andExpect(MockMvcResultMatchers.status().isCreated())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(0));
-    }
-
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = "1234567890123456789012345678901") // user name > 30 kí tự
-    void register_usernameInvalid_fail(String username) throws Exception {
-        registerRequest.setUsername(username);
-        ObjectMapper objectMapper = new ObjectMapper();
-        String request = objectMapper.writeValueAsString(registerRequest);
-
-        mockMvc.perform(MockMvcRequestBuilders
-                        .post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON_VALUE)
-                        .content(request)
-                )
-                .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(1004));
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(201));
     }
 
     @ParameterizedTest
@@ -164,7 +146,7 @@ public class AuthControllerTest {
                         .content(request)
                 )
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(1005));
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(400));
     }
 
     @ParameterizedTest
@@ -184,7 +166,7 @@ public class AuthControllerTest {
                         .content(request)
                 )
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(1003));
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(400));
     }
 
     @ParameterizedTest
@@ -201,7 +183,7 @@ public class AuthControllerTest {
                         .content(request)
                 )
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(1006));
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(400));
     }
 
     @Test
@@ -217,7 +199,7 @@ public class AuthControllerTest {
                         .content(request)
                 )
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(0))
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(200))
                 .andExpect(MockMvcResultMatchers.jsonPath("data.accessToken")
                         .value("eyJhbGciOiJIUzUxMiJ9.eyJpc3MiOiJ0ZXN0IiwiaZWZyZXNoVG9rZW4iOdwd4"))
                 .andExpect(MockMvcResultMatchers.jsonPath("data.refreshToken")
@@ -237,6 +219,6 @@ public class AuthControllerTest {
                         .content(request)
                 )
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized())
-                .andExpect(MockMvcResultMatchers.jsonPath("code").value(4002));
+                .andExpect(MockMvcResultMatchers.jsonPath("code").value(401));
     }
 }

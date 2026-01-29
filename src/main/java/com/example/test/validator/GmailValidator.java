@@ -4,7 +4,7 @@ import com.example.test.validator.annotation.Gmail;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-public class EmailValidator implements ConstraintValidator<Gmail, String> {
+public class GmailValidator implements ConstraintValidator<Gmail, String> {
     @Override
     public void initialize(Gmail constraintAnnotation) {
         ConstraintValidator.super.initialize(constraintAnnotation);

@@ -41,8 +41,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 ->
-                        oauth2.jwt(jwtConfigurer ->
-                                jwtConfigurer.decoder(jwtDecoder())
+                        oauth2.jwt(jwtConfigurer -> {
+                                    jwtConfigurer.decoder(jwtDecoder());
+//                                    jwtConfigurer.jwtAuthenticationConverter();
+                                }
                         )
                 )
                 .exceptionHandling(exceptionHandling ->
@@ -51,6 +53,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
 
     @Bean
     public CorsFilter corsFilter() {

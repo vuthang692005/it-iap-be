@@ -34,7 +34,10 @@ public class ApplicationInitConfig {
             UserRepository userRepository, RoleRepository roleRepository, PermissionRepository permissionRepository){
         return args -> {
             Set<String> initRoles = Set.of("USER","ADMIN");
-            Set<String> initPermissions = Set.of("USER_CREATE", "USER_UPDATE");
+            Set<String> initPermissions = Set.of(
+//                    "USER_CREATE",
+//                    "USER_UPDATE"
+            );
 
             initRoles.forEach(initRole -> {
                     if (!roleRepository.existsById(initRole)) {
@@ -63,20 +66,20 @@ public class ApplicationInitConfig {
                 return;
             }
 
-            if(!userRepository.existsByUsername("admin")){
+            if(!userRepository.existsByEmail("vumitha2005@gmail.com")){
                 Set<Role> roles = new HashSet<>();
                 roles.add(roleAdmin.get());
 
                 User user = new User();
                 user.setRoles(roles);
-                user.setUsername("admin");
                 user.setPassword(passwordEncoder.encode("admin12345"));
                 user.setFullName("admin");
                 user.setEmail("vumitha2005@gmail.com");
+                user.setVerifyEmail(true);
 
                 userRepository.save(user);
 
-                log.info("Người dùng admin đã được tạo với mật khẩu mặc định: admin12345, vui lòng đổi mật khẩu");
+                log.info("Người dùng admin đã được tạo với email và mật khẩu mặc định: vumitha2005@gmail.com và admin12345, vui lòng đổi mật khẩu");
             }
 
             if(adminFullPermission) {

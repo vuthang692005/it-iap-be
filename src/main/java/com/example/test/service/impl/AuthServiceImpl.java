@@ -1,34 +1,29 @@
 package com.example.test.service.impl;
 
-import com.example.test.dto.auth.request.LoginRequest;
-import com.example.test.dto.auth.request.RefreshTokenRequest;
-import com.example.test.dto.auth.request.RegisterRequest;
+import com.example.test.dto.auth.request.*;
+import com.example.test.dto.auth.response.RegisterResponse;
 import com.example.test.dto.auth.response.TokenResponse;
 import com.example.test.entity.Role;
 import com.example.test.entity.User;
+import com.example.test.enums.VerificationPurpose;
 import com.example.test.exception.AppException;
 import com.example.test.exception.ErrorCode;
 import com.example.test.repository.RoleRepository;
 import com.example.test.repository.UserRepository;
 import com.example.test.service.AuthService;
+import com.example.test.service.EmailService;
+import com.example.test.service.VerificationService;
+import com.example.test.service.TokenService;
 import com.nimbusds.jose.*;
-import com.nimbusds.jose.crypto.MACSigner;
-import com.nimbusds.jose.crypto.MACVerifier;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -38,29 +33,29 @@ public class AuthServiceImpl implements AuthService {
     private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+    private final TokenService tokenService;
+    private final VerificationService verificationService;
 
-    @Value("${jwt.singerKey}")
-    private String singerKey;
-
-    public void register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new AppException(ErrorCode.USERNAME_EXISTED);
-        }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new AppException(ErrorCode.EMAIL_EXISTED);
-        }
-
+    @Transactional
+    public RegisterResponse register(RegisterRequest request) {
         Role role = roleRepository.findById("USER")
                 .orElseThrow(() -> {
                     log.error("Không tìm thấy role USER trong cơ sở dữ liệu");
                     return new AppException(ErrorCode.SYSTEM_ERROR);
                 });
-
         Set<Role> roles = new HashSet<>();
         roles.add(role);
 
-        User user = new User();
-        user.setUsername(request.getUsername());
+        User user = userRepository.findByEmail(request.getEmail())
+                .map(u -> {
+                    if (u.isVerifyEmail()) {
+                        throw new AppException(ErrorCode.EMAIL_EXISTED);
+                    }
+                    return u;
+                })
+                .orElseGet(User::new);
+
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
@@ -69,17 +64,55 @@ public class AuthServiceImpl implements AuthService {
         try {
             userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
-            throw new AppException(ErrorCode.USERNAME_OR_EMAIL_EXISTED);
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
         }
+
+        VerificationPurpose purpose = VerificationPurpose.EMAIL_VERIFY;
+        String otp = verificationService.createOtp(user.getId(), purpose);
+        emailService.sendVerifyOtp(user.getEmail(), user.getFullName(), otp, purpose.getTtl().toMinutes());
+
+        return new RegisterResponse(user.getId());
+    }
+
+    public void resendOtp(ResendOtpRequest request){
+        userRepository.findById(request.getUserId())
+                .filter(user -> !user.isVerifyEmail())
+                .ifPresent(user -> {
+                    VerificationPurpose purpose = VerificationPurpose.EMAIL_VERIFY;
+                    String otp = verificationService.createOtp(user.getId(), purpose);
+                    emailService.sendVerifyOtp(user.getEmail(), user.getFullName(), otp, purpose.getTtl().toMinutes());
+                });
+    }
+
+    @Transactional
+    public void verifyEmail(VerifyEmailRequest request){
+        boolean matched = verificationService.verifyOtp(request.getUserId(), request.getOtp(), VerificationPurpose.EMAIL_VERIFY);
+
+        if (!matched){
+            throw new  AppException(ErrorCode.OTP_VERIFICATION_FAILED);
+        }
+
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() ->{
+                    log.error(
+                            "Xác minh email thất bại: OTP đã được xác thực nhưng không tìm thấy người dùng trong DB. " +
+                                    "Phát hiện trạng thái dữ liệu không nhất quán giữa Redis và Database. userId={}",
+                            request.getUserId()
+                    );
+                    return new AppException(ErrorCode.SYSTEM_ERROR);
+                });
+
+        user.setVerifyEmail(true);
+        userRepository.save(user);
     }
 
     public TokenResponse login(LoginRequest request) throws JOSEException {
-        User user = userRepository.findByUsernameOrEmail(request.getIdentifier())
+        User user = userRepository.findWithRolesByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
         boolean auth = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
-        if (!auth) {
+        if (!auth || !user.isVerifyEmail()) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
         }
 
@@ -87,92 +120,23 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.ACCOUNT_DISABLED);
         }
 
-        String accessToken = generateAccessToken(user);
-        String refreshToken = generateRefreshToken(user);
+        String accessToken = tokenService.generateAccessToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user);
         return new TokenResponse(accessToken, refreshToken);
     }
 
-    private String generateAccessToken(User user) throws JOSEException {
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
-
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getUsername())
-                .issuer("test")
-                .issueTime(new Date())
-                .claim("scope", buildScope(user))
-                .claim("isRefreshToken", false)
-                .expirationTime(Date.from(Instant.now().plus(100, ChronoUnit.MINUTES)))
-                .build();
-
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-        JWSObject jwsObject = new JWSObject(header, payload);
-
-        jwsObject.sign(new MACSigner(singerKey));
-        return jwsObject.serialize();
-    }
-
-    private String generateRefreshToken(User user) throws JOSEException {
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
-
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getUsername())
-                .issuer("test")
-                .issueTime(new Date())
-                .claim("isRefreshToken", true)
-                .expirationTime(Date.from(Instant.now().plus(7, ChronoUnit.DAYS)))
-                .build();
-
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
-        JWSObject jwsObject = new JWSObject(header, payload);
-
-        jwsObject.sign(new MACSigner(singerKey));
-        return jwsObject.serialize();
-    }
-
-    private String buildScope(User user){
-        StringJoiner stringJoiner = new StringJoiner(" ");
-
-        if(!CollectionUtils.isEmpty(user.getRoles())){
-            user.getRoles().forEach(role -> {
-                stringJoiner.add(role.getName());
-                if(!CollectionUtils.isEmpty(role.getPermissions())) {
-                    role.getPermissions().forEach(permission -> {
-                        stringJoiner.add(permission.getName());
-                    });
-                }
-            });
+    public TokenResponse refreshToken(RefreshTokenRequest request) throws ParseException, JOSEException {
+        if (request.getRefreshToken() == null || request.getRefreshToken().isBlank()) {
+            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
         }
 
-        return stringJoiner.toString();
-    }
-
-    public TokenResponse refreshToken(RefreshTokenRequest request) throws JOSEException, ParseException {
         String token = request.getRefreshToken();
+        SignedJWT signedJWT = tokenService.verifyRefreshToken(token);
+        String email = signedJWT.getJWTClaimsSet().getSubject();
 
-        JWSVerifier verifier = new MACVerifier(singerKey.getBytes());
-        SignedJWT signedJWT = SignedJWT.parse(token);
-
-        boolean verified = signedJWT.verify(verifier);
-
-        if (!verified) {
-            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
-        }
-
-        boolean expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime().after(new Date());
-        boolean isRefreshToken = signedJWT.getJWTClaimsSet().getBooleanClaim("isRefreshToken");
-
-        if (!expiryTime) {
-            throw new AppException(ErrorCode.REFRESH_TOKEN_EXPIRED);
-        }
-
-        if (!isRefreshToken) {
-            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
-        }
-
-        String username = signedJWT.getJWTClaimsSet().getSubject();
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findWithRolesByEmail(email)
                 .orElseThrow(() -> {
-                    log.warn("Xác thực refreshToken thất bại: không tìm thấy người dùng với subject '{}'",username);
+                    log.warn("Xác thực refreshToken thất bại: không tìm thấy người dùng với subject '{}'",email);
                     return new AppException(ErrorCode.AUTHENTICATION_FAILED);
                 });
 
@@ -180,26 +144,8 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.ACCOUNT_DISABLED);
         }
 
-        String accessToken = generateAccessToken(user);
-        String refreshToken = generateRefreshToken(user);
+        String accessToken = tokenService.generateAccessToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user);
         return new TokenResponse(accessToken, refreshToken);
-    }
-
-    public User getUserLogin() {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-
-        if (auth == null || !auth.isAuthenticated()
-                || "anonymousUser".equals(auth.getPrincipal())) {
-            throw new AppException(
-                    ErrorCode.UNAUTHENTICATED
-            );
-        }
-
-        String username = auth.getName();
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> {
-                    log.error("Không tìm thấy người dùng với subject '{}'",username);
-                    return new AppException(ErrorCode.AUTHENTICATION_FAILED);
-                });
     }
 }

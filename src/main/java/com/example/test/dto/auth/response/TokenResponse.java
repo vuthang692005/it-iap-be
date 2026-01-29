@@ -1,10 +1,8 @@
 package com.example.test.dto.auth.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
 @Builder
 @AllArgsConstructor
 public class TokenResponse {

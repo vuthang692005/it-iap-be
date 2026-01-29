@@ -1,13 +1,13 @@
 package com.example.test.validator.annotation;
 
-import com.example.test.validator.EmailValidator;
+import com.example.test.validator.GmailValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
 @Constraint(
-        validatedBy = {EmailValidator.class}
+        validatedBy = {GmailValidator.class}
 )
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)

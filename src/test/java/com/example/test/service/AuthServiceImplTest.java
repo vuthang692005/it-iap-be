@@ -21,10 +21,11 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -42,6 +43,10 @@ public class AuthServiceImplTest {
     private UserRepository userRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private TokenService tokenService;
+    @Mock
+    private VerificationService VerificationService;
 
 
     private LoginRequest loginRequest;
@@ -52,14 +57,13 @@ public class AuthServiceImplTest {
     @BeforeEach
     void initData(){
         loginRequest = LoginRequest.builder()
-                .identifier("vumitha2005@gmail.com")
+                .email("vumitha2005@gmail.com")
                 .password("12345678")
                 .build();
 
         registerRequest = RegisterRequest.builder()
                 .email("vumitha2005@gmail.com")
                 .password("12345678")
-                .username("thang12345678")
                 .fullName("Vũ Minh Thắng")
                 .build();
 
@@ -73,25 +77,31 @@ public class AuthServiceImplTest {
                 .build();
 
         user = User.builder()
-                .id(1)
+                .id(UUID.randomUUID())
                 .email("vumitha2005@gmail.com")
                 .password("12345678")
-                .username("thang12345678")
                 .fullName("Vũ Minh Thắng")
                 .isActive(true)
+                .isVerifyEmail(true)
                 .roles(Set.of(role))
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
                 .build();
     }
 
     @Test
     void login_validRequest_success() throws JOSEException {
-        Mockito.when(userRepository.findByUsernameOrEmail(any()))
+        Mockito.when(userRepository.findWithRolesByEmail(any()))
                 .thenReturn(Optional.of(user));
 
         Mockito.when(passwordEncoder.matches(any(), any()))
                 .thenReturn(true);
 
-        ReflectionTestUtils.setField(authServiceImpl, "singerKey", "98313f9d9234f0160eb53c29c11fd411e708bb6186b24fe2298674341cbba7e4");
+        Mockito.when(tokenService.generateAccessToken(any()))
+                .thenReturn("AccessToken");
+
+        Mockito.when(tokenService.generateRefreshToken(any()))
+                .thenReturn("RefreshToken");
 
         TokenResponse response = authServiceImpl.login(loginRequest);
 
@@ -101,7 +111,7 @@ public class AuthServiceImplTest {
 
     @Test
     void login_userNotExisted_fail() throws JOSEException {
-        Mockito.when(userRepository.findByUsernameOrEmail(any()))
+        Mockito.when(userRepository.findWithRolesByEmail(any()))
                 .thenReturn(Optional.empty());
 
         AppException ex = assertThrows(
@@ -114,7 +124,7 @@ public class AuthServiceImplTest {
 
     @Test
     void login_wrongPassword_fail() throws JOSEException {
-        Mockito.when(userRepository.findByUsernameOrEmail(any()))
+        Mockito.when(userRepository.findWithRolesByEmail(any()))
                 .thenReturn(Optional.of(user));
 
         Mockito.when(passwordEncoder.matches(any(), any()))
@@ -132,7 +142,7 @@ public class AuthServiceImplTest {
     void login_userDisabled_fail() throws JOSEException {
         user.setActive(false);
 
-        Mockito.when(userRepository.findByUsernameOrEmail(any()))
+        Mockito.when(userRepository.findWithRolesByEmail(any()))
                 .thenReturn(Optional.of(user));
 
         Mockito.when(passwordEncoder.matches(any(), any()))
@@ -148,39 +158,26 @@ public class AuthServiceImplTest {
 
     @Test
     void register_validRequest_success(){
-        Mockito.when(userRepository.existsByUsername(any()))
-                .thenReturn(false);
-
-        Mockito.when(userRepository.existsByEmail(any()))
-                .thenReturn(false);
+        user.setVerifyEmail(false);
 
         Mockito.when(roleRepository.findById("USER"))
                 .thenReturn(Optional.of(role));
 
+        Mockito.when(userRepository.findByEmail(any()))
+                .thenReturn(Optional.of(user));
+
         Mockito.when(passwordEncoder.encode(any()))
                 .thenReturn("$encoded");
+
+
+        Mockito.when(VerificationService.createOtp(any(), any()))
+                .thenReturn("OTP");
 
         assertDoesNotThrow(() -> authServiceImpl.register(registerRequest));
     }
 
     @Test
-    void register_usernameExisted_fail(){
-        Mockito.when(userRepository.existsByUsername(any()))
-                .thenReturn(true);
-
-        AppException ex = assertThrows(
-                AppException.class,
-                () -> authServiceImpl.register(registerRequest)
-        );
-
-        assertEquals(ErrorCode.USERNAME_EXISTED, ex.getErrorCode());
-    }
-
-    @Test
     void register_emailExisted_fail(){
-        Mockito.when(userRepository.existsByUsername(any()))
-                .thenReturn(false);
-
         Mockito.when(userRepository.existsByEmail(any()))
                 .thenReturn(true);
 
@@ -194,9 +191,6 @@ public class AuthServiceImplTest {
 
     @Test
     void register_roleUserMissing_fail(){
-        Mockito.when(userRepository.existsByUsername(any()))
-                .thenReturn(false);
-
         Mockito.when(userRepository.existsByEmail(any()))
                 .thenReturn(false);
 
@@ -213,9 +207,6 @@ public class AuthServiceImplTest {
 
     @Test
     void register_uniqueConflict_fail(){
-        Mockito.when(userRepository.existsByUsername(any()))
-                .thenReturn(false);
-
         Mockito.when(userRepository.existsByEmail(any()))
                 .thenReturn(false);
 
@@ -233,6 +224,6 @@ public class AuthServiceImplTest {
                 () -> authServiceImpl.register(registerRequest)
         );
 
-        assertEquals(ErrorCode.USERNAME_OR_EMAIL_EXISTED, ex.getErrorCode());
+        assertEquals(ErrorCode.EMAIL_EXISTED, ex.getErrorCode());
     }
 }
