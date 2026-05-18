@@ -1,5 +1,17 @@
+#  CLIENT_ID=;CLIENT_SECRET=;DBMS_CONNECTION="jdbc:mysql://localhost:3306/test?sslMode=REQUIRED";DBMS_PASSWORD=;DBMS_USERNAME=root;DDL_AUTO=update;FRONTEND_URL=http://localhost:5173;REDIS_HOST=localhost;REDIS_PORT=6379;SECURE=false;SINGER_KEY="bXktc3VwZXItbG9uZy1zZWNyZXQta2V5LWZvci1qc3ctaHM1MTItc2VjdXJlLXRva2VuLWFwcGxpY2F0aW9uLTIwMjY=";SMTP_EMAIL=;SMTP_HOST=smtp.gmail.com;SMTP_PASSWORD=
+
 server:
+  forward-headers-strategy: framework
   port: 8080
+  servlet:
+    session:
+      cookie:
+        same-site: lax
+
+app:
+  frontend-url: ${FRONTEND_URL}
+  cookie:
+    secure: ${SECURE}
 
 spring:
   application:
@@ -14,6 +26,15 @@ spring:
     show-sql: false
   security:
     admin-full-permission: true
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${CLIENT_ID}
+            client-secret: ${CLIENT_SECRET}
+            scope:
+              - profile
+              - email
   output:
     ansi:
       enabled: ALWAYS
@@ -30,8 +51,8 @@ spring:
             enable: true
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
 
 jwt:
   singerKey: ${SINGER_KEY}

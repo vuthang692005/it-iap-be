@@ -1,6 +1,6 @@
 package com.example.test.service;
 
-import com.example.test.enums.VerificationPurpose;
+import com.example.test.cache.verification.VerificationPurpose;
 
 import java.util.UUID;
 

@@ -2,20 +2,19 @@ package com.example.test.service.impl;
 
 import com.example.test.dto.auth.request.*;
 import com.example.test.dto.auth.response.RegisterResponse;
-import com.example.test.dto.auth.response.TokenResponse;
 import com.example.test.entity.Role;
 import com.example.test.entity.User;
-import com.example.test.enums.VerificationPurpose;
+import com.example.test.enums.CookieKey;
+import com.example.test.cache.verification.VerificationPurpose;
 import com.example.test.exception.AppException;
 import com.example.test.exception.ErrorCode;
 import com.example.test.repository.RoleRepository;
 import com.example.test.repository.UserRepository;
-import com.example.test.service.AuthService;
-import com.example.test.service.EmailService;
-import com.example.test.service.VerificationService;
-import com.example.test.service.TokenService;
+import com.example.test.service.*;
 import com.nimbusds.jose.*;
 import com.nimbusds.jwt.SignedJWT;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,8 +35,8 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final TokenService tokenService;
     private final VerificationService verificationService;
+    private final CookieService cookieService;
 
-    @Transactional
     public RegisterResponse register(RegisterRequest request) {
         Role role = roleRepository.findById("USER")
                 .orElseThrow(() -> {
@@ -62,7 +61,7 @@ public class AuthServiceImpl implements AuthService {
         user.setRoles(roles);
 
         try {
-            userRepository.save(user);
+            user = userRepository.save(user);
         } catch (DataIntegrityViolationException e) {
             throw new AppException(ErrorCode.EMAIL_EXISTED);
         }
@@ -84,7 +83,6 @@ public class AuthServiceImpl implements AuthService {
                 });
     }
 
-    @Transactional
     public void verifyEmail(VerifyEmailRequest request){
         boolean matched = verificationService.verifyOtp(request.getUserId(), request.getOtp(), VerificationPurpose.EMAIL_VERIFY);
 
@@ -106,7 +104,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
-    public TokenResponse login(LoginRequest request) throws JOSEException {
+    public void login(LoginRequest request, HttpServletResponse response) throws JOSEException {
         User user = userRepository.findWithRolesByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
@@ -122,15 +120,18 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = tokenService.generateAccessToken(user);
         String refreshToken = tokenService.generateRefreshToken(user);
-        return new TokenResponse(accessToken, refreshToken);
+
+        cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
+        cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
     }
 
-    public TokenResponse refreshToken(RefreshTokenRequest request) throws ParseException, JOSEException {
-        if (request.getRefreshToken() == null || request.getRefreshToken().isBlank()) {
+    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
+        String token = cookieService.get(request, CookieKey.REFRESH_TOKEN);
+
+        if (token == null || token.isBlank()) {
             throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
         }
 
-        String token = request.getRefreshToken();
         SignedJWT signedJWT = tokenService.verifyRefreshToken(token);
         String email = signedJWT.getJWTClaimsSet().getSubject();
 
@@ -146,6 +147,8 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = tokenService.generateAccessToken(user);
         String refreshToken = tokenService.generateRefreshToken(user);
-        return new TokenResponse(accessToken, refreshToken);
+
+        cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
+        cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
     }
 }

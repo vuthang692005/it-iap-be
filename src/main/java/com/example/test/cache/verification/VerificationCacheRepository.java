@@ -1,6 +1,5 @@
-package com.example.test.cache;
+package com.example.test.cache.verification;
 
-import com.example.test.enums.VerificationPurpose;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
