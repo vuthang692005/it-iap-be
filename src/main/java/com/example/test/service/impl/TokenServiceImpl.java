@@ -1,11 +1,8 @@
 package com.example.test.service.impl;
 
-import com.example.test.dto.auth.request.RefreshTokenRequest;
-import com.example.test.dto.auth.response.TokenResponse;
 import com.example.test.entity.User;
 import com.example.test.exception.AppException;
 import com.example.test.exception.ErrorCode;
-import com.example.test.repository.UserRepository;
 import com.example.test.service.TokenService;
 import com.nimbusds.jose.*;
 import com.nimbusds.jose.crypto.MACSigner;

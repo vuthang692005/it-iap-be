@@ -1,4 +1,4 @@
-package com.example.test.enums;
+package com.example.test.cache.verification;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

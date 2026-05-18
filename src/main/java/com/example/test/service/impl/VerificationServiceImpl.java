@@ -1,7 +1,7 @@
 package com.example.test.service.impl;
 
-import com.example.test.cache.VerificationCacheRepository;
-import com.example.test.enums.VerificationPurpose;
+import com.example.test.cache.verification.VerificationCacheRepository;
+import com.example.test.cache.verification.VerificationPurpose;
 import com.example.test.exception.AppException;
 import com.example.test.exception.ErrorCode;
 import com.example.test.service.VerificationService;
