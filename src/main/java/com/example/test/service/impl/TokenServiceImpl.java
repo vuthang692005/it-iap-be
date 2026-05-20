@@ -25,8 +25,10 @@ import java.util.StringJoiner;
 @RequiredArgsConstructor
 @Slf4j(topic = "TokenServiceImpl")
 public class TokenServiceImpl implements TokenService {
-    @Value("${jwt.singerKey}")
-    private String singerKey;
+    @Value("${jwt.signerKey}")
+    private String signerKey;
+
+    private static final String CLAIM_IS_REFRESH_TOKEN = "isRefreshToken";
 
     public String generateAccessToken(User user) throws JOSEException {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
@@ -36,14 +38,14 @@ public class TokenServiceImpl implements TokenService {
                 .issuer("test")
                 .issueTime(new Date())
                 .claim("scope", buildScope(user))
-                .claim("isRefreshToken", false)
+                .claim(CLAIM_IS_REFRESH_TOKEN, false)
                 .expirationTime(Date.from(Instant.now().plus(100, ChronoUnit.MINUTES)))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
 
-        jwsObject.sign(new MACSigner(singerKey));
+        jwsObject.sign(new MACSigner(signerKey));
         return jwsObject.serialize();
     }
 
@@ -54,14 +56,14 @@ public class TokenServiceImpl implements TokenService {
                 .subject(user.getEmail())
                 .issuer("test")
                 .issueTime(new Date())
-                .claim("isRefreshToken", true)
+                .claim(CLAIM_IS_REFRESH_TOKEN, true)
                 .expirationTime(Date.from(Instant.now().plus(7, ChronoUnit.DAYS)))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
 
-        jwsObject.sign(new MACSigner(singerKey));
+        jwsObject.sign(new MACSigner(signerKey));
         return jwsObject.serialize();
     }
 
@@ -83,7 +85,7 @@ public class TokenServiceImpl implements TokenService {
     }
 
     public SignedJWT verifyRefreshToken(String token) throws JOSEException, ParseException {
-        JWSVerifier verifier = new MACVerifier(singerKey.getBytes());
+        JWSVerifier verifier = new MACVerifier(signerKey.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
 
         boolean verified = signedJWT.verify(verifier);
@@ -93,7 +95,7 @@ public class TokenServiceImpl implements TokenService {
         }
 
         boolean expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime().after(new Date());
-        boolean isRefreshToken = signedJWT.getJWTClaimsSet().getBooleanClaim("isRefreshToken");
+        boolean isRefreshToken = signedJWT.getJWTClaimsSet().getBooleanClaim(CLAIM_IS_REFRESH_TOKEN);
 
         if (!expiryTime) {
             throw new AppException(ErrorCode.REFRESH_TOKEN_EXPIRED);

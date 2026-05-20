@@ -1,4 +1,4 @@
-#  CLIENT_ID=;CLIENT_SECRET=;DBMS_CONNECTION="jdbc:mysql://localhost:3306/test?sslMode=REQUIRED";DBMS_PASSWORD=;DBMS_USERNAME=root;DDL_AUTO=update;FRONTEND_URL=http://localhost:5173;REDIS_HOST=localhost;REDIS_PORT=6379;SECURE=false;SINGER_KEY="bXktc3VwZXItbG9uZy1zZWNyZXQta2V5LWZvci1qc3ctaHM1MTItc2VjdXJlLXRva2VuLWFwcGxpY2F0aW9uLTIwMjY=";SMTP_EMAIL=;SMTP_HOST=smtp.gmail.com;SMTP_PASSWORD=
+#  CLIENT_ID=;CLIENT_SECRET=;DBMS_CONNECTION="jdbc:mysql://localhost:3306/test?sslMode=REQUIRED";DBMS_PASSWORD=;DBMS_USERNAME=root;DDL_AUTO=update;FRONTEND_URL=http://localhost:5173;REDIS_HOST=localhost;REDIS_PORT=6379;SECURE=false;SIGNER_KEY="bXktc3VwZXItbG9uZy1zZWNyZXQta2V5LWZvci1qc3ctaHM1MTItc2VjdXJlLXRva2VuLWFwcGxpY2F0aW9uLTIwMjY=";SMTP_EMAIL=;SMTP_HOST=smtp.gmail.com;SMTP_PASSWORD=
 
 server:
   forward-headers-strategy: framework
@@ -55,4 +55,4 @@ spring:
       port: ${REDIS_PORT}
 
 jwt:
-  singerKey: ${SINGER_KEY}
+  signerKey: ${SIGNER_KEY}

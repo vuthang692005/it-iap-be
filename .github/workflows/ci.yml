@@ -1,0 +1,25 @@
+name: Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ "master", "dev" ]
+  pull_request:
+    branches: [ "master", "dev" ]
+
+jobs:
+  test-and-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven # Tự động cache các file .jar để lần sau build nhanh hơn
+
+      - name: Run Tests
+        run: mvn clean compile
+#        run: mvn clean test
