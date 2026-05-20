@@ -46,6 +46,6 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
             throw new RuntimeException(e);
         }
 
-        response.sendRedirect(frontendUrl + "/api/v1/users/info");
+        response.sendRedirect(frontendUrl);
     }
 }

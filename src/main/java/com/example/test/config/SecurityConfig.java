@@ -38,8 +38,8 @@ import javax.crypto.spec.SecretKeySpec;
 @RequiredArgsConstructor
 @Slf4j
 public class SecurityConfig {
-    @Value("${jwt.singerKey}")
-    private String singerKey;
+    @Value("${jwt.signerKey}")
+    private String signerKey;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final CustomSuccessHandler customSuccessHandler;
     private final CookieService cookieService;
@@ -108,7 +108,7 @@ public class SecurityConfig {
 
     @Bean
     JwtDecoder jwtDecoder(){
-        SecretKeySpec spec = new SecretKeySpec(singerKey.getBytes(),"HS512");
+        SecretKeySpec spec = new SecretKeySpec(signerKey.getBytes(),"HS512");
         return NimbusJwtDecoder
                 .withSecretKey(spec)
                 .macAlgorithm(MacAlgorithm.HS512)
