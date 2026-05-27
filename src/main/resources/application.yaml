@@ -15,7 +15,7 @@ app:
 
 spring:
   application:
-    name: test
+    name: it-iap
   datasource:
     url: ${DBMS_CONNECTION}
     username: ${DBMS_USERNAME}
