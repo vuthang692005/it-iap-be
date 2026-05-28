@@ -16,6 +16,7 @@ public enum ErrorCode {
 
     //EXISTED
     EMAIL_EXISTED(409, "Email đã tồn tại", HttpStatus.CONFLICT),
+    UNVERIFIED_ACCOUNT_EXISTS(409, "Tài khoản đã đăng ký nhưng chưa kích hoạt. Một mã OTP mới vừa được gửi đến email của bạn", HttpStatus.CONFLICT),
 
     //NOT_FOUND
     USER_NOT_FOUND(404,"Người dùng không tồn tại" , HttpStatus.NOT_FOUND),

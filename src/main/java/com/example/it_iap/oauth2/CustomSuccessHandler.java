@@ -5,7 +5,6 @@ import com.example.it_iap.enums.CookieKey;
 import com.example.it_iap.service.CookieService;
 import com.example.it_iap.service.TokenService;
 import com.nimbusds.jose.JOSEException;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,11 +29,18 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
                                         HttpServletResponse response,
-                                        Authentication authentication) throws IOException, ServletException {
+                                        Authentication authentication) throws IOException {
         CustomOAuth2User principal =
                 (CustomOAuth2User) authentication.getPrincipal();
 
         User user = principal.getUser();
+
+        if (!user.isActive()) {
+            // Nghiệp vụ: Chặn user bị ban cố tình lách luật bằng cách đăng nhập qua Google.
+            // Dùng redirect kèm param lỗi để Frontend hiển thị popup.
+            response.sendRedirect(frontendUrl + "auth/login?error=account_disabled");
+            return;
+        }
 
         try {
             String accessToken = tokenService.generateAccessToken(user);
@@ -43,7 +49,8 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
             cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
             cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
         } catch (JOSEException e) {
-            throw new RuntimeException(e);
+            log.error("Lỗi ký Token OAuth2: ", e);
+            response.sendRedirect(frontendUrl + "auth/login?error=auth_failed");
         }
 
         response.sendRedirect(frontendUrl);

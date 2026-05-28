@@ -16,6 +16,7 @@ import java.util.Map;
 @Slf4j(topic = "GlobalExceptionHandler")
 @ControllerAdvice
 public class GlobalExceptionHandler {
+    // Bắt các lỗi Runtime không mong muốn
     @ExceptionHandler(value = RuntimeException.class)
     ResponseEntity<ApiResponse> handlingRuntimeException(RuntimeException exception, HttpServletRequest request){
         ErrorCode errorCode = ErrorCode.SYSTEM_ERROR;
@@ -27,6 +28,7 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // Xử lý lỗi khi cấu trúc Token không đúng định dạng hoặc không thể giải mã.
     @ExceptionHandler(value = ParseException.class)
     ResponseEntity<ApiResponse> handlingParseException(ParseException exception){
         ErrorCode errorCode = ErrorCode.AUTHENTICATION_FAILED;
@@ -37,6 +39,7 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // Xử lý riêng lỗi kết nối Redis (Cache/OTP).
     @ExceptionHandler(RedisConnectionFailureException.class)
     public ResponseEntity<ApiResponse> handleRedisError(
             RedisConnectionFailureException exception, HttpServletRequest request) {
@@ -49,16 +52,22 @@ public class GlobalExceptionHandler {
                         .build());
     }
 
+    // Xử lý các lỗi nghiệp vụ do chính ta ném ra chủ động (AppException).
+    // Tự động bóc tách errorCode và data bổ sung (nếu có) để trả về cho Frontend.
     @ExceptionHandler(value = AppException.class)
     ResponseEntity<ApiResponse> handlingAppException(AppException exception){
         ErrorCode errorCode = exception.getErrorCode();
+        Object data = exception.getData();
         return ResponseEntity.status(errorCode.getStatusCode())
                 .body(ApiResponse.builder()
                         .code(errorCode.getCode())
                         .message(errorCode.getMessage())
+                        .data(data)
                         .build());
     }
 
+    // Xử lý lỗi Validation (khi dùng @Valid ở Controller).
+    // Trả về một Map chứa chi tiết từng trường bị lỗi và thông báo tương ứng.
     @ExceptionHandler( value = MethodArgumentNotValidException.class)
     ResponseEntity<ApiResponse> handlingMethodArgumentNotValidException(MethodArgumentNotValidException exception){
         ErrorCode errorCode = ErrorCode.DATA_INVALID;

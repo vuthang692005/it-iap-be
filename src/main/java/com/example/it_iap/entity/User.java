@@ -1,5 +1,6 @@
 package com.example.it_iap.entity;
 
+import com.example.it_iap.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -33,7 +34,8 @@ public class User extends Auditable{
 
     private boolean isVerifyEmail = false;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Enumerated(EnumType.STRING)
     private Set<Role> roles;
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = CascadeType.ALL)

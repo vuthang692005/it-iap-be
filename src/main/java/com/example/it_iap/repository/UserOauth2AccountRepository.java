@@ -11,9 +11,7 @@ public interface UserOauth2AccountRepository extends JpaRepository<UserOauth2Acc
     Optional<UserOauth2Account> findByProviderAndProviderId(AuthProvider provider, String providerId);
 
     @EntityGraph(attributePaths = {
-            "user",
-            "user.roles",
-            "user.roles.permissions"
+            "user"
     })
-    Optional<UserOauth2Account> findWithUserAndRolesByProviderAndProviderId(AuthProvider provider, String providerId);
+    Optional<UserOauth2Account> findWithUserByProviderAndProviderId(AuthProvider provider, String providerId);
 }
