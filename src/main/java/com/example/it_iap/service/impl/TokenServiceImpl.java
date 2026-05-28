@@ -39,7 +39,7 @@ public class TokenServiceImpl implements TokenService {
                 .issueTime(new Date())
                 .claim("scope", buildScope(user))
                 .claim(CLAIM_IS_REFRESH_TOKEN, false)
-                .expirationTime(Date.from(Instant.now().plus(100, ChronoUnit.MINUTES)))
+                .expirationTime(Date.from(Instant.now().plus(5, ChronoUnit.MINUTES)))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
@@ -69,18 +69,11 @@ public class TokenServiceImpl implements TokenService {
 
     private String buildScope(User user){
         StringJoiner stringJoiner = new StringJoiner(" ");
-
         if(!CollectionUtils.isEmpty(user.getRoles())){
             user.getRoles().forEach(role -> {
-                stringJoiner.add(role.getName());
-                if(!CollectionUtils.isEmpty(role.getPermissions())) {
-                    role.getPermissions().forEach(permission -> {
-                        stringJoiner.add(permission.getName());
-                    });
-                }
+                stringJoiner.add(role.name());
             });
         }
-
         return stringJoiner.toString();
     }
 

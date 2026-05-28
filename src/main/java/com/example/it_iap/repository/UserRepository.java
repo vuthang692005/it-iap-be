@@ -9,12 +9,5 @@ import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
-
-    @EntityGraph(attributePaths = {
-            "roles",
-            "roles.permissions"
-    })
-    Optional<User> findWithRolesByEmail(String email);
-
     Optional<User> findByEmail(String email);
 }

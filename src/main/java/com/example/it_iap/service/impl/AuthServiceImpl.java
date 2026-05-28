@@ -2,13 +2,12 @@ package com.example.it_iap.service.impl;
 
 import com.example.it_iap.dto.auth.request.*;
 import com.example.it_iap.dto.auth.response.RegisterResponse;
-import com.example.it_iap.entity.Role;
 import com.example.it_iap.entity.User;
+import com.example.it_iap.entity.enums.Role;
 import com.example.it_iap.enums.CookieKey;
 import com.example.it_iap.cache.verification.VerificationPurpose;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
-import com.example.it_iap.repository.RoleRepository;
 import com.example.it_iap.repository.UserRepository;
 import com.example.it_iap.service.*;
 import com.nimbusds.jose.*;
@@ -28,7 +27,6 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j(topic = "AuthServiceImpl")
 public class AuthServiceImpl implements AuthService {
-    private final RoleRepository roleRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
@@ -37,23 +35,28 @@ public class AuthServiceImpl implements AuthService {
     private final CookieService cookieService;
 
     public RegisterResponse register(RegisterRequest request) {
-        Role role = roleRepository.findById("USER")
-                .orElseThrow(() -> {
-                    log.error("Không tìm thấy role USER trong cơ sở dữ liệu");
-                    return new AppException(ErrorCode.SYSTEM_ERROR);
-                });
         Set<Role> roles = new HashSet<>();
-        roles.add(role);
+        roles.add(Role.USER);
 
-        User user = userRepository.findByEmail(request.getEmail())
-                .map(u -> {
+        // NGHIỆP VỤ: Xử lý email đã tồn tại
+        // - Đã verify: Chặn ngay lập tức.
+        // - Chưa verify: Tuyệt đối KHÔNG ghi đè thông tin mới vào db (chống lỗi Account Takeover).
+        // Thay vào đó, tạo mã OTP mới, gửi lại mail và ném lỗi kèm userId để Frontend tự điều hướng sang form nhập OTP.
+        userRepository.findByEmail(request.getEmail())
+                .ifPresent(u -> {
                     if (u.isVerifyEmail()) {
                         throw new AppException(ErrorCode.EMAIL_EXISTED);
                     }
-                    return u;
-                })
-                .orElseGet(User::new);
+                    else {
+                        VerificationPurpose purpose = VerificationPurpose.EMAIL_VERIFY;
+                        String otp = verificationService.createOtp(u.getId(), purpose);
+                        emailService.sendVerifyOtp(u.getEmail(), u.getFullName(), otp, purpose.getTtl().toMinutes());
+                        throw new AppException(ErrorCode.UNVERIFIED_ACCOUNT_EXISTS, u.getId());
+                    }
+                });
 
+        // Tạo user mới nếu email chưa tồn tại
+        User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
@@ -104,8 +107,12 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public void login(LoginRequest request, HttpServletResponse response) throws JOSEException {
-        User user = userRepository.findWithRolesByEmail(request.getEmail())
+        User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+        if (user.getPassword() == null) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
 
         boolean auth = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
@@ -134,7 +141,7 @@ public class AuthServiceImpl implements AuthService {
         SignedJWT signedJWT = tokenService.verifyRefreshToken(token);
         String email = signedJWT.getJWTClaimsSet().getSubject();
 
-        User user = userRepository.findWithRolesByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
                     log.warn("Xác thực refreshToken thất bại: không tìm thấy người dùng với subject '{}'",email);
                     return new AppException(ErrorCode.AUTHENTICATION_FAILED);
