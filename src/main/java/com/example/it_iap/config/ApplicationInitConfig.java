@@ -29,7 +29,7 @@ public class ApplicationInitConfig {
     ApplicationRunner applicationRunner(
             UserRepository userRepository){
         return args -> {
-            if(!userRepository.existsByEmail("vumitha2005@gmail.com")){
+            if(!userRepository.existsByEmail(email)){
                 Set<Role> roles = new HashSet<>();
                 roles.add(Role.ADMIN);
                 roles.add(Role.USER);
