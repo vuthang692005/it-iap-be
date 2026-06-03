@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @RequiredArgsConstructor
@@ -18,6 +19,9 @@ import org.thymeleaf.context.Context;
 public class EmailServiceImpl implements EmailService {
     private final JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
+
+    @Value("${app.mail.from}")
+    private String fromEmail;
 
     @Async
     public void sendVerifyOtp(String to, String fullName, String otp, long ttlMinutes) {
@@ -38,6 +42,7 @@ public class EmailServiceImpl implements EmailService {
                     new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(to);
+            helper.setFrom(fromEmail);
             helper.setSubject("Xác thực tài khoản");
             helper.setText(html, true);
 

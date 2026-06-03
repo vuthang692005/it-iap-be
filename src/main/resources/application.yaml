@@ -12,8 +12,12 @@ app:
   frontend-url: ${FRONTEND_URL}
   cookie:
     secure: ${SECURE}
+  mail:
+    from: ${SMTP_FROM_EMAIL}
 
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: it-iap
   datasource:
@@ -22,7 +26,7 @@ spring:
     password: ${DBMS_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO}
+      ddl-auto: update
     show-sql: false
   security:
     oauth2:
@@ -39,8 +43,8 @@ spring:
       enabled: ALWAYS
   mail:
     host: ${SMTP_HOST}
-    port: 587
-    username: ${SMTP_EMAIL}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
     password: ${SMTP_PASSWORD}
     properties:
       mail:
