@@ -26,7 +26,7 @@ spring:
     password: ${DBMS_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: ${DDL_AUTO}
+      ddl-auto: update
     show-sql: false
   security:
     oauth2:

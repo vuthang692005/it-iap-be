@@ -60,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
         user.setRoles(roles);
 
         try {

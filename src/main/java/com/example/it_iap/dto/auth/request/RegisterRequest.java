@@ -21,4 +21,7 @@ public class RegisterRequest {
     @NotBlank(message = "FULL_NAME_INVALID")
     @Size(max = 30, message = "FULL_NAME_INVALID")
     private String fullName;
+
+    @Size(max = 20, message = "PHONE_NUMBER_INVALID")
+    private String phoneNumber;
 }
