@@ -68,21 +68,26 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                         return newUser;
                     });
 
-            // Mặc định đăng nhập qua Google là email đã xác thực
-            // Sau này làm đăng nhập facebook, Github,.... cần xác thực email_verified == true thì mới tin tưởng
-            user.setVerifyEmail(true);
+            if(!user.isVerifyEmail()){
+                // [BẢO MẬT] Vá lỗ hổng Pre-Account Takeover:
+                // Nếu email này từng được đăng ký qua Form nhưng chưa xác thực (có thể do hacker chiếm chỗ trước),
+                // ta phải xóa trắng mật khẩu cũ. Hành động này ép tài khoản từ nay chỉ được phép đăng nhập
+                // qua nền tảng OAuth2 (Google) này, chặn đứng đường lùi của hacker.
+                user.setPassword(null);
+
+                // Mặc định đăng nhập qua Google là email đã xác thực
+                // Sau này làm đăng nhập facebook, Github,.... cần xác thực email_verified == true thì mới tin tưởng
+                user.setVerifyEmail(true);
+            }
+
+            user = userRepository.save(user);
 
             UserOauth2Account newAccount = new UserOauth2Account();
             newAccount.setProvider(authProvider);
             newAccount.setProviderId(oAuth2UserInfo.getId());
             newAccount.setUser(user);
 
-            if (user.getUserOauth2Accounts() == null) {
-                user.setUserOauth2Accounts(new ArrayList<>());
-            }
-            user.getUserOauth2Accounts().add(newAccount);
-
-            user = userRepository.save(user);
+            userOauth2AccountRepository.save(newAccount);
         }
 
         return new CustomOAuth2User(user);

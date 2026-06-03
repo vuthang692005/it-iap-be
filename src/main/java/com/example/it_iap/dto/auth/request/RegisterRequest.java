@@ -2,6 +2,7 @@ package com.example.it_iap.dto.auth.request;
 
 import com.example.it_iap.validator.annotation.Gmail;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
@@ -21,4 +22,7 @@ public class RegisterRequest {
     @NotBlank(message = "FULL_NAME_INVALID")
     @Size(max = 30, message = "FULL_NAME_INVALID")
     private String fullName;
+
+    @Pattern(regexp = "^0\\d{9}$", message = "PHONE_NUMBER_INVALID")
+    private String phoneNumber;
 }

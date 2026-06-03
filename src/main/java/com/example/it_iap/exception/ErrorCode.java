@@ -13,6 +13,7 @@ public enum ErrorCode {
 
     //BUSINESS_ERROR
     OTP_VERIFICATION_FAILED(400,"Xác thực OTP thất bại", HttpStatus.BAD_REQUEST),
+    ACCOUNT_AWAITING_VERIFICATION(400, "Tài khoản đang chờ xác thực. Vui lòng kiểm tra email hoặc thử lại sau vài phút", HttpStatus.BAD_REQUEST),
 
     //EXISTED
     EMAIL_EXISTED(409, "Email đã tồn tại", HttpStatus.CONFLICT),

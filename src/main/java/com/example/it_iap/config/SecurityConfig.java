@@ -23,8 +23,8 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
 import com.example.it_iap.oauth2.CustomOAuth2UserService;
 
 import javax.crypto.spec.SecretKeySpec;
@@ -87,21 +87,20 @@ public class SecurityConfig {
     }
 
 
-//    @Bean
-//    public CorsFilter corsFilter() {
-//        CorsConfiguration config = new CorsConfiguration();
-//        config.addAllowedOriginPattern("*");
-//        config.addAllowedMethod("*");
-//        config.addAllowedHeader("*");
-//        config.setAllowCredentials(true);
-//        config.setMaxAge(3600L);
-//
-//
-//        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//        source.registerCorsConfiguration("/**", config);
-//
-//        return new CorsFilter(source);
-//    }
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOriginPattern("*");
+        config.addAllowedMethod("*");
+        config.addAllowedHeader("*");
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+
+        return source;
+    }
 
     @Bean
     JwtDecoder jwtDecoder(){

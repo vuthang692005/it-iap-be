@@ -6,11 +6,13 @@ import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 @Entity
+@Table(name = "users")
 @Getter
 @Setter
 @Builder
@@ -26,9 +28,17 @@ public class User extends Auditable{
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Column(name = "password_hash")
     private String password;
 
     private String fullName;
+
+    @Column(unique = true)
+    private String phoneNumber;
+
+    private String avatarUrl;
+
+    private LocalDateTime deletedAt;
 
     private boolean isActive = true;
 

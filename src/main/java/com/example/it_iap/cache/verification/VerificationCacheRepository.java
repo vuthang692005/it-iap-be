@@ -26,4 +26,10 @@ public class VerificationCacheRepository {
     public void delete(UUID userId, VerificationPurpose purpose) {
         redisTemplate.delete(purpose.getPrefix() + userId);
     }
+
+    public boolean exists(UUID userId, VerificationPurpose purpose) {
+        return Boolean.TRUE.equals(
+                redisTemplate.hasKey(purpose.getPrefix() + userId)
+        );
+    }
 }

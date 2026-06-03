@@ -16,7 +16,8 @@ public enum ValidationError {
     EMAIL_INVALID("Email không hợp lệ"),
     FULL_NAME_INVALID("Họ tên không hợp lệ"),
     USER_ID_INVALID("Id người dùng không hợp lệ"),
-    OTP_INVALID("Mã OTP không hợp lệ")
+    OTP_INVALID("Mã OTP không hợp lệ"),
+    PHONE_NUMBER_INVALID("Số điện thoại không hợp lệ")
     ;
     private final String message;
 
