@@ -1,5 +1,6 @@
 package com.example.it_iap.dto.auth.request;
 
+import com.example.it_iap.validator.annotation.Gmail;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
@@ -10,6 +11,7 @@ import lombok.*;
 @AllArgsConstructor
 public class LoginRequest {
     @NotBlank(message = "EMAIL_INVALID")
+    @Gmail
     private String email;
     @NotBlank(message = "PASSWORD_INVALID")
     @Size(min = 8, max = 50, message = "PASSWORD_INVALID")
