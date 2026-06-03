@@ -2,6 +2,7 @@ package com.example.it_iap.service.impl;
 
 import com.example.it_iap.dto.auth.request.*;
 import com.example.it_iap.dto.auth.response.RegisterResponse;
+import com.example.it_iap.dto.auth.response.RoleResponse;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.Role;
 import com.example.it_iap.enums.CookieKey;
@@ -107,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
     }
 
-    public void login(LoginRequest request, HttpServletResponse response) throws JOSEException {
+    public RoleResponse login(LoginRequest request, HttpServletResponse response) throws JOSEException {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
@@ -130,9 +131,12 @@ public class AuthServiceImpl implements AuthService {
 
         cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
         cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
+
+        Set<Role> userRoles = user.getRoles();
+        return new RoleResponse(userRoles);
     }
 
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
+    public RoleResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
         String token = cookieService.get(request, CookieKey.REFRESH_TOKEN);
 
         if (token == null || token.isBlank()) {
@@ -157,5 +161,8 @@ public class AuthServiceImpl implements AuthService {
 
         cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
         cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
+
+        Set<Role> userRoles = user.getRoles();
+        return new RoleResponse(userRoles);
     }
 }

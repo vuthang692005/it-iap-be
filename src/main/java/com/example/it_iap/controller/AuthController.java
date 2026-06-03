@@ -3,6 +3,7 @@ package com.example.it_iap.controller;
 import com.example.it_iap.dto.ApiResponse;
 import com.example.it_iap.dto.auth.request.*;
 import com.example.it_iap.dto.auth.response.RegisterResponse;
+import com.example.it_iap.dto.auth.response.RoleResponse;
 import com.example.it_iap.service.AuthService;
 import com.nimbusds.jose.JOSEException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,18 +37,22 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse> login(@RequestBody @Valid LoginRequest request, HttpServletResponse response) throws JOSEException {
-        authService.login(request, response);
-        return ResponseEntity.ok(ApiResponse.builder()
-                .build());
+    public ResponseEntity<ApiResponse<RoleResponse>> login(@RequestBody @Valid LoginRequest request, HttpServletResponse response) throws JOSEException {
+        RoleResponse userRoles = authService.login(request, response);
+        return ResponseEntity.ok(
+                ApiResponse.<RoleResponse>builder()
+                        .data(userRoles)
+                        .build());
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse> refreshToken(HttpServletRequest request, HttpServletResponse response)
+    public ResponseEntity<ApiResponse<RoleResponse>> refreshToken(HttpServletRequest request, HttpServletResponse response)
             throws JOSEException, ParseException {
-        authService.refreshToken(request, response);
-        return ResponseEntity.ok(ApiResponse.builder()
-                .build());
+        RoleResponse userRoles = authService.refreshToken(request, response);
+        return ResponseEntity.ok(
+                ApiResponse.<RoleResponse>builder()
+                        .data(userRoles)
+                        .build());
     }
 
     @PostMapping("/verify-email")

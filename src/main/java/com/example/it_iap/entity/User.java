@@ -31,20 +31,12 @@ public class User extends Auditable{
     @Column(name = "password_hash")
     private String password;
 
-    private String salt;
-
     private String fullName;
 
     @Column(unique = true)
     private String phoneNumber;
 
     private String avatarUrl;
-
-    @Column(length = 50)
-    private String authProvider = "local";
-
-    @Column(length = 20)
-    private String status = "active";
 
     private LocalDateTime deletedAt;
 
