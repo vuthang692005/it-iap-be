@@ -5,6 +5,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -13,6 +14,8 @@ import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.io.UnsupportedEncodingException;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "EmailServiceImpl")
@@ -20,7 +23,7 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender javaMailSender;
     private final TemplateEngine templateEngine;
 
-    @Value("${app.mail.from}")
+    @Value("${spring.mail.username}")
     private String fromEmail;
 
     @Async
@@ -42,13 +45,19 @@ public class EmailServiceImpl implements EmailService {
                     new MimeMessageHelper(message, true, "UTF-8");
 
             helper.setTo(to);
-            helper.setFrom(fromEmail);
+
+            try {
+                helper.setFrom(fromEmail, "IT-IAP");
+            } catch (UnsupportedEncodingException e) {
+                helper.setFrom(fromEmail);
+            }
+
             helper.setSubject("Xác thực tài khoản");
             helper.setText(html, true);
 
             javaMailSender.send(message);
 
-        } catch (MessagingException e) {
+        } catch (MessagingException | MailException e) {
             log.error("Gửi mail xác thực OTP thất bại. Email={}", to, e);
         }
     }

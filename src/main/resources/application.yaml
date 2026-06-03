@@ -12,8 +12,6 @@ app:
   frontend-url: ${FRONTEND_URL}
   cookie:
     secure: ${SECURE}
-  mail:
-    from: ${SMTP_FROM_EMAIL}
 
 spring:
   config:
