@@ -40,6 +40,10 @@ public class VerificationServiceImpl implements VerificationService {
         return matched;
     }
 
+    public boolean hasActiveOtp(UUID uuid, VerificationPurpose purpose) {
+        return verificationCacheRepository.exists(uuid, purpose);
+    }
+
     private String generateOtp() {
         return String.valueOf(
                 ThreadLocalRandom.current().nextInt(100000, 1000000)

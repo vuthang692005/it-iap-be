@@ -41,23 +41,19 @@ public class AuthServiceImpl implements AuthService {
 
         // NGHIỆP VỤ: Xử lý email đã tồn tại
         // - Đã verify: Chặn ngay lập tức.
-        // - Chưa verify: Tuyệt đối KHÔNG ghi đè thông tin mới vào db (chống lỗi Account Takeover).
-        // Thay vào đó, tạo mã OTP mới, gửi lại mail và ném lỗi kèm userId để Frontend tự điều hướng sang form nhập OTP.
-        userRepository.findByEmail(request.getEmail())
-                .ifPresent(u -> {
+        // - Chưa verify: Kiểm tra xem OTP cũ còn hạn không (Cooldown). Nếu hết hạn mới cho ghi đè.
+        User user = userRepository.findByEmail(request.getEmail())
+                .map(u -> {
                     if (u.isVerifyEmail()) {
                         throw new AppException(ErrorCode.EMAIL_EXISTED);
                     }
-                    else {
-                        VerificationPurpose purpose = VerificationPurpose.EMAIL_VERIFY;
-                        String otp = verificationService.createOtp(u.getId(), purpose);
-                        emailService.sendVerifyOtp(u.getEmail(), u.getFullName(), otp, purpose.getTtl().toMinutes());
-                        throw new AppException(ErrorCode.UNVERIFIED_ACCOUNT_EXISTS, u.getId());
+                    if (verificationService.hasActiveOtp(u.getId(), VerificationPurpose.EMAIL_VERIFY)) {
+                        throw new AppException(ErrorCode.ACCOUNT_AWAITING_VERIFICATION);
                     }
-                });
+                    return u;
+                })
+                .orElseGet(User::new);
 
-        // Tạo user mới nếu email chưa tồn tại
-        User user = new User();
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
