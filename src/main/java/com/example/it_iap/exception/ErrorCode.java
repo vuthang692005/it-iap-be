@@ -21,6 +21,7 @@ public enum ErrorCode {
 
     //NOT_FOUND
     USER_NOT_FOUND(404,"Người dùng không tồn tại" , HttpStatus.NOT_FOUND),
+    PROFILE_NOT_FOUND(404,"Hồ sơ không tồn tại" , HttpStatus.NOT_FOUND),
 
     //UNAUTHENTICATED
     UNAUTHENTICATED(401,"Thông tin đăng nhập không hợp lệ", HttpStatus.UNAUTHORIZED),
@@ -29,6 +30,7 @@ public enum ErrorCode {
 
     // FORBIDDEN
     ACCOUNT_DISABLED(403,"Tài khoản đã bị vô hiệu hóa", HttpStatus.FORBIDDEN),
+    ACCESS_DENIED(403, "Bạn không có quyền thực hiện hành động này", HttpStatus.FORBIDDEN),
 
     //SYSTEM_ERROR
     SYSTEM_ERROR(500,"Hệ thống đang gặp lỗi, vui lòng thử lại sau", HttpStatus.INTERNAL_SERVER_ERROR),

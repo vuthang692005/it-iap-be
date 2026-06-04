@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.util.*;
@@ -35,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
     private final VerificationService verificationService;
     private final CookieService cookieService;
 
+    @Transactional
     public RegisterResponse register(RegisterRequest request) {
         Set<Role> roles = new HashSet<>();
         roles.add(Role.USER);
@@ -83,6 +85,7 @@ public class AuthServiceImpl implements AuthService {
                 });
     }
 
+    @Transactional
     public void verifyEmail(VerifyEmailRequest request){
         boolean matched = verificationService.verifyOtp(request.getUserId(), request.getOtp(), VerificationPurpose.EMAIL_VERIFY);
 
