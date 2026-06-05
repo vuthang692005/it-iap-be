@@ -8,5 +8,5 @@ import lombok.Getter;
 public class ProfileSummaryResponse {
     private long id;
 
-    private String tittle;
+    private String title;
 }

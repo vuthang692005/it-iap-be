@@ -11,7 +11,7 @@ import lombok.Getter;
 public class ProfileResponse {
     private long id;
 
-    private String tittle;
+    private String title;
 
     private String targetPosition;
 

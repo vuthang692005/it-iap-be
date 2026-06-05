@@ -25,6 +25,12 @@ public enum ValidationError {
     YEARS_EXPERIENCE_INVALID("Số năm kinh nghiệm không được nhỏ hơn 0"),
     EXPERIENCE_POSITION_INVALID("Vị trí kinh nghiệm không được để trống"),
     PROJECT_NAME_INVALID("Tên dự án không được để trống"),
+    PROMPT_KEY_INVALID("Prompt key không hợp lệ"),
+    VERSION_INVALID("Version không hợp lệ"),
+    PROVIDER_INVALID("Provider không hợp lệ"),
+    MODEL_INVALID("Model không hợp lệ"),
+    PROMPT_CONTENT_INVALID("Nội dung prompt không được để trống"),
+    APPLY_FOR_INVALID("Tính năng không hợp lệ"),
     ;
     private final String message;
 
