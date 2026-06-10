@@ -6,7 +6,7 @@ import com.example.it_iap.dto.auth.response.RoleResponse;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.Role;
 import com.example.it_iap.enums.CookieKey;
-import com.example.it_iap.cache.verification.VerificationPurpose;
+import com.example.it_iap.enums.VerificationPurpose;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.UserRepository;

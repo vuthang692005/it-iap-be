@@ -1,6 +1,6 @@
 package com.example.it_iap.service;
 
-import com.example.it_iap.cache.verification.VerificationPurpose;
+import com.example.it_iap.enums.VerificationPurpose;
 
 import java.util.UUID;
 

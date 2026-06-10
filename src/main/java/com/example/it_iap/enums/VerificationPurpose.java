@@ -1,4 +1,4 @@
-package com.example.it_iap.cache.verification;
+package com.example.it_iap.enums;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
