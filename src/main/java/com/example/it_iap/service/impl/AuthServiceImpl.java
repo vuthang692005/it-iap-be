@@ -31,7 +31,6 @@ import java.util.*;
 @Slf4j(topic = "AuthServiceImpl")
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
-    private final CacheRepository cacheRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final TokenService tokenService;
@@ -169,7 +168,6 @@ public class AuthServiceImpl implements AuthService {
         return new RoleResponse(userRoles);
     }
 
-    @Override /* @tungarisdev */
     public void logout(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
         // Lấy refresh token từ cookie
         String refreshToken = cookieService.get(request, CookieKey.REFRESH_TOKEN);
