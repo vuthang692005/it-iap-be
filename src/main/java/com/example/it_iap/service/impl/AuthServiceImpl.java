@@ -1,5 +1,6 @@
 package com.example.it_iap.service.impl;
 
+import com.example.it_iap.cache.CacheRepository;
 import com.example.it_iap.dto.auth.request.*;
 import com.example.it_iap.dto.auth.response.RegisterResponse;
 import com.example.it_iap.dto.auth.response.RoleResponse;
@@ -30,6 +31,7 @@ import java.util.*;
 @Slf4j(topic = "AuthServiceImpl")
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
+    private final CacheRepository cacheRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
     private final TokenService tokenService;
@@ -43,7 +45,8 @@ public class AuthServiceImpl implements AuthService {
 
         // NGHIỆP VỤ: Xử lý email đã tồn tại
         // - Đã verify: Chặn ngay lập tức.
-        // - Chưa verify: Kiểm tra xem OTP cũ còn hạn không (Cooldown). Nếu hết hạn mới cho ghi đè.
+        // - Chưa verify: Kiểm tra xem OTP cũ còn hạn không (Cooldown). Nếu hết hạn mới
+        // cho ghi đè.
         User user = userRepository.findByEmail(request.getEmail())
                 .map(u -> {
                     if (u.isVerifyEmail()) {
@@ -75,7 +78,7 @@ public class AuthServiceImpl implements AuthService {
         return new RegisterResponse(user.getId());
     }
 
-    public void resendOtp(ResendOtpRequest request){
+    public void resendOtp(ResendOtpRequest request) {
         userRepository.findById(request.getUserId())
                 .filter(user -> !user.isVerifyEmail())
                 .ifPresent(user -> {
@@ -86,20 +89,20 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Transactional
-    public void verifyEmail(VerifyEmailRequest request){
-        boolean matched = verificationService.verifyOtp(request.getUserId(), request.getOtp(), VerificationPurpose.EMAIL_VERIFY);
+    public void verifyEmail(VerifyEmailRequest request) {
+        boolean matched = verificationService.verifyOtp(request.getUserId(), request.getOtp(),
+                VerificationPurpose.EMAIL_VERIFY);
 
-        if (!matched){
-            throw new  AppException(ErrorCode.OTP_VERIFICATION_FAILED);
+        if (!matched) {
+            throw new AppException(ErrorCode.OTP_VERIFICATION_FAILED);
         }
 
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() ->{
+                .orElseThrow(() -> {
                     log.error(
                             "Xác minh email thất bại: OTP đã được xác thực nhưng không tìm thấy người dùng trong DB. " +
                                     "Phát hiện trạng thái dữ liệu không nhất quán giữa Redis và Database. userId={}",
-                            request.getUserId()
-                    );
+                            request.getUserId());
                     return new AppException(ErrorCode.SYSTEM_ERROR);
                 });
 
@@ -135,7 +138,8 @@ public class AuthServiceImpl implements AuthService {
         return new RoleResponse(userRoles);
     }
 
-    public RoleResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
+    public RoleResponse refreshToken(HttpServletRequest request, HttpServletResponse response)
+            throws ParseException, JOSEException {
         String token = cookieService.get(request, CookieKey.REFRESH_TOKEN);
 
         if (token == null || token.isBlank()) {
@@ -147,7 +151,7 @@ public class AuthServiceImpl implements AuthService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
-                    log.warn("Xác thực refreshToken thất bại: không tìm thấy người dùng với subject '{}'",email);
+                    log.warn("Xác thực refreshToken thất bại: không tìm thấy người dùng với subject '{}'", email);
                     return new AppException(ErrorCode.AUTHENTICATION_FAILED);
                 });
 
@@ -163,5 +167,23 @@ public class AuthServiceImpl implements AuthService {
 
         Set<Role> userRoles = user.getRoles();
         return new RoleResponse(userRoles);
+    }
+
+    @Override /* @tungarisdev */
+    public void logout(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
+        // Lấy refresh token từ cookie
+        String refreshToken = cookieService.get(request, CookieKey.REFRESH_TOKEN);
+
+        // Kiểm tra token
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new AppException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
+        // Thu hồi token
+        tokenService.revokeRefreshToken(refreshToken, true);
+
+        // Xóa cookie khỏi trình duyệt
+        cookieService.clear(response, CookieKey.ACCESS_TOKEN);
+        cookieService.clear(response, CookieKey.REFRESH_TOKEN);
     }
 }

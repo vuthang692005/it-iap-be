@@ -15,4 +15,5 @@ public interface AuthService {
     RoleResponse refreshToken(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException;
     void resendOtp(ResendOtpRequest request);
     void verifyEmail(VerifyEmailRequest request);
+    void logout(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException;
 }

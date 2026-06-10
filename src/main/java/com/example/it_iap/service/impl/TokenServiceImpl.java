@@ -34,7 +34,7 @@ public class TokenServiceImpl implements TokenService {
     private String signerKey;
 
     private static final String CLAIM_IS_REFRESH_TOKEN = "isRefreshToken";
-    private static final String PREFIX = "auth:token:white";
+    private static final String PREFIX = "auth:token:white:";
 
     public String generateAccessToken(User user) throws JOSEException {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
@@ -80,9 +80,9 @@ public class TokenServiceImpl implements TokenService {
         return refreshToken;
     }
 
-    private String buildScope(User user){
+    private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
-        if(!CollectionUtils.isEmpty(user.getRoles())){
+        if (!CollectionUtils.isEmpty(user.getRoles())) {
             user.getRoles().forEach(role -> {
                 stringJoiner.add(role.name());
             });
@@ -100,17 +100,7 @@ public class TokenServiceImpl implements TokenService {
             throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
         }
 
-        String refreshTokenId = signedJWT.getJWTClaimsSet().getJWTID();
-        String email = signedJWT.getJWTClaimsSet().getSubject();
-        String key = PREFIX + email;
-
-        // Kiểm tra xem token CÒN trong Whitelist không
-        if(!cacheRepository.isMemberOfSet(key, refreshTokenId)){
-            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
-        }
-
-        // THU HỒI NGAY LẬP TỨC
-        cacheRepository.removeFromSet(key, refreshTokenId);
+        revokeRefreshToken(token, false);
 
         boolean expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime().after(new Date());
         boolean isRefreshToken = signedJWT.getJWTClaimsSet().getBooleanClaim(CLAIM_IS_REFRESH_TOKEN);
@@ -124,5 +114,23 @@ public class TokenServiceImpl implements TokenService {
         }
 
         return signedJWT;
+    }
+
+    public void revokeRefreshToken(String refreshToken, boolean isLogout) throws ParseException, JOSEException {
+        // Lấy thông tin từ token
+        SignedJWT signedJWT = SignedJWT.parse(refreshToken);
+        String email = signedJWT.getJWTClaimsSet().getSubject();
+        String refreshTokenId = signedJWT.getJWTClaimsSet().getJWTID();
+
+        String key = PREFIX + email;
+        if (!isLogout) {
+            // Kiểm tra xem token CÒN trong Whitelist không
+            if (!cacheRepository.isMemberOfSet(key, refreshTokenId)) {
+                throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
+            }
+        }
+
+        // Thu hồi trong redis nếu có
+        cacheRepository.removeFromSet(key, refreshTokenId);
     }
 }
