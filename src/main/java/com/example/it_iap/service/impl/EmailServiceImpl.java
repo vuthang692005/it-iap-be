@@ -1,5 +1,6 @@
 package com.example.it_iap.service.impl;
 
+import com.example.it_iap.enums.VerificationPurpose;
 import com.example.it_iap.service.EmailService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -27,16 +28,16 @@ public class EmailServiceImpl implements EmailService {
     private String fromEmail;
 
     @Async
-    public void sendVerifyOtp(String to, String fullName, String otp, long ttlMinutes) {
+    public void sendVerifyOtp(String to, String fullName, String otp, VerificationPurpose purpose) {
 
         try {
             Context context = new Context();
             context.setVariable("fullName", fullName);
             context.setVariable("otp", otp);
-            context.setVariable("ttlMinutes", ttlMinutes);
+            context.setVariable("ttlMinutes", purpose.getTtl().toMinutes());
 
             String html = templateEngine.process(
-                    "email/verify-otp",
+                    purpose.getTemplateName(),
                     context
             );
 
@@ -52,13 +53,13 @@ public class EmailServiceImpl implements EmailService {
                 helper.setFrom(fromEmail);
             }
 
-            helper.setSubject("Xác thực tài khoản");
+            helper.setSubject(purpose.getEmailSubject());
             helper.setText(html, true);
 
             javaMailSender.send(message);
 
         } catch (MessagingException | MailException e) {
-            log.error("Gửi mail xác thực OTP thất bại. Email={}", to, e);
+            log.error("Gửi mail xác thực OTP thất bại. Email={}, Purpose={}", to, purpose.name(), e);
         }
     }
 }
