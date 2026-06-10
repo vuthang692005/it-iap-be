@@ -37,4 +37,19 @@ public class CacheRepository {
                 redisTemplate.hasKey(key)
         );
     }
+
+    public void addToSet(String key, String value, Duration ttl) {
+        redisTemplate.opsForSet().add(key, value);
+        redisTemplate.expire(key, ttl);
+    }
+
+    public boolean isMemberOfSet(String key, String value) {
+        return Boolean.TRUE.equals(
+                redisTemplate.opsForSet().isMember(key, value)
+        );
+    }
+
+    public void removeFromSet(String key, String value) {
+        redisTemplate.opsForSet().remove(key, value);
+    }
 }

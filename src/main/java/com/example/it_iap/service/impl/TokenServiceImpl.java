@@ -1,5 +1,6 @@
 package com.example.it_iap.service.impl;
 
+import com.example.it_iap.cache.CacheRepository;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
@@ -16,19 +17,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.StringJoiner;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "TokenServiceImpl")
 public class TokenServiceImpl implements TokenService {
+    private final CacheRepository cacheRepository;
+
     @Value("${jwt.signerKey}")
     private String signerKey;
 
     private static final String CLAIM_IS_REFRESH_TOKEN = "isRefreshToken";
+    private static final String PREFIX = "auth:token:white";
 
     public String generateAccessToken(User user) throws JOSEException {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
@@ -51,12 +57,14 @@ public class TokenServiceImpl implements TokenService {
 
     public String generateRefreshToken(User user) throws JOSEException {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+        String refreshTokenId = UUID.randomUUID().toString();
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getEmail())
                 .issuer("test")
                 .issueTime(new Date())
                 .claim(CLAIM_IS_REFRESH_TOKEN, true)
+                .jwtID(refreshTokenId)
                 .expirationTime(Date.from(Instant.now().plus(7, ChronoUnit.DAYS)))
                 .build();
 
@@ -64,7 +72,12 @@ public class TokenServiceImpl implements TokenService {
         JWSObject jwsObject = new JWSObject(header, payload);
 
         jwsObject.sign(new MACSigner(signerKey));
-        return jwsObject.serialize();
+
+        String refreshToken = jwsObject.serialize();
+        String key = PREFIX + user.getEmail();
+
+        cacheRepository.addToSet(key, refreshTokenId, Duration.ofDays(7));
+        return refreshToken;
     }
 
     private String buildScope(User user){
@@ -86,6 +99,18 @@ public class TokenServiceImpl implements TokenService {
         if (!verified) {
             throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
         }
+
+        String refreshTokenId = signedJWT.getJWTClaimsSet().getJWTID();
+        String email = signedJWT.getJWTClaimsSet().getSubject();
+        String key = PREFIX + email;
+
+        // Kiểm tra xem token CÒN trong Whitelist không
+        if(!cacheRepository.isMemberOfSet(key, refreshTokenId)){
+            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
+        }
+
+        // THU HỒI NGAY LẬP TỨC
+        cacheRepository.removeFromSet(key, refreshTokenId);
 
         boolean expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime().after(new Date());
         boolean isRefreshToken = signedJWT.getJWTClaimsSet().getBooleanClaim(CLAIM_IS_REFRESH_TOKEN);
