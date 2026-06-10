@@ -37,7 +37,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<RoleResponse>> login(@RequestBody @Valid LoginRequest request, HttpServletResponse response) throws JOSEException {
+    public ResponseEntity<ApiResponse<RoleResponse>> login(@RequestBody @Valid LoginRequest request,
+            HttpServletResponse response) throws JOSEException {
         RoleResponse userRoles = authService.login(request, response);
         return ResponseEntity.ok(
                 ApiResponse.<RoleResponse>builder()
@@ -46,7 +47,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<RoleResponse>> refreshToken(HttpServletRequest request, HttpServletResponse response)
+    public ResponseEntity<ApiResponse<RoleResponse>> refreshToken(HttpServletRequest request,
+            HttpServletResponse response)
             throws JOSEException, ParseException {
         RoleResponse userRoles = authService.refreshToken(request, response);
         return ResponseEntity.ok(
@@ -56,18 +58,26 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    public ResponseEntity<ApiResponse> verifyEmail(@RequestBody @Valid VerifyEmailRequest request){
+    public ResponseEntity<ApiResponse> verifyEmail(@RequestBody @Valid VerifyEmailRequest request) {
         authService.verifyEmail(request);
         return ResponseEntity.ok(ApiResponse.builder()
                 .build());
     }
 
     @PostMapping("/resend-otp")
-    public ResponseEntity<ApiResponse> resendOtp(@RequestBody @Valid ResendOtpRequest request){
+    public ResponseEntity<ApiResponse> resendOtp(@RequestBody @Valid ResendOtpRequest request) {
         authService.resendOtp(request);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(
                 ApiResponse.builder()
-                .code(202)
+                        .code(202)
+                        .build());
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse> logout(HttpServletRequest request, HttpServletResponse response)
+            throws JOSEException, ParseException {
+        authService.logout(request, response);
+        return ResponseEntity.ok(ApiResponse.builder()
                 .build());
     }
 }
