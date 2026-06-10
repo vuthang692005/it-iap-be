@@ -16,7 +16,7 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "PASSWORD_INVALID")
-    @Size(min = 8,max = 50, message = "PASSWORD_INVALID")
+    @Pattern(regexp = "^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$", message = "PASSWORD_INVALID")
     private String password;
 
     @NotBlank(message = "FULL_NAME_INVALID")

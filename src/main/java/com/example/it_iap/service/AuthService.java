@@ -17,4 +17,5 @@ public interface AuthService {
     void verifyEmail(VerifyEmailRequest request);
     void forgotPassword (String email);
     void verifyForgotPassword (VerifyForgotPasswordRequest request);
+    void logout(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException;
 }
