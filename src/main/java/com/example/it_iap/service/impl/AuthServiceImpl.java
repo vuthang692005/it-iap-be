@@ -2,7 +2,7 @@ package com.example.it_iap.service.impl;
 
 import com.example.it_iap.cache.CacheRepository;
 import com.example.it_iap.dto.auth.request.*;
-import com.example.it_iap.dto.auth.response.RegisterResponse;
+import com.example.it_iap.dto.auth.response.AuthResponse;
 import com.example.it_iap.dto.auth.response.RoleResponse;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.Role;
@@ -38,7 +38,7 @@ public class AuthServiceImpl implements AuthService {
     private final CookieService cookieService;
 
     @Transactional
-    public RegisterResponse register(RegisterRequest request) {
+    public AuthResponse register(RegisterRequest request) {
         Set<Role> roles = new HashSet<>();
         roles.add(Role.USER);
 
@@ -72,9 +72,9 @@ public class AuthServiceImpl implements AuthService {
 
         VerificationPurpose purpose = VerificationPurpose.EMAIL_VERIFY;
         String otp = verificationService.createOtp(user.getId(), purpose);
-        emailService.sendVerifyOtp(user.getEmail(), user.getFullName(), otp, purpose.getTtl().toMinutes());
+        emailService.sendVerifyOtp(user.getEmail(), user.getFullName(), otp, purpose);
 
-        return new RegisterResponse(user.getId());
+        return new AuthResponse(user.getId());
     }
 
     public void resendOtp(ResendOtpRequest request) {
@@ -83,7 +83,7 @@ public class AuthServiceImpl implements AuthService {
                 .ifPresent(user -> {
                     VerificationPurpose purpose = VerificationPurpose.EMAIL_VERIFY;
                     String otp = verificationService.createOtp(user.getId(), purpose);
-                    emailService.sendVerifyOtp(user.getEmail(), user.getFullName(), otp, purpose.getTtl().toMinutes());
+                    emailService.sendVerifyOtp(user.getEmail(), user.getFullName(), otp, purpose);
                 });
     }
 
@@ -166,6 +166,30 @@ public class AuthServiceImpl implements AuthService {
 
         Set<Role> userRoles = user.getRoles();
         return new RoleResponse(userRoles);
+    }
+
+    public void forgotPassword (String email){
+        userRepository.findByEmail(email)
+                .ifPresent(user -> {
+                    VerificationPurpose purpose = VerificationPurpose.FORGOT_PASSWORD;
+                    String otp = verificationService.createOtp(user.getId(), purpose);
+                    emailService.sendVerifyOtp(user.getEmail(), user.getFullName(), otp, purpose);
+                });
+    }
+
+    public void verifyForgotPassword (VerifyForgotPasswordRequest request){
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.OTP_VERIFICATION_FAILED)
+                );
+
+        boolean matched = verificationService.verifyOtp(user.getId(), request.getOtp(), VerificationPurpose.FORGOT_PASSWORD);
+
+        if (!matched){
+            throw new  AppException(ErrorCode.OTP_VERIFICATION_FAILED);
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {

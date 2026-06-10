@@ -8,9 +8,11 @@ import java.time.Duration;
 @RequiredArgsConstructor
 @Getter
 public enum VerificationPurpose {
-    EMAIL_VERIFY("otp:email_verify:", Duration.ofMinutes(5)),
-    FORGOT_PASSWORD("otp:forgot_password:", Duration.ofMinutes(5))
+    EMAIL_VERIFY("otp:email_verify:", Duration.ofMinutes(5), "email/verify-otp", "Xác thực tài khoản"),
+    FORGOT_PASSWORD("otp:forgot_password:", Duration.ofMinutes(5), "email/forgot-password", "Yêu cầu khôi phục mật khẩu")
     ;
     private final String prefix;
-    private final Duration ttl;
+    private final Duration ttl;        // Thời gian tông tại
+    private final String templateName; // Tên file html trong thư mục templates
+    private final String emailSubject; // Tiêu đề gửi mail
 }
