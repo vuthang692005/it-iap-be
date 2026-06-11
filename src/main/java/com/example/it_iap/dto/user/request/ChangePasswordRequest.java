@@ -1,4 +1,4 @@
-package com.example.it_iap.dto.user;
+package com.example.it_iap.dto.user.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

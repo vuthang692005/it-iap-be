@@ -1,7 +1,7 @@
 package com.example.it_iap.controller;
 
 import com.example.it_iap.dto.ApiResponse;
-import com.example.it_iap.dto.user.ChangePasswordRequest;
+import com.example.it_iap.dto.user.request.ChangePasswordRequest;
 import com.example.it_iap.service.UserService;
 
 import jakarta.validation.Valid;

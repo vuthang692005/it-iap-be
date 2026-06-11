@@ -33,7 +33,9 @@
 
                         <p style="color:#777;">
                             Mã OTP có hiệu lực trong
-                            <b th:text="${ttlMinutes}">5</b> phút.
+                            <b th:text="${ttlMinutes}">5</b> phút
+                            kể từ <b th:text="${timeNow}">HH:mm:ss</b>
+                            ngày <b th:text="${dateNow}">dd/MM/yyyy</b>.
                         </p>
 
                         <hr style="border:none;border-top:1px solid #eee;margin:24px 0"/>

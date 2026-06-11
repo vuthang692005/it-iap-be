@@ -16,6 +16,9 @@ import org.thymeleaf.context.Context;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.UnsupportedEncodingException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -29,11 +32,15 @@ public class EmailServiceImpl implements EmailService {
 
     @Async
     public void sendVerifyOtp(String to, String fullName, String otp, VerificationPurpose purpose) {
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
         try {
             Context context = new Context();
             context.setVariable("fullName", fullName);
             context.setVariable("otp", otp);
+            context.setVariable("dateNow", LocalDate.now().format(dateFormatter));
+            context.setVariable("timeNow", LocalTime.now().format(timeFormatter));
             context.setVariable("ttlMinutes", purpose.getTtl().toMinutes());
 
             String html = templateEngine.process(

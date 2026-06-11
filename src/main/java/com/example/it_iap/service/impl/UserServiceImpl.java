@@ -1,6 +1,7 @@
 package com.example.it_iap.service.impl;
 
-import com.example.it_iap.dto.user.ChangePasswordRequest;
+import com.example.it_iap.dto.user.request.ChangePasswordRequest;
+import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
@@ -35,5 +36,19 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new AppException(ErrorCode.OLD_PASSWORD_MISMATCH);
         }
+    }
+
+    // Hàm chung để map từ Entity sang Response DTO.
+    private UserResponse buildProfileResponse(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.getFullName(),
+                user.getPhoneNumber(),
+                user.getAvatarUrl(),
+                user.isActive(),
+                user.getCreatedAt(),
+                user.getDeletedAt()
+        );
     }
 }
