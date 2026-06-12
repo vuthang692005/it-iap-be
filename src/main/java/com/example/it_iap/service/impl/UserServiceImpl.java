@@ -1,6 +1,7 @@
 package com.example.it_iap.service.impl;
 
 import com.example.it_iap.dto.user.request.ChangePasswordRequest;
+import com.example.it_iap.dto.user.request.UpdateUserInfoRequest;
 import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.exception.AppException;
@@ -43,6 +44,28 @@ public class UserServiceImpl implements UserService {
         return buildProfileResponse(user);
     }
 
+    
+    public UserResponse updateInfo(UpdateUserInfoRequest request) {
+        User user = getCurrentUser();
+        String email = request.getEmail();
+
+        /*
+            Nếu email khác email hiện tại thì check trong
+            csdl nếu có thì trả về lỗi email đã tồn tại
+         */
+        if (!user.getEmail().equals(email)) {
+            if (userRepository.existsByEmail(email)) {
+                throw new AppException(ErrorCode.EMAIL_EXISTED);
+            }
+        }
+        
+        user.setEmail(email);
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        return buildProfileResponse(userRepository.save(user));
+
+    }
+
     // Hàm chung để map từ Entity sang Response DTO.
     private UserResponse buildProfileResponse(User user) {
         return new UserResponse(
@@ -55,5 +78,6 @@ public class UserServiceImpl implements UserService {
                 user.getCreatedAt(),
                 user.getDeletedAt());
     }
+
 
 }
