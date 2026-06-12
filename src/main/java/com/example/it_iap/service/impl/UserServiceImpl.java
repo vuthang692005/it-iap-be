@@ -38,6 +38,11 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    public UserResponse getInfo() {
+        User user = getCurrentUser();
+        return buildProfileResponse(user);
+    }
+
     // Hàm chung để map từ Entity sang Response DTO.
     private UserResponse buildProfileResponse(User user) {
         return new UserResponse(
@@ -48,7 +53,7 @@ public class UserServiceImpl implements UserService {
                 user.getAvatarUrl(),
                 user.isActive(),
                 user.getCreatedAt(),
-                user.getDeletedAt()
-        );
+                user.getDeletedAt());
     }
+
 }
