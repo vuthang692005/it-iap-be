@@ -7,16 +7,20 @@ import com.example.it_iap.entity.User;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.UserRepository;
+import com.example.it_iap.service.CloudinaryService;
 import com.example.it_iap.service.UserService;
 import com.example.it_iap.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+    private final CloudinaryService cloudinaryService;
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -66,6 +70,14 @@ public class UserServiceImpl implements UserService {
 
     }
 
+    public String updateAvatar(MultipartFile file) {
+        User user = getCurrentUser();
+        String avatarUrl = cloudinaryService.uploadImage(file, "User avatars");
+        user.setAvatarUrl(avatarUrl);
+        userRepository.save(user);
+        return avatarUrl;
+    }
+
     // Hàm chung để map từ Entity sang Response DTO.
     private UserResponse buildProfileResponse(User user) {
         return new UserResponse(
@@ -78,6 +90,4 @@ public class UserServiceImpl implements UserService {
                 user.getCreatedAt(),
                 user.getDeletedAt());
     }
-
-
 }

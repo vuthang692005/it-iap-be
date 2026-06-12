@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -38,6 +40,14 @@ public class UserController {
         UserResponse response = userService.updateInfo(request);
         return ResponseEntity.ok(ApiResponse.<UserResponse>builder()
                 .data(response)
+                .build());
+    }
+
+    @PostMapping(consumes = "multipart/form-data", value = "/avatar")
+    public ResponseEntity<ApiResponse> updateAvatar(@RequestParam("file") MultipartFile file) {
+        String avatarUrl = userService.updateAvatar(file);
+        return ResponseEntity.ok(ApiResponse.builder()
+                .data(avatarUrl)
                 .build());
     }
 

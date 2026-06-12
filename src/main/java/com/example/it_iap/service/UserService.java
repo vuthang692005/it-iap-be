@@ -1,5 +1,7 @@
 package com.example.it_iap.service;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import com.example.it_iap.dto.user.request.ChangePasswordRequest;
 import com.example.it_iap.dto.user.request.UpdateUserInfoRequest;
 import com.example.it_iap.dto.user.response.UserResponse;
@@ -15,4 +17,6 @@ public interface UserService {
     UserResponse getInfo();
 
     UserResponse updateInfo(UpdateUserInfoRequest request);
+
+    String updateAvatar(MultipartFile file);
 }
