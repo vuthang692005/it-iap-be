@@ -1,6 +1,7 @@
 package com.example.it_iap.service.impl;
 
 import com.example.it_iap.dto.user.request.ChangePasswordRequest;
+import com.example.it_iap.dto.user.request.SearchUserRequest;
 import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.exception.AppException;
@@ -10,6 +11,8 @@ import com.example.it_iap.service.UserService;
 import com.example.it_iap.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +39,20 @@ public class UserServiceImpl implements UserService {
         } else {
             throw new AppException(ErrorCode.OLD_PASSWORD_MISMATCH);
         }
+    }
+
+    public Page<UserResponse> searchUser(SearchUserRequest request) {
+        int page = Math.max(0, request.getPages() - 1);
+        int size = 10;
+        PageRequest pageable = PageRequest.of(page, size);
+
+        Page<User> users = userRepository.searchUsers(
+                request.getEmail(),
+                request.getFullName(),
+                request.getPhoneNumber(),
+                pageable);
+
+        return users.map(this::buildProfileResponse);
     }
 
     // Hàm chung để map từ Entity sang Response DTO.

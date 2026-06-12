@@ -5,9 +5,6 @@ import jakarta.validation.constraints.Pattern;
 import lombok.*;
 
 @Getter
-@Setter
-@Builder
-@AllArgsConstructor
 public class ChangePasswordRequest {
     @NotBlank(message = "PASSWORD_INVALID")
     private String oldPassword;
