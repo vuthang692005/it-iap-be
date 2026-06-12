@@ -1,8 +1,11 @@
 package com.example.it_iap.service.impl;
 
 import com.example.it_iap.dto.user.request.ChangePasswordRequest;
+import com.example.it_iap.dto.user.request.CreateUserRequest;
+import com.example.it_iap.dto.user.request.UpdateUserRequest;
 import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.entity.User;
+import com.example.it_iap.entity.enums.Role;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.UserRepository;
@@ -10,6 +13,12 @@ import com.example.it_iap.service.UserService;
 import com.example.it_iap.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +27,9 @@ import org.springframework.stereotype.Service;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.user.default-password}")
+    private String defaultPassword;
 
     public User getCurrentUser() {
         String email = SecurityUtils.getCurrentUserEmail();
@@ -38,6 +50,38 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    public UserResponse createUser(CreateUserRequest request) {
+        String email = request.getEmail();
+        if (userRepository.existsByEmail(email)) {
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(defaultPassword));
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setVerifyEmail(true);
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.USER);
+        user.setRoles(roles);
+        return buildProfileResponse(userRepository.save(user));
+    }
+
+    public UserResponse updateUser(UUID id, UpdateUserRequest request) {
+        User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        user.setEmail(request.getEmail());
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setAvatarUrl(request.getAvatarUrl());
+        boolean isActive = request.isActive();
+        user.setActive(isActive);
+        // Nếu isActive là false thì đặt thời gian deleteAt
+        if (!isActive) {
+            user.setDeletedAt(LocalDateTime.now());
+        }
+        return buildProfileResponse(userRepository.save(user));
+    }
+
     // Hàm chung để map từ Entity sang Response DTO.
     private UserResponse buildProfileResponse(User user) {
         return new UserResponse(
@@ -48,7 +92,6 @@ public class UserServiceImpl implements UserService {
                 user.getAvatarUrl(),
                 user.isActive(),
                 user.getCreatedAt(),
-                user.getDeletedAt()
-        );
+                user.getDeletedAt());
     }
 }
