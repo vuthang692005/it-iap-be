@@ -6,7 +6,7 @@ import com.example.it_iap.dto.user.request.SearchUserRequest;
 import com.example.it_iap.dto.user.request.UpdateUserInfoRequest;
 import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.service.UserService;
-
+import org.springframework.web.bind.annotation.ModelAttribute;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
