@@ -31,6 +31,7 @@ public enum ValidationError {
     MODEL_INVALID("Model không hợp lệ"),
     PROMPT_CONTENT_INVALID("Nội dung prompt không được để trống"),
     APPLY_FOR_INVALID("Tính năng không hợp lệ"),
+    PROMPT_USE_CASE_INVALID("Mục đích sử dụng Prompt không hợp lệ. Vui lòng chọn các giá trị được hỗ trợ."),
     ;
     private final String message;
 

@@ -2,14 +2,15 @@ package com.example.it_iap.controller;
 
 import com.example.it_iap.dto.ApiResponse;
 import com.example.it_iap.dto.user.request.ChangePasswordRequest;
+import com.example.it_iap.dto.user.request.SearchUserRequest;
 import com.example.it_iap.dto.user.request.UpdateUserInfoRequest;
 import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.service.UserService;
-
+import org.springframework.web.bind.annotation.ModelAttribute;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -57,5 +58,14 @@ public class UserController {
         return ResponseEntity.ok(
                 ApiResponse.builder()
                         .build());
+    }
+
+    @GetMapping()
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> searchUser(@ModelAttribute SearchUserRequest request){
+        return ResponseEntity.ok(
+                ApiResponse.<Page<UserResponse>>builder()
+                        .data(userService.searchUser(request))
+                        .build()
+        );
     }
 }
