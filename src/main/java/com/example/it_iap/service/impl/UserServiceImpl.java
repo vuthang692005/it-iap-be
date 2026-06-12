@@ -59,6 +59,8 @@ public class UserServiceImpl implements UserService {
                 pageable);
 
         return users.map(this::buildProfileResponse);
+    }
+    
     public UserResponse getInfo() {
         User user = getCurrentUser();
         return buildProfileResponse(user);
