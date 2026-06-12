@@ -5,8 +5,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 
-import java.util.UUID;
-
 @Getter
 public class VerifyForgotPasswordRequest {
     @NotNull(message = "EMAIL_INVALID")

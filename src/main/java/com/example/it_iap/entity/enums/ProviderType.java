@@ -1,7 +1,5 @@
 package com.example.it_iap.entity.enums;
 
-import lombok.RequiredArgsConstructor;
-
 public enum ProviderType {
     GOOGLE,
     OPENAI,

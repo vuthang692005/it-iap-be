@@ -12,6 +12,8 @@ app:
   frontend-url: ${FRONTEND_URL}
   cookie:
     secure: ${SECURE}
+  user:
+    default-password: ${USER_DEFAULT_PASSWORD}
 
 spring:
   config:

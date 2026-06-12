@@ -1,11 +1,16 @@
 package com.example.it_iap.service.impl;
 
 import com.example.it_iap.dto.user.request.ChangePasswordRequest;
+import com.example.it_iap.dto.user.request.CreateUserRequest;
+import com.example.it_iap.dto.user.request.UpdateUserRequest;
 import com.example.it_iap.dto.user.request.SearchUserRequest;
 import com.example.it_iap.dto.user.request.UpdateUserInfoRequest;
 import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.enums.UploadFolder;
+import com.example.it_iap.dto.user.request.CreateUserRequest;
+import com.example.it_iap.dto.user.request.UpdateUserRequest;
+import com.example.it_iap.entity.enums.Role;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.UserRepository;
@@ -16,6 +21,12 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +38,9 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${app.user.default-password}")
+    private String defaultPassword;
 
     public User getCurrentUser() {
         String email = SecurityUtils.getCurrentUserEmail();
@@ -59,6 +73,37 @@ public class UserServiceImpl implements UserService {
                 pageable);
 
         return users.map(this::buildProfileResponse);
+    }
+    public UserResponse createUser(CreateUserRequest request) {
+        String email = request.getEmail();
+        if (userRepository.existsByEmail(email)) {
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(passwordEncoder.encode(defaultPassword));
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setVerifyEmail(true);
+        Set<Role> roles = new HashSet<>();
+        roles.add(Role.USER);
+        user.setRoles(roles);
+        return buildProfileResponse(userRepository.save(user));
+    }
+
+    public UserResponse updateUser(UUID id, UpdateUserRequest request) {
+        User user = userRepository.findById(id).orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        user.setEmail(request.getEmail());
+        user.setFullName(request.getFullName());
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setAvatarUrl(request.getAvatarUrl());
+        boolean isActive = request.isActive();
+        user.setActive(isActive);
+        // Nếu isActive là false thì đặt thời gian deleteAt
+        if (!isActive) {
+            user.setDeletedAt(LocalDateTime.now());
+        }
+        return buildProfileResponse(userRepository.save(user));
     }
     
     public UserResponse getInfo() {
