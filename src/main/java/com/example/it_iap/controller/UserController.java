@@ -5,6 +5,8 @@ import com.example.it_iap.dto.user.request.ChangePasswordRequest;
 import com.example.it_iap.dto.user.request.CreateUserRequest;
 import com.example.it_iap.dto.user.request.UpdateUserRequest;
 import com.example.it_iap.dto.user.response.UserResponse;
+import com.example.it_iap.dto.user.request.UpdateUserInfoRequest;
+import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.service.UserService;
 
 import jakarta.validation.Valid;
@@ -13,17 +15,19 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.UUID;
 
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -55,9 +59,26 @@ public class UserController {
     }
 
     @GetMapping("/info")
-    public ResponseEntity<ApiResponse> info(@AuthenticationPrincipal Jwt jwt) {
+    public ResponseEntity<ApiResponse<UserResponse>> getInfo() {
+        UserResponse response = userService.getInfo();
+        return ResponseEntity.ok(ApiResponse.<UserResponse>builder()
+                .data(response)
+                .build());
+    }
+
+    @PutMapping("/info")
+    public ResponseEntity<ApiResponse<UserResponse>> updateInfo(@RequestBody @Valid UpdateUserInfoRequest request) {
+        UserResponse response = userService.updateInfo(request);
+        return ResponseEntity.ok(ApiResponse.<UserResponse>builder()
+                .data(response)
+                .build());
+    }
+
+    @PostMapping(consumes = "multipart/form-data", value = "/avatar")
+    public ResponseEntity<ApiResponse> updateAvatar(@RequestParam("file") MultipartFile file) {
+        String avatarUrl = userService.updateAvatar(file);
         return ResponseEntity.ok(ApiResponse.builder()
-                .data(jwt.getSubject())
+                .data(avatarUrl)
                 .build());
     }
 
