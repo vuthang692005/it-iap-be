@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.example.it_iap.enums.UploadFolder;
 import org.springframework.stereotype.Service;
 
 import com.cloudinary.Cloudinary;
@@ -30,7 +31,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     /*
      * Hàm upload avatar user
      */
-    public String uploadImage(MultipartFile file, String folder) {
+    public String uploadImage(MultipartFile file, UploadFolder uploadFolder) {
         try {
             validateFile(file);
 
@@ -41,7 +42,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
             Map uploadResult = cloudinary.uploader().upload(file.getBytes(),
                     ObjectUtils.asMap(
                             "resource_type", resourceType,
-                            "folder", folder, // Tên thư mục lưu
+                            "folder", uploadFolder.getFolder(), // Tên thư mục lưu
                             "overwrite", false, // Ghi đè nếu trùng file name
                             "unique_filename", true)); // tên file là duy nhất
 

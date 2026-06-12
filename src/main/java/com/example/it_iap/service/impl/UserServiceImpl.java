@@ -4,6 +4,7 @@ import com.example.it_iap.dto.user.request.ChangePasswordRequest;
 import com.example.it_iap.dto.user.request.UpdateUserInfoRequest;
 import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.entity.User;
+import com.example.it_iap.enums.UploadFolder;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.UserRepository;
@@ -72,7 +73,7 @@ public class UserServiceImpl implements UserService {
 
     public String updateAvatar(MultipartFile file) {
         User user = getCurrentUser();
-        String avatarUrl = cloudinaryService.uploadImage(file, "User avatars");
+        String avatarUrl = cloudinaryService.uploadImage(file, UploadFolder.USER_AVATAR);
         user.setAvatarUrl(avatarUrl);
         userRepository.save(user);
         return avatarUrl;
