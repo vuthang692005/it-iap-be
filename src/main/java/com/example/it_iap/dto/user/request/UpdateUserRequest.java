@@ -5,6 +5,8 @@ import org.hibernate.validator.constraints.URL;
 import com.example.it_iap.validator.annotation.Gmail;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AccessLevel;
@@ -15,9 +17,11 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class UpdateUserRequest {
     @Gmail
+    @NotNull(message = "EMAIL_INVALID")
     @NotBlank(message = "EMAIL_INVALID")
     String email;
 
+    @NotNull(message = "FULL_NAME_INVALID")
     @NotBlank(message = "FULL_NAME_INVALID")
     @Size(max = 30, message = "FULL_NAME_INVALID")
     String fullName;
@@ -28,5 +32,8 @@ public class UpdateUserRequest {
     @URL(message = "AVATAR_URL_INVALID")
     String avatarUrl;
 
-    boolean isActive;    
+    @NotBlank(message = "DATA_INVALID")
+    @NotNull(message = "DATA_INVALID")
+    @NotEmpty(message = "DATA_INVALID")
+    boolean active;    
 }
