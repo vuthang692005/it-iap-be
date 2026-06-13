@@ -17,7 +17,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u FROM User u WHERE " +
             "(:email IS NULL OR TRIM(:email) = '' OR LOWER(u.email) LIKE LOWER(CONCAT('%', :email, '%'))) AND " +
             "(:fullName IS NULL OR TRIM(:fullName) = '' OR LOWER(u.fullName) LIKE LOWER(CONCAT('%', :fullName, '%'))) AND " +
-            "(:phoneNumber IS NULL OR TRIM(:phoneNumber) = '' OR u.phoneNumber = :phoneNumber) AND " +
+            "(:phoneNumber IS NULL OR TRIM(:phoneNumber) = '' OR u.phoneNumber LIKE CONCAT('%', :phoneNumber, '%')) AND " +
             "CAST(u.roles AS string) NOT LIKE '%ADMIN%'")
     Page<User> searchUsers(
             @Param("email") String email,

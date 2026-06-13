@@ -20,6 +20,6 @@ public class CreateUserRequest {
     @Size(max = 30, message = "FULL_NAME_INVALID")
     String fullName;
 
-    @Pattern(regexp = "^0\\d{9}$", message = "PHONE_NUMBER_INVALID")
+    @Pattern(regexp = "^(0\\d{9})?$", message = "PHONE_NUMBER_INVALID")
     String phoneNumber;
 }

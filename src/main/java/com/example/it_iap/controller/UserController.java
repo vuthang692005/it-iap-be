@@ -107,8 +107,8 @@ public class UserController {
 
     @Operation(summary = "Xác nhận mã OTP để hoàn tất đổi email")
     @PostMapping("/verify-change-email")
-    public ResponseEntity<ApiResponse> verifyChangeEmail(@RequestParam String otpCode) {
-        userService.verifyChangeEmail(otpCode);
+    public ResponseEntity<ApiResponse> verifyChangeEmail(@RequestBody @Valid VerifyChangeEmailRequest request) {
+        userService.verifyChangeEmail(request.getOtp());
         return ResponseEntity.ok(
                 ApiResponse.builder()
                         .build());
