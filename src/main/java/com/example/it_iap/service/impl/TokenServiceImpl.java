@@ -60,7 +60,7 @@ public class TokenServiceImpl implements TokenService {
         String refreshTokenId = UUID.randomUUID().toString();
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getEmail())
+                .subject(user.getId().toString())
                 .issuer("test")
                 .issueTime(new Date())
                 .claim(CLAIM_IS_REFRESH_TOKEN, true)
@@ -74,7 +74,7 @@ public class TokenServiceImpl implements TokenService {
         jwsObject.sign(new MACSigner(signerKey));
 
         String refreshToken = jwsObject.serialize();
-        String key = PREFIX + user.getEmail();
+        String key = PREFIX + user.getId();
 
         cacheRepository.addToSet(key, refreshTokenId, Duration.ofDays(7));
         return refreshToken;
@@ -119,10 +119,10 @@ public class TokenServiceImpl implements TokenService {
     public void revokeRefreshToken(String refreshToken, boolean isLogout) throws ParseException, JOSEException {
         // Lấy thông tin từ token
         SignedJWT signedJWT = SignedJWT.parse(refreshToken);
-        String email = signedJWT.getJWTClaimsSet().getSubject();
+        String userId = signedJWT.getJWTClaimsSet().getSubject();
         String refreshTokenId = signedJWT.getJWTClaimsSet().getJWTID();
 
-        String key = PREFIX + email;
+        String key = PREFIX + userId;
         if (!isLogout) {
             // Kiểm tra xem token CÒN trong Whitelist không
             if (!cacheRepository.isMemberOfSet(key, refreshTokenId)) {
