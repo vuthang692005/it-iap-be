@@ -43,8 +43,8 @@ public class UserServiceImpl implements UserService {
     private String defaultPassword;
 
     public User getCurrentUser() {
-        String email = SecurityUtils.getCurrentUserEmail();
-        return userRepository.findByEmail(email)
+        UUID userId = SecurityUtils.getCurrentUserId();
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
@@ -52,6 +52,9 @@ public class UserServiceImpl implements UserService {
         User user = getCurrentUser();
         String oldPassword = request.getOldPassword();
         String encodeNewPassword = passwordEncoder.encode(request.getNewPassword());
+        if (user.getPassword() == null) {
+            throw new AppException(ErrorCode.OLD_PASSWORD_MISMATCH);
+        }
         boolean match = passwordEncoder.matches(oldPassword, user.getPassword());
         if (match) {
             user.setPassword(encodeNewPassword);
@@ -102,7 +105,10 @@ public class UserServiceImpl implements UserService {
         // Nếu isActive là false thì đặt thời gian deleteAt
         if (!isActive) {
             user.setDeletedAt(LocalDateTime.now());
+        }else {
+            user.setDeletedAt(null); // Bắt buộc phải clear khi mở khóa lại
         }
+
         return buildProfileResponse(userRepository.save(user));
     }
     
@@ -120,10 +126,10 @@ public class UserServiceImpl implements UserService {
     }
 
     public void changeEmail (ChangeEmailRequest request){
-        String email = SecurityUtils.getCurrentUserEmail();
+        User user = getCurrentUser();
         String newEmail = request.getNewEmail();
 
-        if (newEmail.equals(email)){
+        if (newEmail.equals(user.getEmail())){
             throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
         }
 
@@ -131,7 +137,6 @@ public class UserServiceImpl implements UserService {
             throw new AppException(ErrorCode.EMAIL_EXISTED);
         }
 
-        User user = getCurrentUser();
         String pendingMailKey = PENDING_EMAIL_PREFIX + user.getId();
 
         VerificationPurpose purpose = VerificationPurpose.CHANGE_EMAIL;

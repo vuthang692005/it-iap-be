@@ -40,7 +40,7 @@ public class TokenServiceImpl implements TokenService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getEmail())
+                .subject(user.getId().toString())
                 .issuer("test")
                 .issueTime(new Date())
                 .claim("scope", buildScope(user))

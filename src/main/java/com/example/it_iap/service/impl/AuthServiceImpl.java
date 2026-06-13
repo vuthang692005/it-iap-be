@@ -146,7 +146,13 @@ public class AuthServiceImpl implements AuthService {
 
         SignedJWT signedJWT = tokenService.verifyRefreshToken(token);
         String subject = signedJWT.getJWTClaimsSet().getSubject();
-        UUID userId = UUID.fromString(subject);
+        UUID userId;
+
+        try {
+            userId = UUID.fromString(subject);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
+        }
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
@@ -170,6 +176,7 @@ public class AuthServiceImpl implements AuthService {
 
     public void forgotPassword (String email){
         userRepository.findByEmail(email)
+                .filter(User::isVerifyEmail)
                 .ifPresent(user -> {
                     VerificationPurpose purpose = VerificationPurpose.FORGOT_PASSWORD;
                     String otp = verificationService.createOtp(user.getId().toString(), purpose);

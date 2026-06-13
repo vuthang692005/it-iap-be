@@ -21,7 +21,7 @@ public enum ErrorCode {
     INVALID_IMAGE(400, "Ảnh không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_IMAGE_SIZE(400, "Kích thước ảnh quá lớn", HttpStatus.BAD_REQUEST),
     INVALID_IMAGE_TYPE(400, "Định dạng ảnh không hỗ trợ", HttpStatus.BAD_REQUEST),
-    EMAIL_ALREADY_USED(400, "Email ", HttpStatus.BAD_REQUEST),
+    EMAIL_ALREADY_USED(400, "Vui lòng nhập một email khác với email đang sử dụng", HttpStatus.BAD_REQUEST),
 
     //EXISTED
     EMAIL_EXISTED(409, "Email đã được sử dụng", HttpStatus.CONFLICT),

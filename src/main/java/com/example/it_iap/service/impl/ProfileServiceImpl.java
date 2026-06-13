@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -67,8 +68,8 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     public List<ProfileSummaryResponse> getAllProfiles (){
-        String currentEmail = SecurityUtils.getCurrentUserEmail();
-        List<Profile> activeProfiles = profileRepository.findAllByUser_EmailAndDeletedAtIsNull(currentEmail);
+        UUID userId = SecurityUtils.getCurrentUserId();
+        List<Profile> activeProfiles = profileRepository.findAllByUserIdAndDeletedAtIsNull(userId);
 
         return activeProfiles.stream()
                 .map(profile -> new ProfileSummaryResponse(
@@ -83,10 +84,10 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = profileRepository.findWithUserByIdAndDeletedAtIsNull(profileId)
                 .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_FOUND));
 
-        String userEmail = profile.getUser().getEmail();
-        String currentEmail = SecurityUtils.getCurrentUserEmail();
+        UUID userId = profile.getUser().getId();
+        UUID currentId = SecurityUtils.getCurrentUserId();
 
-        if (!userEmail.equals(currentEmail)) {
+        if (!userId.equals(currentId)) {
             throw new AppException(ErrorCode.ACCESS_DENIED);
         }
         return profile;
