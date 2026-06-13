@@ -50,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
                     if (u.isVerifyEmail()) {
                         throw new AppException(ErrorCode.EMAIL_EXISTED);
                     }
-                    if (verificationService.hasActiveOtp(u.getId(), VerificationPurpose.EMAIL_VERIFY)) {
+                    if (verificationService.hasActiveOtp(u.getId().toString(), VerificationPurpose.EMAIL_VERIFY)) {
                         throw new AppException(ErrorCode.ACCOUNT_AWAITING_VERIFICATION);
                     }
                     return u;
@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         VerificationPurpose purpose = VerificationPurpose.EMAIL_VERIFY;
-        String otp = verificationService.createOtp(user.getId(), purpose);
+        String otp = verificationService.createOtp(user.getId().toString(), purpose);
         emailService.sendVerifyOtp(user.getEmail(), user.getFullName(), otp, purpose);
 
         return new AuthResponse(user.getId());
@@ -81,14 +81,14 @@ public class AuthServiceImpl implements AuthService {
                 .filter(user -> !user.isVerifyEmail())
                 .ifPresent(user -> {
                     VerificationPurpose purpose = VerificationPurpose.EMAIL_VERIFY;
-                    String otp = verificationService.createOtp(user.getId(), purpose);
+                    String otp = verificationService.createOtp(user.getId().toString(), purpose);
                     emailService.sendVerifyOtp(user.getEmail(), user.getFullName(), otp, purpose);
                 });
     }
 
     @Transactional
     public void verifyEmail(VerifyEmailRequest request) {
-        boolean matched = verificationService.verifyOtp(request.getUserId(), request.getOtp(),
+        boolean matched = verificationService.verifyOtp(request.getUserId().toString(), request.getOtp(),
                 VerificationPurpose.EMAIL_VERIFY);
 
         if (!matched) {
@@ -145,11 +145,12 @@ public class AuthServiceImpl implements AuthService {
         }
 
         SignedJWT signedJWT = tokenService.verifyRefreshToken(token);
-        String email = signedJWT.getJWTClaimsSet().getSubject();
+        String subject = signedJWT.getJWTClaimsSet().getSubject();
+        UUID userId = UUID.fromString(subject);
 
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> {
-                    log.warn("Xác thực refreshToken thất bại: không tìm thấy người dùng với subject '{}'", email);
+                    log.warn("Xác thực refreshToken thất bại: không tìm thấy người dùng với subject '{}'", userId);
                     return new AppException(ErrorCode.AUTHENTICATION_FAILED);
                 });
 
@@ -171,7 +172,7 @@ public class AuthServiceImpl implements AuthService {
         userRepository.findByEmail(email)
                 .ifPresent(user -> {
                     VerificationPurpose purpose = VerificationPurpose.FORGOT_PASSWORD;
-                    String otp = verificationService.createOtp(user.getId(), purpose);
+                    String otp = verificationService.createOtp(user.getId().toString(), purpose);
                     emailService.sendVerifyOtp(user.getEmail(), user.getFullName(), otp, purpose);
                 });
     }
@@ -181,7 +182,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new AppException(ErrorCode.OTP_VERIFICATION_FAILED)
                 );
 
-        boolean matched = verificationService.verifyOtp(user.getId(), request.getOtp(), VerificationPurpose.FORGOT_PASSWORD);
+        boolean matched = verificationService.verifyOtp(user.getId().toString(), request.getOtp(), VerificationPurpose.FORGOT_PASSWORD);
 
         if (!matched){
             throw new  AppException(ErrorCode.OTP_VERIFICATION_FAILED);

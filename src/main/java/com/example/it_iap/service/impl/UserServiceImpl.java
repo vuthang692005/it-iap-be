@@ -1,21 +1,19 @@
 package com.example.it_iap.service.impl;
 
-import com.example.it_iap.dto.user.request.ChangePasswordRequest;
-import com.example.it_iap.dto.user.request.CreateUserRequest;
-import com.example.it_iap.dto.user.request.UpdateUserRequest;
-import com.example.it_iap.dto.user.request.SearchUserRequest;
-import com.example.it_iap.dto.user.request.UpdateUserInfoRequest;
+import com.example.it_iap.cache.CacheRepository;
+import com.example.it_iap.dto.user.request.*;
 import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.enums.UploadFolder;
-import com.example.it_iap.dto.user.request.CreateUserRequest;
-import com.example.it_iap.dto.user.request.UpdateUserRequest;
 import com.example.it_iap.entity.enums.Role;
+import com.example.it_iap.enums.VerificationPurpose;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.UserRepository;
 import com.example.it_iap.service.CloudinaryService;
+import com.example.it_iap.service.EmailService;
 import com.example.it_iap.service.UserService;
+import com.example.it_iap.service.VerificationService;
 import com.example.it_iap.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 
@@ -25,7 +23,6 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,10 +31,13 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+    private static final String PENDING_EMAIL_PREFIX = "PENDING_EMAIL:";
     private final CloudinaryService cloudinaryService;
-
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VerificationService verificationService;
+    private final EmailService emailService;
+    private final CacheRepository cacheRepository;
 
     @Value("${app.user.default-password}")
     private String defaultPassword;
@@ -131,6 +131,46 @@ public class UserServiceImpl implements UserService {
         user.setPhoneNumber(request.getPhoneNumber());
         return buildProfileResponse(userRepository.save(user));
 
+    }
+
+    public void changeEmail (ChangeEmailRequest request){
+        String email = SecurityUtils.getCurrentUserEmail();
+        String newEmail = request.getNewEmail();
+
+        if (newEmail.equals(email)){
+            throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
+        }
+
+        if (userRepository.existsByEmail(newEmail)) {
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
+
+        User user = getCurrentUser();
+        String pendingMailKey = PENDING_EMAIL_PREFIX + user.getId();
+
+        VerificationPurpose purpose = VerificationPurpose.CHANGE_EMAIL;
+        cacheRepository.save(pendingMailKey, newEmail, purpose.getTtl());
+        String otp = verificationService.createOtp(user.getId().toString(), purpose);
+        emailService.sendVerifyOtp(newEmail, user.getFullName(), otp, purpose);
+    }
+
+    public void verifyChangeEmail(String otpCode){
+        User user = getCurrentUser();
+
+        VerificationPurpose purpose = VerificationPurpose.CHANGE_EMAIL;
+        boolean isValid = verificationService.verifyOtp(user.getId().toString(), otpCode, purpose);
+        if (!isValid) {
+            throw new AppException(ErrorCode.OTP_VERIFICATION_FAILED);
+        }
+
+        String pendingEmailKey = PENDING_EMAIL_PREFIX + user.getId();
+        String newEmail = cacheRepository.get(pendingEmailKey)
+                .orElseThrow(() -> new AppException(ErrorCode.OTP_VERIFICATION_FAILED));
+
+        user.setEmail(newEmail);
+        userRepository.save(user);
+
+        cacheRepository.delete(pendingEmailKey);
     }
 
     public String updateAvatar(MultipartFile file) {

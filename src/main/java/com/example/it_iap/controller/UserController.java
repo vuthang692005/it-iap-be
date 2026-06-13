@@ -1,13 +1,11 @@
 package com.example.it_iap.controller;
 
 import com.example.it_iap.dto.ApiResponse;
-import com.example.it_iap.dto.user.request.ChangePasswordRequest;
-import com.example.it_iap.dto.user.request.SearchUserRequest;
-import com.example.it_iap.dto.user.request.CreateUserRequest;
-import com.example.it_iap.dto.user.request.UpdateUserRequest;
+import com.example.it_iap.dto.user.request.*;
 import com.example.it_iap.dto.user.response.UserResponse;
-import com.example.it_iap.dto.user.request.UpdateUserInfoRequest;
 import com.example.it_iap.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -97,5 +95,24 @@ public class UserController {
                         .data(userService.searchUser(request))
                         .build()
         );
+    }
+
+    @Operation(summary = "Yêu cầu thay đổi địa chỉ email")
+    @PostMapping("/change-email")
+    public ResponseEntity<ApiResponse> changeEmail(@RequestBody @Valid ChangeEmailRequest request) {
+        userService.changeEmail(request);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(
+                ApiResponse.builder()
+                        .code(202)
+                        .build());
+    }
+
+    @Operation(summary = "Xác nhận mã OTP để hoàn tất đổi email")
+    @PostMapping("/verify-change-email")
+    public ResponseEntity<ApiResponse> verifyChangeEmail(@RequestParam String otpCode) {
+        userService.verifyChangeEmail(otpCode);
+        return ResponseEntity.ok(
+                ApiResponse.builder()
+                        .build());
     }
 }
