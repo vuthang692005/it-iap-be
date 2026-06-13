@@ -41,7 +41,6 @@ public class UserController {
         return ResponseEntity.ok(
                 ApiResponse.<UserResponse>builder()
                 .data(response)
-                .message("Tạo user thành công")
                         .build());
     }
     
@@ -52,7 +51,6 @@ public class UserController {
         return ResponseEntity.ok(
                 ApiResponse.<UserResponse>builder()
                 .data(response)
-                .message("Cập nhật user thành công")
                         .build());
     }
 

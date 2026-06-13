@@ -32,6 +32,7 @@ public enum ValidationError {
     PROMPT_CONTENT_INVALID("Nội dung prompt không được để trống"),
     APPLY_FOR_INVALID("Tính năng không hợp lệ"),
     PROMPT_USE_CASE_INVALID("Mục đích sử dụng Prompt không hợp lệ. Vui lòng chọn các giá trị được hỗ trợ."),
+    AVATAR_URL_INVALID("Đường dẫn ảnh không hợp lệ")
     ;
     private final String message;
 

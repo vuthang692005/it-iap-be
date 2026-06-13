@@ -16,7 +16,6 @@ public enum ErrorCode {
     ACCOUNT_AWAITING_VERIFICATION(400, "Tài khoản đang chờ xác thực. Vui lòng kiểm tra email hoặc thử lại sau vài phút", HttpStatus.BAD_REQUEST),
     PROVIDER_MODEL_MISMATCH(400,"Mô hình AI không thuộc nhà cung cấp đã chọn",HttpStatus.BAD_REQUEST),
     OLD_PASSWORD_MISMATCH(400, "Mật khẩu cũ không chính xác", HttpStatus.BAD_REQUEST),
-    AVATAR_URL_INVALID(400, "Đường dẫn ảnh không hợp lệ", HttpStatus.BAD_REQUEST),
     UNABLE_TO_UPLOAD_IMAGE(400, "Cập nhật ảnh đại diện thất bại", HttpStatus.BAD_REQUEST),
     INVALID_IMAGE(400, "Ảnh không hợp lệ", HttpStatus.BAD_REQUEST),
     INVALID_IMAGE_SIZE(400, "Kích thước ảnh quá lớn", HttpStatus.BAD_REQUEST),
