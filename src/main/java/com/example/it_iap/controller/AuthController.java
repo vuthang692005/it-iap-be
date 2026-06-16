@@ -28,6 +28,7 @@ import java.text.ParseException;
 public class AuthController {
     private final AuthService authService;
 
+    @Operation(summary = "Đăng ký tài khoản mới")
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody @Valid RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
@@ -37,6 +38,7 @@ public class AuthController {
                         .build());
     }
 
+    @Operation(summary = "Đăng nhập", description = "Đăng nhập hệ thống, trả về vai trò và cấu hình cookie")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<RoleResponse>> login(@RequestBody @Valid LoginRequest request,
             HttpServletResponse response) throws JOSEException {
@@ -47,6 +49,7 @@ public class AuthController {
                         .build());
     }
 
+    @Operation(summary = "Làm mới Access Token", description = "Sử dụng Refresh Token để cấp lại Access Token mới")
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<RoleResponse>> refreshToken(HttpServletRequest request,
             HttpServletResponse response)
@@ -58,6 +61,7 @@ public class AuthController {
                         .build());
     }
 
+    @Operation(summary = "Xác thực Email bằng OTP")
     @PostMapping("/verify-email")
     public ResponseEntity<ApiResponse> verifyEmail(@RequestBody @Valid VerifyEmailRequest request) {
         authService.verifyEmail(request);
@@ -65,6 +69,7 @@ public class AuthController {
                 .build());
     }
 
+    @Operation(summary = "Gửi lại mã OTP kích hoạt tài khoản")
     @PostMapping("/resend-otp")
     public ResponseEntity<ApiResponse> resendOtp(@RequestBody @Valid ResendOtpRequest request) {
         authService.resendOtp(request);
@@ -74,6 +79,7 @@ public class AuthController {
                         .build());
     }
 
+    @Operation(summary = "Đăng xuất tài khoản", description = "Xóa phiên đăng nhập hiện tại và xóa cookie tokens")
     @PostMapping("/logout")
     public ResponseEntity<ApiResponse> logout(HttpServletRequest request, HttpServletResponse response)
             throws JOSEException, ParseException {
@@ -82,7 +88,7 @@ public class AuthController {
                 .build());
     }
 
-    @Operation(summary = "Yêu cầu quên mật khẩu")
+    @Operation(summary = "Yêu cầu quên mật khẩu", description = "Gửi mã OTP khôi phục mật khẩu qua Email")
     @PostMapping("/password/forgot")
     public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
         authService.forgotPassword(request.getEmail());
@@ -94,7 +100,7 @@ public class AuthController {
         );
     }
 
-    @Operation(summary = "Xác thực OTP và thiết lập mật khẩu mới")
+    @Operation(summary = "Đặt lại mật khẩu mới", description = "Xác thực mã OTP quên mật khẩu và tiến hành cập nhật mật khẩu mới")
     @PostMapping("/password/reset")
     public ResponseEntity<ApiResponse<Void>> verifyForgotPassword(@RequestBody @Valid VerifyForgotPasswordRequest request) {
         authService.verifyForgotPassword(request);

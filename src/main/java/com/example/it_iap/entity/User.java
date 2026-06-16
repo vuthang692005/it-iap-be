@@ -53,4 +53,7 @@ public class User extends Auditable{
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Profile> profiles;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<ChatSession> chatSessions;
 }
