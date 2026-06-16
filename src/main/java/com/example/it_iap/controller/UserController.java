@@ -34,6 +34,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class UserController {
     private final UserService userService;
 
+    @Operation(summary = "Tạo người dùng mới [ADMIN]", description = "Admin tạo tài khoản người dùng mới trong hệ thống")
     @PostMapping
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> create(@RequestBody @Valid CreateUserRequest request) {
@@ -43,7 +44,8 @@ public class UserController {
                 .data(response)
                         .build());
     }
-    
+
+    @Operation(summary = "Cập nhật người dùng [ADMIN]", description = "Admin thay đổi thông tin tài khoản bất kỳ qua UUID")
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<ApiResponse<UserResponse>> update(@PathVariable UUID id, @RequestBody @Valid UpdateUserRequest request) {
@@ -54,6 +56,7 @@ public class UserController {
                         .build());
     }
 
+    @Operation(summary = "Lấy thông tin cá nhân", description = "Lấy thông tin chi tiết của người dùng đang đăng nhập")
     @GetMapping("/info")
     public ResponseEntity<ApiResponse<UserResponse>> getInfo() {
         UserResponse response = userService.getInfo();
@@ -62,6 +65,7 @@ public class UserController {
                 .build());
     }
 
+    @Operation(summary = "Cập nhật thông tin cá nhân", description = "Người dùng tự cập nhật thông tin cơ bản của chính mình")
     @PutMapping("/info")
     public ResponseEntity<ApiResponse<UserResponse>> updateInfo(@RequestBody @Valid UpdateUserInfoRequest request) {
         UserResponse response = userService.updateInfo(request);
@@ -70,6 +74,7 @@ public class UserController {
                 .build());
     }
 
+    @Operation(summary = "Cập nhật ảnh đại diện", description = "Tải lên tệp ảnh để thay đổi avatar cá nhân")
     @PostMapping(consumes = "multipart/form-data", value = "/avatar")
     public ResponseEntity<ApiResponse> updateAvatar(@RequestParam("file") MultipartFile file) {
         String avatarUrl = userService.updateAvatar(file);
@@ -78,6 +83,7 @@ public class UserController {
                 .build());
     }
 
+    @Operation(summary = "Đổi mật khẩu", description = "Người dùng tự thay đổi mật khẩu hiện tại")
     @PostMapping("/change-password")
     public ResponseEntity<ApiResponse> changePassword(@RequestBody @Valid ChangePasswordRequest request) {
         userService.changePassword(request);
@@ -86,7 +92,9 @@ public class UserController {
                         .build());
     }
 
+    @Operation(summary = "Tìm kiếm và lọc danh sách người dùng [Admin]", description = "Hỗ trợ phân trang, lọc và tìm kiếm người dùng nâng cao")
     @GetMapping()
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     public ResponseEntity<ApiResponse<Page<UserResponse>>> searchUser(@ModelAttribute SearchUserRequest request){
         return ResponseEntity.ok(
                 ApiResponse.<Page<UserResponse>>builder()

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -50,4 +51,16 @@ import java.time.LocalDateTime;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "admin_prompt_id", nullable = false)
     private AdminPrompt adminPrompt;
+
+    @OneToMany(mappedBy = "promptVersion", fetch = FetchType.LAZY)
+    private List<Question> questions;
+
+    @OneToMany(mappedBy = "promptVersion", fetch = FetchType.LAZY)
+    private List<Interview> interviews;
+
+    @OneToMany(mappedBy = "promptVersion", fetch = FetchType.LAZY)
+    private List<InterviewQuestion> interviewQuestions;
+
+    @OneToMany(mappedBy = "promptVersion", fetch = FetchType.LAZY)
+    private List<ChatSession> chatSessions;
 }
