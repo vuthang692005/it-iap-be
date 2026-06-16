@@ -40,7 +40,7 @@ public class Interview extends Auditable{
     private PromptVersion promptVersion;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "prompt_version_id", nullable = false)
+    @JoinColumn(name = "profile_id", nullable = false)
     private Profile profile;
 
     @OneToMany(mappedBy = "interview", fetch = FetchType.LAZY)

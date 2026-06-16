@@ -16,6 +16,12 @@ app:
     default-password: ${USER_DEFAULT_PASSWORD}
 
 spring:
+  ai:
+    openai:
+      api-key: ${AI_API_KEY}
+      base-url: https://generativelanguage.googleapis.com/v1beta/openai
+      chat:
+        completions-path: /chat/completions
   config:
     import: optional:file:.env[.properties]
   application:

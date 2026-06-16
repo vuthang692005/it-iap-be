@@ -35,6 +35,6 @@ public class Profile extends Auditable{
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "promptVersion", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "profile", fetch = FetchType.LAZY)
     private List<Interview> interviews;
 }
