@@ -1,7 +1,7 @@
 package com.example.it_iap.service.impl;
 
-import com.example.it_iap.cache.verification.VerificationCacheRepository;
-import com.example.it_iap.cache.verification.VerificationPurpose;
+import com.example.it_iap.cache.CacheRepository;
+import com.example.it_iap.enums.VerificationPurpose;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.service.VerificationService;
@@ -9,39 +9,43 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.UUID;
+import java.time.Duration;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
 public class VerificationServiceImpl implements VerificationService {
-    private final VerificationCacheRepository verificationCacheRepository;
+    private final CacheRepository cacheRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public String createOtp(UUID uuid, VerificationPurpose purpose) {
+    public String createOtp(String cacheKey, VerificationPurpose purpose) {
         String otp = generateOtp();
-        verificationCacheRepository.save(
-                uuid,
+        String key = purpose.getPrefix() + cacheKey;
+        Duration ttl = purpose.getTtl();
+        cacheRepository.save(
+                key,
                 passwordEncoder.encode(otp),
-                purpose
+                ttl
         );
         return otp;
     }
 
-    public boolean verifyOtp(UUID uuid, String inputOtp, VerificationPurpose purpose) {
-        String hashedOtp = verificationCacheRepository.get(uuid, purpose)
+    public boolean verifyOtp(String cacheKey, String inputOtp, VerificationPurpose purpose) {
+        String key = purpose.getPrefix() + cacheKey;
+        String hashedOtp = cacheRepository.get(key)
                 .orElseThrow(() -> new AppException(ErrorCode.OTP_VERIFICATION_FAILED));
 
         boolean matched = passwordEncoder.matches(inputOtp, hashedOtp);
 
         if (matched) {
-            verificationCacheRepository.delete(uuid, purpose);
+            cacheRepository.delete(key);
         }
         return matched;
     }
 
-    public boolean hasActiveOtp(UUID uuid, VerificationPurpose purpose) {
-        return verificationCacheRepository.exists(uuid, purpose);
+    public boolean hasActiveOtp(String cacheKey, VerificationPurpose purpose) {
+        String key = purpose.getPrefix() + cacheKey;
+        return cacheRepository.exists(key);
     }
 
     private String generateOtp() {

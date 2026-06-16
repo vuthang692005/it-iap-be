@@ -2,10 +2,11 @@ package com.example.it_iap.controller;
 
 import com.example.it_iap.dto.ApiResponse;
 import com.example.it_iap.dto.auth.request.*;
-import com.example.it_iap.dto.auth.response.RegisterResponse;
+import com.example.it_iap.dto.auth.response.AuthResponse;
 import com.example.it_iap.dto.auth.response.RoleResponse;
 import com.example.it_iap.service.AuthService;
 import com.nimbusds.jose.JOSEException;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -28,16 +29,17 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<ApiResponse<RegisterResponse>> register(@RequestBody @Valid RegisterRequest request) {
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody @Valid RegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
-                ApiResponse.<RegisterResponse>builder()
+                ApiResponse.<AuthResponse>builder()
                         .code(201)
                         .data(authService.register(request))
                         .build());
     }
 
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<RoleResponse>> login(@RequestBody @Valid LoginRequest request, HttpServletResponse response) throws JOSEException {
+    public ResponseEntity<ApiResponse<RoleResponse>> login(@RequestBody @Valid LoginRequest request,
+            HttpServletResponse response) throws JOSEException {
         RoleResponse userRoles = authService.login(request, response);
         return ResponseEntity.ok(
                 ApiResponse.<RoleResponse>builder()
@@ -46,7 +48,8 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<ApiResponse<RoleResponse>> refreshToken(HttpServletRequest request, HttpServletResponse response)
+    public ResponseEntity<ApiResponse<RoleResponse>> refreshToken(HttpServletRequest request,
+            HttpServletResponse response)
             throws JOSEException, ParseException {
         RoleResponse userRoles = authService.refreshToken(request, response);
         return ResponseEntity.ok(
@@ -56,18 +59,49 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    public ResponseEntity<ApiResponse> verifyEmail(@RequestBody @Valid VerifyEmailRequest request){
+    public ResponseEntity<ApiResponse> verifyEmail(@RequestBody @Valid VerifyEmailRequest request) {
         authService.verifyEmail(request);
         return ResponseEntity.ok(ApiResponse.builder()
                 .build());
     }
 
     @PostMapping("/resend-otp")
-    public ResponseEntity<ApiResponse> resendOtp(@RequestBody @Valid ResendOtpRequest request){
+    public ResponseEntity<ApiResponse> resendOtp(@RequestBody @Valid ResendOtpRequest request) {
         authService.resendOtp(request);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(
                 ApiResponse.builder()
-                .code(202)
+                        .code(202)
+                        .build());
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse> logout(HttpServletRequest request, HttpServletResponse response)
+            throws JOSEException, ParseException {
+        authService.logout(request, response);
+        return ResponseEntity.ok(ApiResponse.builder()
                 .build());
+    }
+
+    @Operation(summary = "Yêu cầu quên mật khẩu")
+    @PostMapping("/password/forgot")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody @Valid ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(
+                ApiResponse.<Void>builder()
+                        .code(202)
+                        .build()
+        );
+    }
+
+    @Operation(summary = "Xác thực OTP và thiết lập mật khẩu mới")
+    @PostMapping("/password/reset")
+    public ResponseEntity<ApiResponse<Void>> verifyForgotPassword(@RequestBody @Valid VerifyForgotPasswordRequest request) {
+        authService.verifyForgotPassword(request);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.<Void>builder()
+                        .code(200)
+                        .build()
+        );
     }
 }

@@ -7,6 +7,6 @@ import java.util.UUID;
 
 @AllArgsConstructor
 @Getter
-public class RegisterResponse {
+public class AuthResponse {
     private UUID userId;
 }

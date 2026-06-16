@@ -10,7 +10,7 @@ import lombok.Setter;
 public class AdminPromptSearchRequest {
     private String promptKey;
 
-    @EnumValue(enumClass = PromptUseCase.class, message = "PROVIDER_INVALID")
+    @EnumValue(enumClass = PromptUseCase.class, message = "PROMPT_USE_CASE_INVALID")
     private String applyFor;
 
     private Boolean active;

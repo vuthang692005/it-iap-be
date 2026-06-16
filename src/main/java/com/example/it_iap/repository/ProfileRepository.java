@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface ProfileRepository extends JpaRepository<Profile, Long> {
 
@@ -14,5 +15,5 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
     )
     Optional<Profile> findWithUserByIdAndDeletedAtIsNull(Long id);
 
-    List<Profile> findAllByUser_EmailAndDeletedAtIsNull(String email);
+    List<Profile> findAllByUserIdAndDeletedAtIsNull(UUID userId);
 }

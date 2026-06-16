@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Xác thực tài khoản</title>
+    <title>Xác nhận thay đổi email</title>
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -128,20 +128,20 @@
             Xin chào, <span th:text="${fullName}">Người dùng</span>!
         </div>
 
-        <p>Bạn vừa đăng ký tài khoản trên hệ thống <strong>IT-IAP</strong>. Để hoàn tất quá trình đăng ký, vui lòng sử dụng mã xác thực (OTP) dưới đây để xác nhận địa chỉ email của bạn:</p>
+        <p>Hệ thống đã nhận được yêu cầu cập nhật địa chỉ email mới cho tài khoản của bạn vào lúc <strong th:text="${timeNow}"></strong> ngày <strong th:text="${dateNow}"></strong>.</p>
+
+        <p>Để hoàn tất quá trình thay đổi, vui lòng sử dụng mã xác thực (OTP) dưới đây:</p>
 
         <div class="otp-section">
             <p class="otp-label">Mã xác thực của bạn</p>
             <p class="otp-code" th:text="${otp}">123456</p>
             <p class="otp-expiry">
-                Mã có hiệu lực trong <b th:text="${ttlMinutes}">5</b> phút
-                kể từ <b th:text="${timeNow}">HH:mm:ss</b>
-                ngày <b th:text="${dateNow}">dd/MM/yyyy</b>.
+                Mã có hiệu lực trong <b th:text="${ttlMinutes}">5</b> phút. Vì lý do bảo mật, vui lòng không chia sẻ mã này cho bất kỳ ai.
             </p>
         </div>
 
         <div class="note-box">
-            <strong>Lưu ý bảo mật:</strong> Tuyệt đối không chia sẻ mã OTP này với bất kỳ ai, kể cả nhân viên hỗ trợ của IT-IAP. Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.
+            <strong>Lưu ý quan trọng:</strong> Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này. Tài khoản của bạn vẫn an toàn và địa chỉ email hiện tại sẽ không bị thay đổi.
         </div>
 
         <div class="sign-off">

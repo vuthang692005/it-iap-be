@@ -12,6 +12,8 @@ app:
   frontend-url: ${FRONTEND_URL}
   cookie:
     secure: ${SECURE}
+  user:
+    default-password: ${USER_DEFAULT_PASSWORD}
 
 spring:
   config:
@@ -54,6 +56,9 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
-
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME}
+  api-key: ${CLOUDINARY_API_KEY}
+  api-secret: ${CLOUDINARY_API_SECRET}
 jwt:
   signerKey: ${SIGNER_KEY}
