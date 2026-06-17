@@ -33,6 +33,7 @@ public enum ErrorCode {
     PROFILE_NOT_FOUND(404,"Hồ sơ không tồn tại" , HttpStatus.NOT_FOUND),
     PROMPT_NOT_FOUND(404,"Prompt không tồn tại" , HttpStatus.NOT_FOUND),
     CHAT_SESSION_NOT_FOUND(404, "Phiên trò chuyện không tông tại", HttpStatus.NOT_FOUND),
+    ACTIVE_PROMPT_NOT_FOUND(404, "Tính năng này hiện chưa được cấu hình phiên bản Prompt hoạt động", HttpStatus.NOT_FOUND),
 
     //UNAUTHENTICATED
     UNAUTHENTICATED(401,"Thông tin đăng nhập không hợp lệ", HttpStatus.UNAUTHORIZED),

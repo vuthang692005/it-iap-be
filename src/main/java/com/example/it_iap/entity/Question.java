@@ -21,10 +21,10 @@ public class Question extends Auditable{
     @Column(nullable = false)
     private String content;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String suggestedAnswer;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String hintContent;
 
     @Column(nullable = false)
@@ -32,6 +32,7 @@ public class Question extends Auditable{
     private TargetPosition position;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private TargetLevel level;
 
     @Enumerated(EnumType.STRING)
