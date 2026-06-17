@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -103,6 +104,17 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.builder()
                         .code(errorCode.getCode())
                         .data(errors)
+                        .message(errorCode.getMessage())
+                        .build());
+    }
+
+    // Xử lý lỗi liên quan tới lỗi dữ liệu truyền vào (rác rác)
+    @ExceptionHandler(value = HttpMessageNotReadableException.class)
+    ResponseEntity<ApiResponse> handlingHttpMessageNotReadableException(HttpMessageNotReadableException exception){
+        ErrorCode errorCode = ErrorCode.DATA_INVALID;
+        return ResponseEntity.status(errorCode.getStatusCode())
+                .body(ApiResponse.builder()
+                        .code(errorCode.getCode())
                         .message(errorCode.getMessage())
                         .build());
     }
