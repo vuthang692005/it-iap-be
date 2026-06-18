@@ -89,6 +89,7 @@ public class QuestionServiceImpl implements QuestionService {
                 .id(question.getId())
                 .content(question.getContent())
                 .suggestedAnswer(question.getSuggestedAnswer())
+                .hintContent(question.getHintContent())
                 .position(question.getPosition())
                 .level(question.getLevel())
                 .category(question.getCategory())

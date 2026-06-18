@@ -25,6 +25,7 @@ public class QuestionResponse {
     Long id;
     String content;
     String suggestedAnswer;
+    String hintContent;
     TargetPosition position;
     TargetLevel level;
     QuestionType category;
