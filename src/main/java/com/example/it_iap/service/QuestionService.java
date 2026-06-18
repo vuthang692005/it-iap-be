@@ -6,4 +6,6 @@ import com.example.it_iap.dto.question.response.QuestionResponse;
 public interface QuestionService {
 
     QuestionResponse createQuestion(QuestionRequest request);
+
+    QuestionResponse updateQuestion(QuestionRequest request, Long id);
 }

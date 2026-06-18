@@ -45,9 +45,12 @@ public class QuestionRequest {
     Set<String> skillTag;
 
     @NotNull(message = "TIME_LIMIT_SECONDS_INVALID")
-    @Min(value = 1, message = "TIME_LIMIT_SECONDS_INVALID")
+    @Size(min = 1, max = 3636, message = "TIME_LIMIT_SECONDS_INVALID")
     int timeLimitSeconds;
 
+    @NotNull(message = "QUESTION_STATUS_INVALID")
     @EnumValue(enumClass = QuestionStatus.class, message = "QUESTION_STATUS_INVALID")
     String status;
+
+    boolean delete; // dễ if else xử lý xóa
 }

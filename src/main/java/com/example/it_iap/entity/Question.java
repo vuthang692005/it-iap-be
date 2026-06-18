@@ -33,6 +33,7 @@ public class Question extends Auditable{
     private TargetPosition position;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private TargetLevel level;
 
     @Enumerated(EnumType.STRING)
@@ -45,7 +46,7 @@ public class Question extends Auditable{
 
     @Enumerated(EnumType.STRING)
     private Source source;
-
+    
     @Enumerated(EnumType.STRING)
     private QuestionStatus status;
 
