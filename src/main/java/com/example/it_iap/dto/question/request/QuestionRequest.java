@@ -9,7 +9,6 @@ import com.example.it_iap.entity.enums.TargetPosition;
 import com.example.it_iap.validator.annotation.EnumValue;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -46,8 +45,7 @@ public class QuestionRequest {
     Set<String> skillTag;
 
     @NotNull(message = "TIME_LIMIT_SECONDS_INVALID")
-    @Min(value = 10, message = "SIZE_VALUE_INVALID")
-    @Max(value = 50, message = "SIZE_VALUE_INVALID")
+    @Min(value = 1, message = "TIME_LIMIT_SECONDS_INVALID")
     int timeLimitSeconds;
 
     @NotNull(message = "QUESTION_STATUS_INVALID")
