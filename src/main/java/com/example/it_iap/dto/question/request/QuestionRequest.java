@@ -44,7 +44,8 @@ public class QuestionRequest {
     Set<String> skillTag;
 
     @NotNull(message = "TIME_LIMIT_SECONDS_INVALID")
-    @Size(min = 1, max = 3636, message = "TIME_LIMIT_SECONDS_INVALID")
+    @Min(value = 10, message = "SIZE_VALUE_INVALID")
+    @Max(value = 50, message = "SIZE_VALUE_INVALID")
     int timeLimitSeconds;
 
     @NotNull(message = "QUESTION_STATUS_INVALID")
