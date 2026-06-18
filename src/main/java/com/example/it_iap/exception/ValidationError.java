@@ -21,6 +21,9 @@ public enum ValidationError {
     SOURCE_INVALID("Nguồn câu hỏi không hợp lệ"),
     QUESTION_STATUS_INVALID("Trạng thái câu hỏi không hợp lệ"),
     TIME_LIMIT_SECONDS_INVALID("Giới hạn thời gian không hợp lệ"),
+    QUESTION_SOURCE_INVALID("Nguồn câu hỏi không hợp lệ"),
+    PAGE_VALUE_INVALID("Giá trị số trang không hợp lệ"),
+    SIZE_VALUE_INVALID("Giá trị kích thước trang không hợp lệ"),
     
     PASSWORD_INVALID("Mật khấu không hợp lệ"),
     EMAIL_INVALID("Email không hợp lệ"),

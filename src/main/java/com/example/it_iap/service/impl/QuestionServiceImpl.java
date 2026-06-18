@@ -2,9 +2,12 @@ package com.example.it_iap.service.impl;
 
 import java.time.LocalDateTime;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.example.it_iap.dto.question.request.QuestionRequest;
+import com.example.it_iap.dto.question.request.SearchQuestionRequest;
 import com.example.it_iap.dto.question.response.QuestionResponse;
 import com.example.it_iap.entity.Question;
 import com.example.it_iap.entity.enums.QuestionStatus;
@@ -44,7 +47,7 @@ public class QuestionServiceImpl implements QuestionService {
         Question question = questionRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_NOT_FOUND));
         // Map thủ công
-        boolean isDelete = request.isDelete(); //true
+        boolean isDelete = request.isDelete();
         if (isDelete && question.getDeleteAt() == null) {
             question.setDeleteAt(LocalDateTime.now());
         } else if (!isDelete && question.getDeleteAt() != null){
@@ -54,6 +57,30 @@ public class QuestionServiceImpl implements QuestionService {
         // Map nhanh
         mapRequestToQuestion(request, question);
         return toQuestionResponse(questionRepository.save(question));
+    }
+
+    @Override
+    public Page<QuestionResponse> searchQuestion(SearchQuestionRequest request) {
+        int page = Math.max(0, request.getPage() - 1);
+        int size = Math.max(10, request.getSize());
+        PageRequest pageable = PageRequest.of(page, size);
+
+        TargetPosition position = TargetPosition.fromString(request.getPosition());
+        TargetLevel level = TargetLevel.fromString(request.getLevel());
+        QuestionType category = QuestionType.fromString(request.getCategory());
+        Source source = Source.fromString(request.getSource());
+        QuestionStatus status = QuestionStatus.fromString(request.getStatus());
+
+        Page<Question> questions = questionRepository.searchQuestions(
+                request.getContent(),
+                position,
+                level,
+                category,
+                source,
+                status,
+                pageable);
+
+        return questions.map(this::toQuestionResponse);
     }
 
     /* Phương thức hỗ trợ */
