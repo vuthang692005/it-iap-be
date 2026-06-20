@@ -45,4 +45,7 @@ public class Interview extends Auditable{
 
     @OneToMany(mappedBy = "interview", fetch = FetchType.LAZY)
     private List<InterviewQuestion> interviewQuestions;
+
+    @Version
+    private Integer version = 0;
 }

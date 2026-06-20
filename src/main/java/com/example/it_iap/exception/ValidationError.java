@@ -18,7 +18,7 @@ public enum ValidationError {
     USER_ID_INVALID("Id người dùng không hợp lệ"),
     OTP_INVALID("Mã OTP không hợp lệ"),
     PHONE_NUMBER_INVALID("Số điện thoại không hợp lệ"),
-    TITLE_INVALID("Tiêu đề hồ sơ không hợp lệ"),
+    TITLE_INVALID("Tiêu đề không hợp lệ"),
     TARGET_POSITION_INVALID("Vị trí mục tiêu không hợp lệ"),
     TARGET_LEVEL_INVALID("Cấp độ mục tiêu không hợp lệ"),
     SKILL_NAME_INVALID("Tên kỹ năng không được để trống"),
@@ -32,7 +32,11 @@ public enum ValidationError {
     PROMPT_CONTENT_INVALID("Nội dung prompt không được để trống"),
     APPLY_FOR_INVALID("Tính năng không hợp lệ"),
     PROMPT_USE_CASE_INVALID("Mục đích sử dụng Prompt không hợp lệ. Vui lòng chọn các giá trị được hỗ trợ."),
-    AVATAR_URL_INVALID("Đường dẫn ảnh không hợp lệ")
+    AVATAR_URL_INVALID("Đường dẫn ảnh không hợp lệ"),
+    INTERVIEW_MODE_INVALID("Chế độ phỏng vấn không hợp lệ hoặc bị trống"),
+    PROFILE_ID_INVALID("Profile ID không được để trống"),
+    USER_ANSWER_INVALID("Câu trả lời không được để trống"),
+    QUESTION_QUANTITY_INVALID("Số lượng câu hỏi phải lớn hơn 1 và nhỏ hơn 20"),
     ;
     private final String message;
 

@@ -1,6 +1,8 @@
 package com.example.it_iap.dto.profile.response;
 
 import com.example.it_iap.entity.Json.ResumeData;
+import com.example.it_iap.entity.enums.TargetLevel;
+import com.example.it_iap.entity.enums.TargetPosition;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -11,9 +13,9 @@ public class ProfileResponse {
 
     private String title;
 
-    private String targetPosition;
+    private TargetPosition targetPosition;
 
-    private String targetLevel;
+    private TargetLevel targetLevel;
 
     private ResumeData resumeData;
 }

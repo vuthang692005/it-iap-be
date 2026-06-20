@@ -10,7 +10,5 @@ import java.util.List;
 
 public interface QuestionService {
     List<Question> getRandomInterviewQuestions (TargetLevel level, TargetPosition position);
-    List<Question> aiGenerateQuestion (
-            List<AICreateQuestionRequest> requests, TargetLevel level,
-            TargetPosition position, PromptVersion promptVersion);
+    List<Question> generateAndSaveAiQuestions (int quantity, TargetLevel level, TargetPosition position);
 }
