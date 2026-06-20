@@ -21,6 +21,7 @@ public class InterviewQuestion extends Auditable{
     @Column(nullable = false)
     private int orderIndex; // STT các câu trong đề
 
+    @Column(columnDefinition = "TEXT")
     private String userAnswer;
 
     private boolean hintUsed = false;
@@ -31,6 +32,9 @@ public class InterviewQuestion extends Auditable{
 
     @JdbcTypeCode(SqlTypes.JSON)
     private AIFeedback aiFeedback;
+
+    @Version
+    private Integer version = 0;
 
     @Enumerated(EnumType.STRING)
     private InterviewQuestionStatus status;
@@ -47,6 +51,6 @@ public class InterviewQuestion extends Auditable{
     @JoinColumn(name = "prompt_version_id", nullable = false)
     private PromptVersion promptVersion;
 
-    @OneToOne(mappedBy = "interviewQuestion")
+    @OneToOne(mappedBy = "interviewQuestion", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private ChatSession chatSession;
 }

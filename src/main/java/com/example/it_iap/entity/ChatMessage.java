@@ -16,6 +16,7 @@ public class ChatMessage extends Auditable {
     @Enumerated(EnumType.STRING)
     private MessageType role;
 
+    @Column(columnDefinition = "TEXT")
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)

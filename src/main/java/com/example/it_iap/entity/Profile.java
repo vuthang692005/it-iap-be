@@ -1,6 +1,8 @@
 package com.example.it_iap.entity;
 
 import com.example.it_iap.entity.Json.ResumeData;
+import com.example.it_iap.entity.enums.TargetLevel;
+import com.example.it_iap.entity.enums.TargetPosition;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -21,10 +23,12 @@ public class Profile extends Auditable{
     private String title;
 
     @Column(nullable = false)
-    private String targetPosition;
+    @Enumerated(EnumType.STRING)
+    private TargetPosition targetPosition;
 
     @Column(nullable = false)
-    private String targetLevel;
+    @Enumerated(EnumType.STRING)
+    private TargetLevel targetLevel;
 
     @JdbcTypeCode(SqlTypes.JSON)
     private ResumeData resumeData;

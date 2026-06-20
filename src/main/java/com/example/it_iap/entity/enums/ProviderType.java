@@ -2,7 +2,6 @@ package com.example.it_iap.entity.enums;
 
 public enum ProviderType {
     GOOGLE,
-    OPENAI,
 
     ;
     public static ProviderType from(String value) {

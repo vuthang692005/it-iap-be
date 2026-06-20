@@ -6,6 +6,7 @@ import com.example.it_iap.dto.promptVersion.request.PromptVersionRequest;
 import com.example.it_iap.entity.AdminPrompt;
 import com.example.it_iap.entity.PromptVersion;
 import com.example.it_iap.entity.enums.ModelType;
+import com.example.it_iap.entity.enums.PromptUseCase;
 import com.example.it_iap.entity.enums.ProviderType;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
@@ -39,10 +40,12 @@ public class PromptVersionServiceImpl implements PromptVersionService {
             throw new AppException(ErrorCode.VERSION_EXISTS);
         }
 
+        ModelType modelType = ModelType.from(request.getModel());
+
         PromptVersion promptVersion = new PromptVersion();
         promptVersion.setAdminPrompt(adminPrompt);
         promptVersion.setProvider(request.getProvider());
-        promptVersion.setModel(request.getModel());
+        promptVersion.setModel(modelType.getValue());
         promptVersion.setVersion(request.getVersion());
         promptVersion.setNote(request.getNote());
         promptVersion.setPromptContent(request.getPromptContent());
@@ -85,5 +88,10 @@ public class PromptVersionServiceImpl implements PromptVersionService {
 
         promptVersion.setLastActivatedAt(LocalDateTime.now());
         promptVersionRepository.save(promptVersion);
+    }
+
+    public PromptVersion getPromptActive (PromptUseCase useCase){
+        return promptVersionRepository.findFirstByAdminPromptApplyForAndLastActivatedAtIsNotNullOrderByLastActivatedAtDesc(useCase)
+                .orElseThrow(() -> new AppException(ErrorCode.ACTIVE_PROMPT_NOT_FOUND));
     }
 }

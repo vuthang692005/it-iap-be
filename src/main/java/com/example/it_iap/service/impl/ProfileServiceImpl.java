@@ -5,6 +5,8 @@ import com.example.it_iap.dto.profile.response.ProfileResponse;
 import com.example.it_iap.dto.profile.response.ProfileSummaryResponse;
 import com.example.it_iap.entity.Profile;
 import com.example.it_iap.entity.User;
+import com.example.it_iap.entity.enums.TargetLevel;
+import com.example.it_iap.entity.enums.TargetPosition;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.ProfileRepository;
@@ -80,7 +82,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     // Hàm chung để tìm Profile và kiểm tra xem User hiện tại có quyền thao tác không.
-    private Profile getValidProfileAndCheckAccess(long profileId) {
+    public Profile getValidProfileAndCheckAccess(long profileId) {
         Profile profile = profileRepository.findWithUserByIdAndDeletedAtIsNull(profileId)
                 .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_FOUND));
 
@@ -95,9 +97,12 @@ public class ProfileServiceImpl implements ProfileService {
 
     // Hàm chung để đổ dữ liệu từ Request vào Entity Profile.
     private void mapRequestToProfile(ProfileRequest request, Profile profile) {
+        TargetPosition targetPosition = TargetPosition.fromString(request.getTargetPosition());
+        TargetLevel targetLevel = TargetLevel.fromString(request.getTargetLevel());
+
         profile.setTitle(request.getTitle());
-        profile.setTargetLevel(request.getTargetLevel());
-        profile.setTargetPosition(request.getTargetPosition());
+        profile.setTargetLevel(targetLevel);
+        profile.setTargetPosition(targetPosition);
         profile.setResumeData(request.getResumeData());
     }
 

@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -47,6 +48,16 @@ public class GlobalExceptionHandler {
             RedisConnectionFailureException exception, HttpServletRequest request) {
         ErrorCode errorCode = ErrorCode.SYSTEM_ERROR;
         log.error("Lỗi kết nối redis. Path: {}", request.getRequestURI(), exception);
+        return ResponseEntity.status(errorCode.getStatusCode())
+                .body(ApiResponse.builder()
+                        .code(errorCode.getCode())
+                        .message(errorCode.getMessage())
+                        .build());
+    }
+
+    @ExceptionHandler(value = ObjectOptimisticLockingFailureException.class)
+    ResponseEntity<ApiResponse> handlingOptimisticLockingException(ObjectOptimisticLockingFailureException exception) {
+        ErrorCode errorCode = ErrorCode.CONCURRENT_UPDATE;
         return ResponseEntity.status(errorCode.getStatusCode())
                 .body(ApiResponse.builder()
                         .code(errorCode.getCode())
