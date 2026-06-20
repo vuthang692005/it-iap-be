@@ -21,6 +21,15 @@ public enum ErrorCode {
     INVALID_IMAGE_SIZE(400, "Kích thước ảnh quá lớn", HttpStatus.BAD_REQUEST),
     INVALID_IMAGE_TYPE(400, "Định dạng ảnh không hỗ trợ", HttpStatus.BAD_REQUEST),
     EMAIL_ALREADY_USED(400, "Vui lòng nhập một email khác với email đang sử dụng", HttpStatus.BAD_REQUEST),
+    INTERVIEW_STARTED(400, "Phiên phỏng vấn đã bắt đầu", HttpStatus.BAD_REQUEST),
+    INTERVIEW_NOT_COMPLETED(400, "Phiên phỏng vấn chưa hoàn thành.", HttpStatus.BAD_REQUEST),
+    INTERVIEW_NOT_IN_PROGRESS(400, "Phiên phỏng vấn chưa bắt đầu hoặc đã kết thúc", HttpStatus.BAD_REQUEST),
+    QUESTION_NOT_ACTIVE(400,"Câu hỏi này đã được trả lời hoặc chưa được bắt đầu", HttpStatus.BAD_REQUEST),
+    QUESTION_NOT_READY(400, "Câu hỏi chưa sẵn sàng để tương tác, vui lòng thử lại", HttpStatus.BAD_REQUEST),
+    QUESTION_ALREADY_COMPLETED(400, "Câu hỏi này đã được hoàn thành", HttpStatus.BAD_REQUEST),
+    AI_IS_RESPONDING(400, "AI đang trả lời", HttpStatus.BAD_REQUEST),
+    INCOMPATIBLE_INTERVIEW_TYPE(400, "Loại hình phỏng vấn không tương thích", HttpStatus.BAD_REQUEST),
+    CURRENT_QUESTION_NOT_ANSWERED(400, "Bạn cần hoàn thành câu hỏi hiện tại trước khi chuyển sang câu tiếp theo.", HttpStatus.BAD_REQUEST),
 
     //EXISTED
     EMAIL_EXISTED(409, "Email đã được sử dụng", HttpStatus.CONFLICT),
@@ -28,11 +37,17 @@ public enum ErrorCode {
     VERSION_EXISTS(409, "Phiên bản đã tồn tại", HttpStatus.CONFLICT),
     PROMPT_KEY_EXISTS(409, "Prompt key đã tôn tại", HttpStatus.CONFLICT),
 
+    //CONFLICT
+    CONCURRENT_UPDATE(409, "Dữ liệu đang được xử lý bởi một yêu cầu khác, vui lòng không thao tác liên tục!", HttpStatus.CONFLICT),
+
     //NOT_FOUND
     USER_NOT_FOUND(404,"Người dùng không tồn tại" , HttpStatus.NOT_FOUND),
     PROFILE_NOT_FOUND(404,"Hồ sơ không tồn tại" , HttpStatus.NOT_FOUND),
     PROMPT_NOT_FOUND(404,"Prompt không tồn tại" , HttpStatus.NOT_FOUND),
     CHAT_SESSION_NOT_FOUND(404, "Phiên trò chuyện không tông tại", HttpStatus.NOT_FOUND),
+    ACTIVE_PROMPT_NOT_FOUND(404, "Tính năng này hiện chưa được cấu hình phiên bản Prompt hoạt động", HttpStatus.NOT_FOUND),
+    INTERVIEW_NOT_FOUND(404,"Phiên phỏng vấn không tồn tại" , HttpStatus.NOT_FOUND),
+    QUESTION_INTERVIEW_NOT_FOUND(404, "Không tìm thấy câu hỏi hợp lệ" , HttpStatus.NOT_FOUND),
 
     //UNAUTHENTICATED
     UNAUTHENTICATED(401,"Thông tin đăng nhập không hợp lệ", HttpStatus.UNAUTHORIZED),

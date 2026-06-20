@@ -20,10 +20,17 @@ public class AIConfig {
                 .build();
     }
 
-    @Bean
-    ChatClient chatClient(ChatClient.Builder builder, ChatMemory chatMemory) {
+    @Bean("memoryChatClient")
+    ChatClient memoryChatClient(ChatClient.Builder builder, ChatMemory chatMemory) {
         return builder
                 .defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())
                 .build();
+    }
+
+    @Bean("statelessChatClient")
+    public ChatClient statelessChatClient(
+            ChatClient.Builder builder) {
+
+        return builder.build();
     }
 }
