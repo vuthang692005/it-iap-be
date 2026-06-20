@@ -4,7 +4,7 @@ import com.example.it_iap.entity.enums.QuestionType;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -13,6 +13,6 @@ public class AICreateQuestionRequest {
     private String suggestedAnswer;
     private String hintContent;
     private QuestionType category;
-    private List<String> skillTag;
+    private Set<String> skillTag;
     private int timeLimitSeconds;
 }
