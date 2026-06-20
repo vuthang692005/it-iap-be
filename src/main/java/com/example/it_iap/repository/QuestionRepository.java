@@ -36,8 +36,6 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
             Pageable pageable
     );
 
-
-public interface QuestionRepository extends JpaRepository<Question, Long> {
     @Query(value = "SELECT * FROM question q " +
             "WHERE q.level = :#{#level.name()} " +
             "AND q.position = :#{#position.name()} " +
