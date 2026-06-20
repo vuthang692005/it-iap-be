@@ -9,6 +9,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -39,20 +40,20 @@ public class Question extends Auditable{
     private QuestionType category;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    private List<String> skillTag;
+    private Set<String> skillTag;
 
     private int timeLimitSeconds;
 
     @Enumerated(EnumType.STRING)
     private Source source;
-
+    
     @Enumerated(EnumType.STRING)
     private QuestionStatus status;
 
     private LocalDateTime deleteAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "prompt_version_id", nullable = false)
+    @JoinColumn(name = "prompt_version_id")
     private PromptVersion promptVersion;
 
     @OneToMany(mappedBy = "question", fetch = FetchType.LAZY)

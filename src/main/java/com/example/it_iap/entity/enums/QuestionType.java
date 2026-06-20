@@ -11,4 +11,14 @@ public enum QuestionType {
     BEHAVIORAL("Câu hỏi hành vi");
 
     private final String displayName;
+
+    public static QuestionType fromString (String value) {
+        if (value == null) return null;
+
+        try {
+            return QuestionType.valueOf(value.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
 }

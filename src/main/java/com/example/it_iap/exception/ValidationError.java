@@ -12,6 +12,19 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Getter
 public enum ValidationError {
+    CONTENT_INVALID("Nội dung câu hỏi không hợp lệ"),
+    SUGGESTED_ANSWER_INVALID("Câu trả lời đề xuất không hợp lệ"),
+    HINT_CONTENT_INVALID("Nội dung gợi ý không hợp lệ"),
+    POSITION_INVALID("Vị trí phỏng vấn (position) không hợp lệ"),
+    LEVEL_INVALID("Vị trí phỏng vấn (level) không hợp lệ"),
+    CATEGORY_INVALID("Kiểu câu hỏi không hợp lệ"),
+    SOURCE_INVALID("Nguồn câu hỏi không hợp lệ"),
+    QUESTION_STATUS_INVALID("Trạng thái câu hỏi không hợp lệ"),
+    TIME_LIMIT_SECONDS_INVALID("Giới hạn thời gian không hợp lệ"),
+    QUESTION_SOURCE_INVALID("Nguồn câu hỏi không hợp lệ"),
+    PAGE_VALUE_INVALID("Giá trị số trang không hợp lệ"),
+    SIZE_VALUE_INVALID("Giá trị kích thước trang không hợp lệ"),
+    
     PASSWORD_INVALID("Mật khấu không hợp lệ"),
     EMAIL_INVALID("Email không hợp lệ"),
     FULL_NAME_INVALID("Họ tên không hợp lệ"),
