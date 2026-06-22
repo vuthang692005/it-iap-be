@@ -81,7 +81,7 @@ public class ApplicationInitConfig {
         generalFeedbackRequest.setApplyFor("GENERAL_FEEDBACK");
 
         PromptVersionRequest generalFeedbackVersion = new PromptVersionRequest();
-        generalFeedbackVersion.setVersion("v1");
+        generalFeedbackVersion.setVersion("v1.0.0");
         generalFeedbackVersion.setProvider("GOOGLE");
         generalFeedbackVersion.setModel("GEMINI_3_1_FLASH_LITE");
         generalFeedbackVersion.setPromptContent("""
@@ -113,7 +113,7 @@ public class ApplicationInitConfig {
         interactiveRequest.setApplyFor("INTERACTIVE_INTERVIEW");
 
         PromptVersionRequest interactiveVersion = new PromptVersionRequest();
-        interactiveVersion.setVersion("v1");
+        interactiveVersion.setVersion("v1.0.0");
         interactiveVersion.setProvider("GOOGLE");
         interactiveVersion.setModel("GEMINI_3_1_FLASH_LITE");
         interactiveVersion.setPromptContent("""
@@ -151,12 +151,12 @@ public class ApplicationInitConfig {
 
     private static @NonNull AdminPromptRequest getStressInterviewPrompt() {
         AdminPromptRequest genFeedbackRequest = new AdminPromptRequest();
-        genFeedbackRequest.setPromptKey("gen_feedback_question");
+        genFeedbackRequest.setPromptKey("stress_interview");
         genFeedbackRequest.setDescription("Tạo feedback cho từng câu hỏi");
         genFeedbackRequest.setApplyFor("STRESS_INTERVIEW");
 
         PromptVersionRequest genFeedbackVersion = new PromptVersionRequest();
-        genFeedbackVersion.setVersion("v1");
+        genFeedbackVersion.setVersion("v1.0.0");
         genFeedbackVersion.setProvider("GOOGLE");
         genFeedbackVersion.setModel("GEMINI_3_1_FLASH_LITE");
         genFeedbackVersion.setPromptContent("""
@@ -192,7 +192,7 @@ public class ApplicationInitConfig {
         genQuestionRequest.setApplyFor("QUESTION_GENERATOR");
 
         PromptVersionRequest genQuestionVersion = new PromptVersionRequest();
-        genQuestionVersion.setVersion("v1");
+        genQuestionVersion.setVersion("v1.0.0");
         genQuestionVersion.setProvider("GOOGLE");
         genQuestionVersion.setModel("GEMINI_3_1_FLASH_LITE");
         genQuestionVersion.setPromptContent("""
