@@ -14,15 +14,15 @@ public interface AdminPromptRepository extends JpaRepository<AdminPrompt, Long> 
 
     @Query("SELECT new com.example.it_iap.dto.adminPrompt.response.AdminPromptSummaryResponse(" +
             "ap.id, ap.promptKey, pv.version, pv.provider, pv.model, ap.applyFor, " +
-            "CASE WHEN pv.lastActivatedAt = (SELECT MAX(pv2.lastActivatedAt) FROM PromptVersion pv2 WHERE pv2.adminPrompt.applyFor = ap.applyFor) THEN true ELSE false END" +
+            "CASE WHEN pv.lastActivatedAt IS NOT NULL AND pv.lastActivatedAt = (SELECT MAX(pv2.lastActivatedAt) FROM PromptVersion pv2 WHERE pv2.adminPrompt.applyFor = ap.applyFor) THEN true ELSE false END" +
             ") " +
             "FROM AdminPrompt ap " +
             "LEFT JOIN ap.promptVersions pv " +
             "WHERE (:promptKey IS NULL OR LOWER(ap.promptKey) LIKE LOWER(CONCAT('%', :promptKey, '%'))) " +
             "AND (:applyFor IS NULL OR ap.applyFor = :applyFor) " +
             "AND (" +
-            "     (:active IS NULL AND (pv.id IS NULL OR pv.lastActivatedAt = (SELECT MAX(pv3.lastActivatedAt) FROM PromptVersion pv3 WHERE pv3.adminPrompt.id = ap.id) OR pv.lastActivatedAt IS NOT NULL)) " +
-            "     OR (:active = true AND pv.lastActivatedAt = (SELECT MAX(pv4.lastActivatedAt) FROM PromptVersion pv4 WHERE pv4.adminPrompt.applyFor = ap.applyFor)) " +
+            "     (:active IS NULL) " + // Nếu không lọc theo active, lấy hết tất cả (bao gồm cả null)
+            "     OR (:active = true AND pv.lastActivatedAt IS NOT NULL AND pv.lastActivatedAt = (SELECT MAX(pv4.lastActivatedAt) FROM PromptVersion pv4 WHERE pv4.adminPrompt.applyFor = ap.applyFor)) " +
             "     OR (:active = false AND (pv.id IS NULL OR pv.lastActivatedAt IS NULL OR pv.lastActivatedAt <> (SELECT MAX(pv5.lastActivatedAt) FROM PromptVersion pv5 WHERE pv5.adminPrompt.applyFor = ap.applyFor)))" +
             ")")
     Page<AdminPromptSummaryResponse> findAllSummaryWithFilters(
