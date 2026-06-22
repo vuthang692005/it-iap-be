@@ -6,6 +6,7 @@ import com.example.it_iap.entity.enums.TargetLevel;
 import com.example.it_iap.entity.enums.TargetPosition;
 import com.example.it_iap.service.QuestionService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,7 @@ public class AIController {
     )
     @PostMapping("/generate-question")
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
-    public ResponseEntity<ApiResponse> generateQuestion (@RequestBody GenerateQuestionRequest request){
+    public ResponseEntity<ApiResponse> generateQuestion (@RequestBody @Valid GenerateQuestionRequest request){
         TargetLevel targetLevel = TargetLevel.fromString(request.getLevel());
         TargetPosition targetPosition = TargetPosition.fromString(request.getPosition());
         questionService.generateAndSaveAiQuestions(request.getQuantity(), targetLevel, targetPosition);

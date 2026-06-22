@@ -49,7 +49,7 @@ public enum ValidationError {
     INTERVIEW_MODE_INVALID("Chế độ phỏng vấn không hợp lệ hoặc bị trống"),
     PROFILE_ID_INVALID("Profile ID không được để trống"),
     USER_ANSWER_INVALID("Câu trả lời không được để trống"),
-    QUESTION_QUANTITY_INVALID("Số lượng câu hỏi phải lớn hơn 1 và nhỏ hơn 20"),
+    QUESTION_QUANTITY_INVALID("Số lượng câu hỏi phải lớn hơn 1 và nhỏ hơn 10"),
     ;
     private final String message;
 

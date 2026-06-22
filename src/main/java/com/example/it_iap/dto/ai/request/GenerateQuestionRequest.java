@@ -11,8 +11,8 @@ import lombok.Getter;
 @Getter
 public class GenerateQuestionRequest {
 
-    @Min(value = 0, message = "QUESTION_QUANTITY_INVALID")
-    @Max(value = 21, message = "QUESTION_QUANTITY_INVALID")
+    @Min(value = 1, message = "QUESTION_QUANTITY_INVALID")
+    @Max(value = 10, message = "QUESTION_QUANTITY_INVALID")
     private int quantity;
 
     @EnumValue(enumClass = TargetLevel.class, message = "TARGET_LEVEL_INVALID")
