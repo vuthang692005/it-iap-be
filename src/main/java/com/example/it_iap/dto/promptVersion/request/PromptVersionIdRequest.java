@@ -2,8 +2,10 @@ package com.example.it_iap.dto.promptVersion.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class PromptVersionIdRequest {
     @NotBlank(message = "PROMPT_KEY_INVALID")
     private String promptKey;
