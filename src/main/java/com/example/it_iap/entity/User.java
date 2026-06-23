@@ -33,7 +33,6 @@ public class User extends Auditable{
 
     private String fullName;
 
-    @Column(unique = true)
     private String phoneNumber;
 
     private String avatarUrl;
