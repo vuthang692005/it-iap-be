@@ -8,6 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class FeedbackForQuestion {
+    private long interviewQuestionId;
     private int orderIndex;
     private String questionContent;
     private String userAnswer;

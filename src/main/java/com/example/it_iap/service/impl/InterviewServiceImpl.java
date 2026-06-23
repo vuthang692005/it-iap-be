@@ -267,6 +267,7 @@ public class InterviewServiceImpl implements InterviewService {
         List<FeedbackForQuestion> feedbackForQuestions = interview.getInterviewQuestions().stream()
                 .map(interviewQuestion -> {
                     FeedbackForQuestion feedbackForQuestion = new FeedbackForQuestion();
+                    feedbackForQuestion.setInterviewQuestionId(interviewQuestion.getId());
                     feedbackForQuestion.setOrderIndex(interviewQuestion.getOrderIndex());
                     feedbackForQuestion.setUserAnswer(interviewQuestion.getUserAnswer());
                     feedbackForQuestion.setQuestionContent(interviewQuestion.getQuestion().getContent());
