@@ -6,6 +6,7 @@ import com.example.it_iap.dto.chatMessage.response.ChatMessageResponse;
 import com.example.it_iap.dto.interview.request.CreateInterviewRequest;
 import com.example.it_iap.dto.interview.request.SubmitAnswerRequest;
 import com.example.it_iap.dto.interview.response.GetFeedbackResponse;
+import com.example.it_iap.dto.interview.response.GetHintResponse;
 import com.example.it_iap.dto.interview.response.InterviewIdResponse;
 import com.example.it_iap.dto.question.response.CurrentQuestionResponse;
 import com.example.it_iap.service.InterviewService;
@@ -151,6 +152,17 @@ public class InterviewController {
 
         return ResponseEntity.ok(ApiResponse.<List<ChatMessageResponse>>builder()
                 .data(chatHistory)
+                .build());
+    }
+
+    @Operation(
+            summary = "Lấy gợi ý của câu hỏi",
+            description = "Cung cấp ID của câu hỏi phỏng vấn để lấy thông tin gợi ý (hint) tương ứng."
+    )
+    @GetMapping("/interviewQuestion/{interviewQuestionId}/hint")
+    public ResponseEntity<ApiResponse<GetHintResponse>> getHint(@PathVariable("interviewQuestionId") Long interviewQuestionId) {
+        return ResponseEntity.ok(ApiResponse.<GetHintResponse>builder()
+                .data(interviewService.getHint(interviewQuestionId))
                 .build());
     }
 }

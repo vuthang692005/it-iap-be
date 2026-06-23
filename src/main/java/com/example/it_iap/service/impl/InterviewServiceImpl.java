@@ -4,6 +4,7 @@ import com.example.it_iap.dto.ai.response.AIInteractive;
 import com.example.it_iap.dto.chatMessage.response.ChatMessageResponse;
 import com.example.it_iap.dto.interview.FeedbackForQuestion;
 import com.example.it_iap.dto.interview.response.GetFeedbackResponse;
+import com.example.it_iap.dto.interview.response.GetHintResponse;
 import com.example.it_iap.dto.interview.response.InterviewIdResponse;
 import com.example.it_iap.dto.question.response.CurrentQuestionResponse;
 import com.example.it_iap.entity.*;
@@ -14,6 +15,7 @@ import com.example.it_iap.entity.enums.InterviewStatus;
 import com.example.it_iap.entity.enums.PromptUseCase;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
+import com.example.it_iap.repository.InterviewQuestionRepository;
 import com.example.it_iap.repository.InterviewRepository;
 import com.example.it_iap.service.*;
 import com.example.it_iap.util.SecurityUtils;
@@ -34,6 +36,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Slf4j
 public class InterviewServiceImpl implements InterviewService {
+    private final InterviewQuestionRepository interviewQuestionRepository;
     private final InterviewRepository interviewRepository;
     private final PromptVersionService promptVersionService;
     private final QuestionService questionService;
@@ -297,6 +300,10 @@ public class InterviewServiceImpl implements InterviewService {
             throw new AppException(ErrorCode.INCOMPATIBLE_INTERVIEW_TYPE);
         }
 
+        if (interviewQuestion.getChatSession() == null){
+            throw new AppException(ErrorCode.CHAT_HISTORY_NOT_FOUND);
+        }
+
         List<ChatMessage> chatMessages = interviewQuestion.getChatSession().getChatMessages();
 
         return chatMessages.stream()
@@ -322,5 +329,15 @@ public class InterviewServiceImpl implements InterviewService {
             log.error("Không thể bóc tách JSON từ tin nhắn AI. Dữ liệu gốc: {}", rawJson);
             return rawJson;
         }
+    }
+
+    @Transactional
+    public GetHintResponse getHint (long interviewQuestionId){
+        InterviewQuestion interviewQuestion = interviewQuestionService.findValidQuestionForUser(interviewQuestionId);
+
+        interviewQuestion.setHintUsed(true);
+        interviewQuestionRepository.save(interviewQuestion);
+
+        return new GetHintResponse(interviewQuestion.getQuestion().getHintContent());
     }
 }

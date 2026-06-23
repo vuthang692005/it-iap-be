@@ -49,6 +49,7 @@ public enum ErrorCode {
     ACTIVE_PROMPT_NOT_FOUND(404, "Tính năng này hiện chưa được cấu hình phiên bản Prompt hoạt động", HttpStatus.NOT_FOUND),
     INTERVIEW_NOT_FOUND(404,"Phiên phỏng vấn không tồn tại" , HttpStatus.NOT_FOUND),
     QUESTION_INTERVIEW_NOT_FOUND(404, "Không tìm thấy câu hỏi hợp lệ" , HttpStatus.NOT_FOUND),
+    CHAT_HISTORY_NOT_FOUND(404, "Không tìm thấy lịch sử chat", HttpStatus.NOT_FOUND),
 
     //UNAUTHENTICATED
     UNAUTHENTICATED(401,"Thông tin đăng nhập không hợp lệ", HttpStatus.UNAUTHORIZED),

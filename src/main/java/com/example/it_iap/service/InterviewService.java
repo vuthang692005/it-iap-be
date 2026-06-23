@@ -3,6 +3,7 @@ package com.example.it_iap.service;
 import com.example.it_iap.dto.ai.response.AIInteractive;
 import com.example.it_iap.dto.chatMessage.response.ChatMessageResponse;
 import com.example.it_iap.dto.interview.response.GetFeedbackResponse;
+import com.example.it_iap.dto.interview.response.GetHintResponse;
 import com.example.it_iap.dto.interview.response.InterviewIdResponse;
 import com.example.it_iap.dto.question.response.CurrentQuestionResponse;
 
@@ -17,4 +18,5 @@ public interface InterviewService {
     AIInteractive answerForInteractiveInterview (long interviewQuestionId, String userAnswer);
     CurrentQuestionResponse transitionToNextQuestionForInteractiveInterview (long interviewQuestionId);
     List<ChatMessageResponse> getChatHistory (long interviewQuestionId);
+    GetHintResponse getHint (long interviewQuestionId);
 }

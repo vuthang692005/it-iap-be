@@ -5,6 +5,6 @@ import lombok.Getter;
 
 @Getter
 public class SubmitAnswerRequest {
-    @NotBlank(message = "")
+    @NotBlank(message = "USER_ANSWER_INVALID")
     private String userAnswer;
 }

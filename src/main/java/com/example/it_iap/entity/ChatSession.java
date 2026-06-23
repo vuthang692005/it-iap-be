@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -36,5 +37,5 @@ public class ChatSession extends Auditable {
     private LocalDateTime deleteAt;
 
     @OneToMany(mappedBy = "chatSession", fetch = FetchType.LAZY)
-    private List<ChatMessage> chatMessages;
+    private List<ChatMessage> chatMessages = new ArrayList<>();
 }
