@@ -6,11 +6,15 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum ModelType {
+    GEMINI_2_5_FLASH_LITE(ProviderType.GOOGLE, "gemini-2.5-flash-lite"),
+    GEMINI_3_FLASH(ProviderType.GOOGLE, "gemini-3-flash"),
     GEMINI_3_1_PRO(ProviderType.GOOGLE, "gemini-3.1-pro"),
     GEMINI_3_1_FLASH(ProviderType.GOOGLE, "gemini-3.1-flash"),
-
-    GPT_4O(ProviderType.OPENAI, "gpt-4o"),
-    GPT_3_5_TURBO(ProviderType.OPENAI, "gpt-3.5-turbo");
+    GEMINI_3_1_FLASH_LITE(ProviderType.GOOGLE, "gemini-3.1-flash-lite"),
+    GEMINI_3_5_FLASH(ProviderType.GOOGLE, "gemini-3.5-flash"),
+    GEMMA_4_26B_A4B_IT(ProviderType.GOOGLE, "gemma-4-26b-a4b-it"),
+    GEMMA_4_31B_IT(ProviderType.GOOGLE, "gemma-4-31b-it"),
+    ;
 
     private final ProviderType providerType;
     private final String value;

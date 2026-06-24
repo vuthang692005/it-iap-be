@@ -39,15 +39,14 @@ public class AdminPromptController {
             summary = "Thêm phiên bản mới (Version) cho Prompt gốc",
             description = "Tạo và đính kèm một phiên bản mới (VD: version 0.0.2) cho một Admin Prompt đã tồn tại dựa vào ID của Prompt đó."
     )
-    @PostMapping("/{adminPromptId}/versions")
+    @PostMapping("/versions")
     public ResponseEntity<ApiResponse<AdminPromptResponse>> addNewVersion(
-            @PathVariable long adminPromptId,
             @Valid @RequestBody PromptVersionRequest request
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.<AdminPromptResponse>builder()
                         .code(201)
-                        .data(adminPromptService.addNewVersion(request, adminPromptId))
+                        .data(adminPromptService.addNewVersion(request))
                         .build());
     }
 

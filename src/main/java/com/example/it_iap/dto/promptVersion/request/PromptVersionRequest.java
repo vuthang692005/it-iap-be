@@ -6,9 +6,13 @@ import com.example.it_iap.validator.annotation.EnumValue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.Setter;
 
 @Getter
+@Setter
 public class PromptVersionRequest {
+    long adminPromptId;
+
     @NotBlank(message = "VERSION_INVALID")
     @Size(max = 20, message = "VERSION_INVALID")
     private String version;

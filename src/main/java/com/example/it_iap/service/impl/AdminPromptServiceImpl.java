@@ -54,8 +54,8 @@ public class AdminPromptServiceImpl implements AdminPromptService {
     }
 
     @Transactional
-    public AdminPromptResponse addNewVersion (PromptVersionRequest request, long adminPromptId){
-        AdminPrompt adminPrompt = adminPromptRepository.findById(adminPromptId)
+    public AdminPromptResponse addNewVersion (PromptVersionRequest request){
+        AdminPrompt adminPrompt = adminPromptRepository.findById(request.getAdminPromptId())
                 .orElseThrow(() -> new AppException(ErrorCode.PROMPT_NOT_FOUND));
 
         PromptVersion promptVersion = promptVersionService.createPromptVersion(request, adminPrompt);

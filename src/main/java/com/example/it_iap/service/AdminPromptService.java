@@ -9,6 +9,6 @@ import org.springframework.data.domain.Page;
 
 public interface AdminPromptService {
     AdminPromptSummaryResponse createAdminPrompt (AdminPromptRequest request);
-    AdminPromptResponse addNewVersion (PromptVersionRequest request, long adminPromptId);
+    AdminPromptResponse addNewVersion (PromptVersionRequest request);
     Page<AdminPromptSummaryResponse> searchAdminPrompts(String promptKey, PromptUseCase applyFor, Boolean active, int pages);
 }

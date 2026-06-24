@@ -45,7 +45,7 @@ public class TokenServiceImpl implements TokenService {
                 .issueTime(new Date())
                 .claim("scope", buildScope(user))
                 .claim(CLAIM_IS_REFRESH_TOKEN, false)
-                .expirationTime(Date.from(Instant.now().plus(5, ChronoUnit.MINUTES)))
+                .expirationTime(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)))
                 .build();
 
         Payload payload = new Payload(jwtClaimsSet.toJSONObject());
