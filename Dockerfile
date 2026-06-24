@@ -14,6 +14,8 @@ RUN mvn package -DskipTests
 # Start with Amazon Correto JDK 21
 FROM amazoncorretto:21-alpine
 
+RUN apk add --no-cache libgcc libstdc++ gcompat
+
 # Set working folder to App and copy complied file from above step
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
