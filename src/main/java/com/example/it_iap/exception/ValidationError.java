@@ -50,6 +50,7 @@ public enum ValidationError {
     PROFILE_ID_INVALID("Profile ID không được để trống"),
     USER_ANSWER_INVALID("Câu trả lời không được để trống"),
     QUESTION_QUANTITY_INVALID("Số lượng câu hỏi phải lớn hơn 1 và nhỏ hơn 10"),
+    TWO_FACTOR_CODE_INVALID("Mã xác thực 2 bước không hợp lệ"),
     ;
     private final String message;
 
