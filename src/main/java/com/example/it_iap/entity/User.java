@@ -43,6 +43,10 @@ public class User extends Auditable{
 
     private boolean isVerifyEmail = false;
 
+    private boolean enable2fa = false;
+
+    private String secret2fa;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Enumerated(EnumType.STRING)
     private Set<Role> roles;
@@ -55,4 +59,7 @@ public class User extends Auditable{
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<ChatSession> chatSessions;
+
+    @OneToMany(mappedBy = "interviewQuestion", fetch = FetchType.LAZY)
+    private List<Reports> reports;
 }
