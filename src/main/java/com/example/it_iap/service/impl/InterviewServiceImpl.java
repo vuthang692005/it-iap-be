@@ -3,9 +3,11 @@ package com.example.it_iap.service.impl;
 import com.example.it_iap.dto.ai.response.AIInteractive;
 import com.example.it_iap.dto.chatMessage.response.ChatMessageResponse;
 import com.example.it_iap.dto.interview.FeedbackForQuestion;
+import com.example.it_iap.dto.interview.request.GetInterviewHistoryRequest;
 import com.example.it_iap.dto.interview.response.GetFeedbackResponse;
 import com.example.it_iap.dto.interview.response.GetHintResponse;
 import com.example.it_iap.dto.interview.response.InterviewIdResponse;
+import com.example.it_iap.dto.interview.response.InterviewResponse;
 import com.example.it_iap.dto.question.response.CurrentQuestionResponse;
 import com.example.it_iap.entity.*;
 import com.example.it_iap.entity.Json.OverallResult;
@@ -24,6 +26,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.MessageType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -253,8 +257,17 @@ public class InterviewServiceImpl implements InterviewService {
 
     public GetFeedbackResponse getFeedback (long interviewId){
         UUID userId = SecurityUtils.getCurrentUserId();
-        Interview interview = interviewRepository.findWithInterviewQuestionsAndQuestionByIdAndProfile_UserId(interviewId, userId)
-                .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));
+        boolean isAdmin = SecurityUtils.isAdmin();
+        Interview interview = null;
+
+        if (isAdmin) {
+            interview = interviewRepository.findWithInterviewQuestionsAndQuestionByIdAndProfile_UserId(interviewId, userId)
+                    .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));
+        }
+        else {
+            interview = interviewRepository.findWithInterviewQuestionsAndQuestionById(interviewId, userId)
+                    .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));
+        }
 
         if(interview.getStatus() != InterviewStatus.COMPLETED){
             throw new AppException(ErrorCode.INTERVIEW_NOT_COMPLETED);
@@ -288,6 +301,7 @@ public class InterviewServiceImpl implements InterviewService {
 
         return new GetFeedbackResponse(
                 isProcessing,
+                interview.getMode(),
                 feedbackForQuestions,
                 overallResult
         );
@@ -340,5 +354,31 @@ public class InterviewServiceImpl implements InterviewService {
         interviewQuestionRepository.save(interviewQuestion);
 
         return new GetHintResponse(interviewQuestion.getQuestion().getHintContent());
+    }
+
+    public Page<InterviewResponse> getInterviewHistory (GetInterviewHistoryRequest request){
+        int page = Math.max(0, request.getPages() - 1);
+        int size = 10;
+        PageRequest pageable = PageRequest.of(page, size);
+        InterviewMode interviewMode = InterviewMode.from(request.getMode());
+        InterviewStatus interviewStatus = InterviewStatus.from(request.getStatus());
+
+        Page<Interview> interviews = interviewRepository
+                .getInterviewHistory(request.getProfileId(), interviewMode, interviewStatus, pageable);
+
+        return interviews.map(this::buildInterviewResponse);
+    }
+
+    private InterviewResponse buildInterviewResponse (Interview interview){
+        return new InterviewResponse(
+                interview.getTitle(),
+                interview.getMode(),
+                interview.getStatus(),
+                interview.getCreatedAt(),
+                interview.getCompletedAt(),
+                interview.getProfile().getId(),
+                interview.getProfile().getTitle(),
+                interview.getId()
+        );
     }
 }

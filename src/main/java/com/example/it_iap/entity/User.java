@@ -60,6 +60,6 @@ public class User extends Auditable{
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<ChatSession> chatSessions;
 
-    @OneToMany(mappedBy = "interviewQuestion", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Reports> reports;
 }

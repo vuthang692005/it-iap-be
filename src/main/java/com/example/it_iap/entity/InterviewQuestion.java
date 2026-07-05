@@ -55,6 +55,6 @@ public class InterviewQuestion extends Auditable{
     @OneToOne(mappedBy = "interviewQuestion", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private ChatSession chatSession;
 
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "interviewQuestion", fetch = FetchType.LAZY)
     private List<Reports> reports;
 }

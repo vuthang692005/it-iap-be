@@ -26,8 +26,11 @@ public class Reports extends Auditable {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    private ReportStatus status;
+    private ReportStatus status = ReportStatus.PENDING;
 
     @Enumerated(EnumType.STRING)
     private ReportType reportType;
+
+    @Column(columnDefinition = "TEXT")
+    private String adminReply;
 }

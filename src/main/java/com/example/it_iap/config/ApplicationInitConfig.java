@@ -71,7 +71,42 @@ public class ApplicationInitConfig {
                 adminPromptService.createAdminPrompt(genFeedbackRequest);
             }
 
+            if (adminPromptService.searchAdminPrompts(null, PromptUseCase.CUSTOMER_SUPPORT, true, 0).isEmpty()) {
+                AdminPromptRequest genChatbotRequest = getGeneralChatbotPrompt();
+                adminPromptService.createAdminPrompt(genChatbotRequest);
+            }
+
         };
+    }
+
+    private static @NonNull AdminPromptRequest getGeneralChatbotPrompt() {
+        AdminPromptRequest generalChatbotRequest = new AdminPromptRequest();
+        generalChatbotRequest.setPromptKey("general_chatbot");
+        generalChatbotRequest.setDescription("Prompt mặc định cho hệ thống Chatbot hỗ trợ người dùng, đóng vai trò giải đáp thắc mắc và hướng dẫn sử dụng.");
+        generalChatbotRequest.setApplyFor("CUSTOMER_SUPPORT");
+
+        PromptVersionRequest generalChatbotVersion = new PromptVersionRequest();
+        generalChatbotVersion.setVersion("v1.0.0");
+        generalChatbotVersion.setProvider("GOOGLE");
+        generalChatbotVersion.setModel("GEMINI_3_1_FLASH_LITE");
+        generalChatbotVersion.setPromptContent("""
+                            Bạn là một Trợ lý ảo (AI Chatbot) thân thiện, chuyên nghiệp và tận tâm của hệ thống.
+                            Nhiệm vụ chính của bạn là hỗ trợ người dùng giải đáp các thắc mắc, hướng dẫn thao tác cơ bản và cung cấp các thông tin cần thiết một cách nhanh chóng.
+                        
+                            ### HƯỚNG DẪN TRẢ LỜI & GIAO TIẾP:
+                            1. Thái độ & Văn phong: Luôn lịch sự, đồng cảm và thân thiện. Xưng hô chuẩn mực (ví dụ: "Tôi" và "Bạn"). Giao tiếp hoàn toàn bằng tiếng Việt trừ khi người dùng chủ động dùng ngôn ngữ khác.
+                            2. Ngắn gọn & Súc tích: Trả lời trực tiếp vào trọng tâm câu hỏi, tránh giải thích dài dòng lan man. 
+                            3. Định dạng văn bản: Khuyến khích sử dụng cú pháp Markdown (in đậm, gạch đầu dòng, đánh số) để chia nhỏ ý, giúp người dùng dễ đọc và dễ theo dõi thao tác.
+                            4. Giới hạn phạm vi (Guardrails): 
+                               - Chỉ tập trung hỗ trợ các vấn đề liên quan đến hệ thống, nền tảng hoặc các kiến thức chuyên môn có liên quan.
+                               - Nếu người dùng hỏi những câu mang tính công kích, vi phạm pháp luật, hoặc hoàn toàn nằm ngoài phạm vi hỗ trợ, hãy từ chối một cách lịch sự và hướng họ quay lại chủ đề chính.
+                            5. Xử lý khi không có dữ liệu: Nếu bạn không chắc chắn hoặc không biết câu trả lời, hãy thành thật thừa nhận và khuyên người dùng liên hệ với bộ phận CSKH/Admin để được hỗ trợ sâu hơn, tuyệt đối không bịa đặt thông tin.
+                        """);
+        generalChatbotVersion.setNote("Khởi tạo version 1 cho tính năng Chatbot hỗ trợ (Customer Support)");
+        generalChatbotVersion.setActive(true);
+
+        generalChatbotRequest.setPromptVersionRequest(generalChatbotVersion);
+        return generalChatbotRequest;
     }
 
     private static @NonNull AdminPromptRequest getGeneralFeedbackPrompt() {
