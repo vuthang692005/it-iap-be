@@ -24,7 +24,6 @@ public enum ValidationError {
     QUESTION_SOURCE_INVALID("Nguồn câu hỏi không hợp lệ"),
     PAGE_VALUE_INVALID("Giá trị số trang không hợp lệ"),
     SIZE_VALUE_INVALID("Giá trị kích thước trang không hợp lệ"),
-    
     PASSWORD_INVALID("Mật khấu không hợp lệ"),
     EMAIL_INVALID("Email không hợp lệ"),
     FULL_NAME_INVALID("Họ tên không hợp lệ"),
@@ -50,6 +49,12 @@ public enum ValidationError {
     PROFILE_ID_INVALID("Profile ID không được để trống"),
     USER_ANSWER_INVALID("Câu trả lời không được để trống"),
     QUESTION_QUANTITY_INVALID("Số lượng câu hỏi phải lớn hơn 1 và nhỏ hơn 10"),
+    REPORT_TYPE_INVALID("Loại báo cáo không hợp lệ"),
+    DESCRIPTION_INVALID("Mô tả không hợp lệ"),
+    REPORT_STATUS_INVALID("Trạng thái báo cáo không hợp lệ"),
+    ADMIN_REPLY_INVALID("Phản hồi admin không hợp lệ"),
+    INTERVIEW_STATUS_INVALID("Trạng thái buổi phỏng vấn không hợp lệ"),
+    USER_MESSAGE_INVALID("Câu hỏi không được để trống"),
     TWO_FACTOR_CODE_INVALID("Mã xác thực 2 bước không hợp lệ"),
     ;
     private final String message;
