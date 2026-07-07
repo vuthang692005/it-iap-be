@@ -32,9 +32,15 @@ public class TokenServiceImpl implements TokenService {
 
     @Value("${jwt.signerKey}")
     private String signerKey;
+    private static final String CLAIM_IS_ACCESS_TOKEN = "isAccessToken";
 
     private static final String CLAIM_IS_REFRESH_TOKEN = "isRefreshToken";
+
+    private static final String CLAIM_IS_PREAUTH_TOKEN = "isPreAuthToken";
+
     private static final String PREFIX = "auth:token:white:";
+
+    private static final String PREFIX_PREAUTH = "preAuth:token:white:";
 
     public String generateAccessToken(User user) throws JOSEException {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
@@ -44,7 +50,7 @@ public class TokenServiceImpl implements TokenService {
                 .issuer("test")
                 .issueTime(new Date())
                 .claim("scope", buildScope(user))
-                .claim(CLAIM_IS_REFRESH_TOKEN, false)
+                .claim(CLAIM_IS_ACCESS_TOKEN, true)
                 .expirationTime(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)))
                 .build();
 
@@ -80,6 +86,31 @@ public class TokenServiceImpl implements TokenService {
         return refreshToken;
     }
 
+    public String generatePreAuthToken(User user) throws JOSEException {
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+        String preAuthTokenId = UUID.randomUUID().toString();
+
+        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+                .subject(user.getId().toString())
+                .issuer("test")
+                .issueTime(new Date())
+                .claim(CLAIM_IS_PREAUTH_TOKEN, true)
+                .jwtID(preAuthTokenId)
+                .expirationTime(Date.from(Instant.now().plus(5, ChronoUnit.MINUTES)))
+                .build();
+
+        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
+        JWSObject jwsObject = new JWSObject(header, payload);
+
+        jwsObject.sign(new MACSigner(signerKey));
+
+        String preAuthToken = jwsObject.serialize();
+        String key = PREFIX_PREAUTH + user.getId();
+
+        cacheRepository.addToSet(key, preAuthTokenId, Duration.ofMinutes(5));
+        return preAuthToken;
+    }
+
     private String buildScope(User user) {
         StringJoiner stringJoiner = new StringJoiner(" ");
         if (!CollectionUtils.isEmpty(user.getRoles())) {
@@ -103,10 +134,15 @@ public class TokenServiceImpl implements TokenService {
         revokeRefreshToken(token, false);
 
         boolean expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime().after(new Date());
-        boolean isRefreshToken = signedJWT.getJWTClaimsSet().getBooleanClaim(CLAIM_IS_REFRESH_TOKEN);
+        Boolean isRefreshToken = signedJWT.getJWTClaimsSet()
+                .getBooleanClaim(CLAIM_IS_REFRESH_TOKEN);
 
         if (!expiryTime) {
             throw new AppException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
+        if (isRefreshToken == null) {
+            throw new AppException(ErrorCode.TOKEN_INVALID);
         }
 
         if (!isRefreshToken) {
@@ -132,5 +168,39 @@ public class TokenServiceImpl implements TokenService {
 
         // Thu hồi trong redis nếu có
         cacheRepository.removeFromSet(key, refreshTokenId);
+    }
+
+    public SignedJWT verifyPreAuthToken(String token)
+            throws JOSEException, ParseException {
+
+        JWSVerifier verifier = new MACVerifier(signerKey.getBytes());
+        SignedJWT signedJWT = SignedJWT.parse(token);
+
+        if (!signedJWT.verify(verifier)) {
+            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
+        }
+
+        boolean expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime().after(new Date());
+
+        Boolean isPreAuthToken = signedJWT.getJWTClaimsSet().getBooleanClaim(CLAIM_IS_PREAUTH_TOKEN);
+
+        if (!expiryTime || !Boolean.TRUE.equals(isPreAuthToken)) {
+            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
+        }
+        return signedJWT;
+    }
+
+    public void revokePreAuthToken(String preAuth) throws ParseException, JOSEException {
+        // Lấy thông tin từ token
+        SignedJWT signedJWT = SignedJWT.parse(preAuth);
+        String userId = signedJWT.getJWTClaimsSet().getSubject();
+        String preAuthTokenId = signedJWT.getJWTClaimsSet().getJWTID();
+
+        String key = PREFIX_PREAUTH + userId;
+        if (!cacheRepository.isMemberOfSet(key, preAuthTokenId)) {
+            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
+        }
+        // Thu hồi trong redis nếu có
+        cacheRepository.removeFromSet(key, preAuthTokenId);
     }
 }

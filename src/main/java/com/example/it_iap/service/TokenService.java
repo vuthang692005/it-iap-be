@@ -11,4 +11,7 @@ public interface TokenService {
     String generateRefreshToken(User user) throws JOSEException;
     SignedJWT verifyRefreshToken(String token) throws JOSEException, ParseException;
     void revokeRefreshToken(String refreshToken, boolean isLogout) throws JOSEException, ParseException;
+    SignedJWT verifyPreAuthToken(String token) throws JOSEException, ParseException;
+    void revokePreAuthToken(String preAuth) throws ParseException, JOSEException;
+    String generatePreAuthToken(User user) throws JOSEException;
 }

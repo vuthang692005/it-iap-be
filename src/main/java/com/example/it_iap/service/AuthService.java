@@ -18,4 +18,10 @@ public interface AuthService {
     void forgotPassword (String email);
     void verifyForgotPassword (VerifyForgotPasswordRequest request);
     void logout(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException;
+    String setup2fa();
+    void confirm2fa(TwoFactorRequest request);
+    RoleResponse login2fa(TwoFactorRequest req, HttpServletRequest request, HttpServletResponse response) throws JOSEException, ParseException;
+    void disable2fa(TwoFactorRequest request);
+    boolean status2fa();
+
 }
