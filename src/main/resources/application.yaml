@@ -44,6 +44,8 @@ spring:
             scope:
               - profile
               - email
+    aes:
+      key: ${AES_KEY}          
   output:
     ansi:
       enabled: ALWAYS

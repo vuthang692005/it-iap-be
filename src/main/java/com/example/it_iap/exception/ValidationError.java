@@ -55,6 +55,7 @@ public enum ValidationError {
     ADMIN_REPLY_INVALID("Phản hồi admin không hợp lệ"),
     INTERVIEW_STATUS_INVALID("Trạng thái buổi phỏng vấn không hợp lệ"),
     USER_MESSAGE_INVALID("Câu hỏi không được để trống"),
+    TWO_FACTOR_CODE_INVALID("Mã xác thực 2 bước không hợp lệ"),
     ;
     private final String message;
 

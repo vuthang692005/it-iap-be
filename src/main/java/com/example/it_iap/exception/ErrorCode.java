@@ -31,7 +31,10 @@ public enum ErrorCode {
     INCOMPATIBLE_INTERVIEW_TYPE(400, "Loại hình phỏng vấn không tương thích", HttpStatus.BAD_REQUEST),
     CURRENT_QUESTION_NOT_ANSWERED(400, "Bạn cần hoàn thành câu hỏi hiện tại trước khi chuyển sang câu tiếp theo.", HttpStatus.BAD_REQUEST),
     TOKEN_LIMIT_EXCEEDED(400, "Đã vượt quá giới hạn token", HttpStatus.BAD_REQUEST),
-
+    TWO_FACTOR_ENABLED(400, "Tài khoản đã bật xác minh 2 bước rồi", HttpStatus.BAD_REQUEST),
+    TWO_FACTOR_NOT_ENABLED(400, "Tài khoản chưa bật xác minh 2 bước", HttpStatus.BAD_REQUEST),
+    TWO_FACTOR_CODE_INVALID(400, "Mã xác thực 2 bước không hợp lệ hoặc chưa chính xác", HttpStatus.BAD_REQUEST),
+    
     //EXISTED
     EMAIL_EXISTED(409, "Email đã được sử dụng", HttpStatus.CONFLICT),
     UNVERIFIED_ACCOUNT_EXISTS(409, "Tài khoản đã đăng ký nhưng chưa kích hoạt. Một mã OTP mới vừa được gửi đến email của bạn", HttpStatus.CONFLICT),
@@ -54,6 +57,7 @@ public enum ErrorCode {
     REPORT_NOT_FOUND(404,"Báo cáo không tồn tại", HttpStatus.NOT_FOUND),
 
     //UNAUTHENTICATED
+    TOKEN_INVALID(401, "Thông tin xác thực không hợp lệ", HttpStatus.UNAUTHORIZED),
     UNAUTHENTICATED(401,"Thông tin đăng nhập không hợp lệ", HttpStatus.UNAUTHORIZED),
     AUTHENTICATION_FAILED(401,"Xác thực thất bại, vui lòng đăng nhập lại", HttpStatus.UNAUTHORIZED),
     REFRESH_TOKEN_EXPIRED(401,"Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại", HttpStatus.UNAUTHORIZED),

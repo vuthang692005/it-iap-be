@@ -1,5 +1,6 @@
 package com.example.it_iap.service.impl;
 
+import com.example.it_iap.cache.CacheRepository;
 import com.example.it_iap.dto.auth.request.*;
 import com.example.it_iap.dto.auth.response.AuthResponse;
 import com.example.it_iap.dto.auth.response.RoleResponse;
@@ -11,6 +12,7 @@ import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.UserRepository;
 import com.example.it_iap.service.*;
+import com.example.it_iap.util.AesUtil;
 import com.nimbusds.jose.*;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,6 +24,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import dev.samstevens.totp.code.CodeVerifier;
+import dev.samstevens.totp.code.DefaultCodeGenerator;
+import dev.samstevens.totp.code.DefaultCodeVerifier;
+import dev.samstevens.totp.secret.DefaultSecretGenerator;
+import dev.samstevens.totp.secret.SecretGenerator;
+import dev.samstevens.totp.time.SystemTimeProvider;
+
 import java.text.ParseException;
 import java.util.*;
 
@@ -29,12 +38,22 @@ import java.util.*;
 @RequiredArgsConstructor
 @Slf4j(topic = "AuthServiceImpl")
 public class AuthServiceImpl implements AuthService {
+    private final CacheRepository cacheRepository;
+
     private final UserRepository userRepository;
+
     private final PasswordEncoder passwordEncoder;
+
     private final EmailService emailService;
     private final TokenService tokenService;
     private final VerificationService verificationService;
     private final CookieService cookieService;
+    private final UserService userService;
+
+    private final SecretGenerator secretGenerator = new DefaultSecretGenerator();
+    private final CodeVerifier verifier = new DefaultCodeVerifier(new DefaultCodeGenerator(), new SystemTimeProvider());
+
+    private final AesUtil aesUtil;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -111,6 +130,7 @@ public class AuthServiceImpl implements AuthService {
     public RoleResponse login(LoginRequest request, HttpServletResponse response) throws JOSEException {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+        Set<Role> userRoles = null;
 
         if (user.getPassword() == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
@@ -126,14 +146,59 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.ACCOUNT_DISABLED);
         }
 
+        if (user.isEnable2fa()) {
+            String preAuthToken = tokenService.generatePreAuthToken(user);
+            cookieService.add(response, CookieKey.PREAUTH_TOKEN, preAuthToken);
+            return new RoleResponse(userRoles, user.isEnable2fa());
+        }
+
         String accessToken = tokenService.generateAccessToken(user);
         String refreshToken = tokenService.generateRefreshToken(user);
 
         cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
         cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
 
+        userRoles = user.getRoles();
+        return new RoleResponse(userRoles, user.isEnable2fa());
+    }
+
+    public RoleResponse login2fa(TwoFactorRequest req, HttpServletRequest request, HttpServletResponse response)
+            throws ParseException, JOSEException {
+        // Xác minh token và lấy người dùng
+        String token = cookieService.get(request, CookieKey.PREAUTH_TOKEN);
+        if (token == null || token.isBlank()) {
+            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
+        }
+        SignedJWT signedJWT = tokenService.verifyPreAuthToken(token);
+        String subject = signedJWT.getJWTClaimsSet().getSubject();
+        UUID userId;
+        try {
+            userId = UUID.fromString(subject);
+        } catch (IllegalArgumentException e) {
+            throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
+        }
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("Xác thực preAuthToken thất bại: không tìm thấy người dùng với subject '{}'", userId);
+                    return new AppException(ErrorCode.AUTHENTICATION_FAILED);
+                });
+        if (!user.isActive()) {
+            throw new AppException(ErrorCode.ACCOUNT_DISABLED);
+        }
+
+        // Xác minh otp hợp lệ nếu ổn cho đăng nhập
+        if (!verifier.isValidCode(aesUtil.decrypt(user.getSecret2fa()), req.getTotp())) {
+            throw new AppException(ErrorCode.TWO_FACTOR_CODE_INVALID);
+        }
+        String accessToken = tokenService.generateAccessToken(user);
+        String refreshToken = tokenService.generateRefreshToken(user);
+
+        cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
+        cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
+        cookieService.clear(response, CookieKey.PREAUTH_TOKEN);
+        tokenService.revokePreAuthToken(token);
         Set<Role> userRoles = user.getRoles();
-        return new RoleResponse(userRoles);
+        return new RoleResponse(userRoles, user.isEnable2fa());
     }
 
     public RoleResponse refreshToken(HttpServletRequest request, HttpServletResponse response)
@@ -171,7 +236,7 @@ public class AuthServiceImpl implements AuthService {
         cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
 
         Set<Role> userRoles = user.getRoles();
-        return new RoleResponse(userRoles);
+        return new RoleResponse(userRoles, user.isEnable2fa());
     }
 
     public void forgotPassword (String email){
@@ -214,5 +279,66 @@ public class AuthServiceImpl implements AuthService {
         // Xóa cookie khỏi trình duyệt
         cookieService.clear(response, CookieKey.ACCESS_TOKEN);
         cookieService.clear(response, CookieKey.REFRESH_TOKEN);
+    }
+
+    public String setup2fa() {
+        User user = userService.getCurrentUser();
+
+        if (user.isEnable2fa()) {
+            throw new AppException(ErrorCode.TWO_FACTOR_ENABLED);
+        }
+
+        String secret = secretGenerator.generate();
+        String userId = user.getId().toString();
+        VerificationPurpose purpose = VerificationPurpose.TOTP_SECRET;
+
+        // Nếu có thì ghi đè
+        if (verificationService.hasActiveOtp(userId, purpose)) {
+            verificationService.createSecret(secret, userId, purpose);
+            return secret;
+        }
+
+        verificationService.createSecret(secret, userId, purpose);
+        return secret;
+    }
+
+    public void confirm2fa(TwoFactorRequest request) {
+        User user = userService.getCurrentUser();
+
+        if (user.isEnable2fa()) {
+            throw new AppException(ErrorCode.TWO_FACTOR_ENABLED);
+        }
+        
+        // Xác minh TOTP
+        String userId = user.getId().toString();
+        String key = VerificationPurpose.TOTP_SECRET.getPrefix() + userId;
+        String secret = cacheRepository.get(key)
+            .orElseThrow(() -> new AppException(ErrorCode.TWO_FACTOR_CODE_INVALID));
+        if (!verifier.isValidCode(aesUtil.decrypt(secret), request.getTotp())) {
+            throw new AppException(ErrorCode.TWO_FACTOR_CODE_INVALID);
+        }
+
+        user.setEnable2fa(true);
+        user.setSecret2fa(secret); // Đã mã hóa từ bước lưu redis
+        userRepository.save(user);
+        cacheRepository.delete(key); // Lưu xong thì xóa khỏi redis
+    }
+
+    public void disable2fa(TwoFactorRequest request) {
+        User user = userService.getCurrentUser();
+        if (!user.isEnable2fa()) { // Chưa bật thì đừng đòi hủy
+            throw new AppException(ErrorCode.TWO_FACTOR_NOT_ENABLED);
+        }
+        if (!verifier.isValidCode(aesUtil.decrypt(user.getSecret2fa()), request.getTotp())) {
+            throw new AppException(ErrorCode.TWO_FACTOR_CODE_INVALID);
+        }
+        user.setEnable2fa(false);
+        user.setSecret2fa(null);
+        userRepository.save(user);
+    }
+
+    public boolean status2fa() {
+        User user = userService.getCurrentUser();
+        return user.isEnable2fa();
     }
 }
