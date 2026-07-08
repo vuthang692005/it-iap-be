@@ -1,5 +1,6 @@
 package com.example.it_iap.service.impl;
 
+import com.example.it_iap.dto.chatMessage.response.ChatMessageResponse;
 import com.example.it_iap.dto.chatSession.request.ChatSessionRequest;
 import com.example.it_iap.dto.chatSession.respone.ChatSessionResponse;
 import com.example.it_iap.entity.*;
@@ -14,6 +15,7 @@ import com.example.it_iap.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -66,6 +68,7 @@ public class ChatSessionServiceImpl implements ChatSessionService {
                 .toList();
     }
 
+    @Transactional
     public ChatSessionResponse createChatSession (ChatSessionRequest request){
         User user = userService.getCurrentUser();
         PromptVersion promptVersion = promptVersionService.getPromptActive(PromptUseCase.CUSTOMER_SUPPORT);
@@ -80,12 +83,23 @@ public class ChatSessionServiceImpl implements ChatSessionService {
         return mapToResponse(chatSession);
     }
 
+    @Transactional
     public void deleteChatSession (long chatSessionId){
-        ChatSession chatSession = chatSessionRepository.findById(chatSessionId)
-                .orElseThrow(() -> new AppException(ErrorCode.CHAT_SESSION_NOT_FOUND));
-
+        ChatSession chatSession = getChatSession(chatSessionId);
         chatSession.setDeleteAt(LocalDateTime.now());
         chatSessionRepository.save(chatSession);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChatMessageResponse> getChatMessage (long chatSessionId){
+        ChatSession chatSession = getChatSession(chatSessionId);
+        List<ChatMessage> chatMessage = chatSession.getChatMessages();
+
+        return chatMessage.stream().map(mess ->
+                new ChatMessageResponse(
+                        mess.getRole(),
+                        mess.getContent()))
+                .toList();
     }
 
     private ChatSessionResponse mapToResponse(ChatSession chatSession) {

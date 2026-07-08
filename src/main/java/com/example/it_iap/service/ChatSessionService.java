@@ -1,5 +1,6 @@
 package com.example.it_iap.service;
 
+import com.example.it_iap.dto.chatMessage.response.ChatMessageResponse;
 import com.example.it_iap.dto.chatSession.request.ChatSessionRequest;
 import com.example.it_iap.dto.chatSession.respone.ChatSessionResponse;
 import com.example.it_iap.entity.ChatSession;
@@ -14,4 +15,5 @@ public interface ChatSessionService {
     ChatSessionResponse createChatSession (ChatSessionRequest request);
     void deleteChatSession (long chatSessionId);
     List<ChatSessionResponse> getChatbotSession ();
+    List<ChatMessageResponse> getChatMessage(long chatSessionId);
 }
