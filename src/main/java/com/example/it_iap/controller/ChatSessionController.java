@@ -1,6 +1,7 @@
 package com.example.it_iap.controller;
 
 import com.example.it_iap.dto.ApiResponse;
+import com.example.it_iap.dto.chatMessage.response.ChatMessageResponse;
 import com.example.it_iap.dto.chatSession.request.ChatSessionRequest;
 import com.example.it_iap.dto.chatSession.respone.ChatSessionResponse;
 import com.example.it_iap.service.ChatSessionService;
@@ -56,4 +57,18 @@ public class ChatSessionController {
                         .data(response)
                         .build());
     }
+
+    @Operation(summary = "Lấy danh sách tin nhắn", description = "Lấy toàn bộ lịch sử tin nhắn của một phiên chat cụ thể dựa vào ID")
+    @GetMapping("/{chatSessionId}/messages")
+    public ResponseEntity<ApiResponse<List<ChatMessageResponse>>> getChatMessage(
+            @PathVariable("chatSessionId") long chatSessionId) {
+
+        List<ChatMessageResponse> response = chatSessionService.getChatMessage(chatSessionId);
+
+        return ResponseEntity.ok(
+                ApiResponse.<List<ChatMessageResponse>>builder()
+                        .data(response)
+                        .build());
+    }
+
 }
