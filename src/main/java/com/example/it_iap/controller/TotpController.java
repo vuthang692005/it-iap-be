@@ -1,7 +1,6 @@
 package com.example.it_iap.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.it_iap.dto.ApiResponse;
 import com.example.it_iap.dto.auth.request.TwoFactorRequest;
@@ -13,9 +12,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 
 @RestController
 @RequestMapping("/api/v1/2fa")
@@ -43,7 +39,7 @@ public class TotpController {
     }
 
     @Operation(summary = "Hủy xác thực 2 bước")
-    @PutMapping("/disable")
+    @PostMapping("/disable")
     public ResponseEntity<?> disable(@RequestBody @Valid TwoFactorRequest request) {
         authService.disable2fa(request);
         return ResponseEntity.status(HttpStatus.OK).body(
@@ -53,7 +49,7 @@ public class TotpController {
     }
 
     @Operation(summary = "Lấy trạng thái xác thực 2 bước của tài khoản")
-    @PutMapping("/status")
+    @GetMapping("/status")
     public ResponseEntity<?> status() {
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()

@@ -4,6 +4,7 @@ import com.example.it_iap.cache.CacheRepository;
 import com.example.it_iap.dto.auth.request.*;
 import com.example.it_iap.dto.auth.response.AuthResponse;
 import com.example.it_iap.dto.auth.response.RoleResponse;
+import com.example.it_iap.dto.auth.response.TwoFactorResponse;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.Role;
 import com.example.it_iap.enums.CookieKey;
@@ -281,7 +282,7 @@ public class AuthServiceImpl implements AuthService {
         cookieService.clear(response, CookieKey.REFRESH_TOKEN);
     }
 
-    public String setup2fa() {
+    public TwoFactorResponse setup2fa() {
         User user = userService.getCurrentUser();
 
         if (user.isEnable2fa()) {
@@ -295,11 +296,11 @@ public class AuthServiceImpl implements AuthService {
         // Nếu có thì ghi đè
         if (verificationService.hasActiveOtp(userId, purpose)) {
             verificationService.createSecret(secret, userId, purpose);
-            return secret;
+            return new TwoFactorResponse(secret, user.getEmail());
         }
 
         verificationService.createSecret(secret, userId, purpose);
-        return secret;
+        return new TwoFactorResponse(secret, user.getEmail());
     }
 
     public void confirm2fa(TwoFactorRequest request) {
