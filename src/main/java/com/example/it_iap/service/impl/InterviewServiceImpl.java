@@ -261,11 +261,11 @@ public class InterviewServiceImpl implements InterviewService {
         Interview interview = null;
 
         if (isAdmin) {
-            interview = interviewRepository.findWithInterviewQuestionsAndQuestionByIdAndProfile_UserId(interviewId, userId)
+            interview = interviewRepository.findWithInterviewQuestionsAndQuestionById(interviewId)
                     .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));
         }
         else {
-            interview = interviewRepository.findWithInterviewQuestionsAndQuestionById(interviewId, userId)
+            interview = interviewRepository.findWithInterviewQuestionsAndQuestionByIdAndProfile_UserId(interviewId, userId)
                     .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));
         }
 
@@ -357,6 +357,8 @@ public class InterviewServiceImpl implements InterviewService {
     }
 
     public Page<InterviewResponse> getInterviewHistory (GetInterviewHistoryRequest request){
+        UUID userId = SecurityUtils.getCurrentUserId();
+
         int page = Math.max(0, request.getPages() - 1);
         int size = 10;
         PageRequest pageable = PageRequest.of(page, size);
@@ -364,7 +366,7 @@ public class InterviewServiceImpl implements InterviewService {
         InterviewStatus interviewStatus = InterviewStatus.from(request.getStatus());
 
         Page<Interview> interviews = interviewRepository
-                .getInterviewHistory(request.getProfileId(), interviewMode, interviewStatus, pageable);
+                .getInterviewHistory(userId ,request.getProfileId(), interviewMode, interviewStatus, pageable);
 
         return interviews.map(this::buildInterviewResponse);
     }

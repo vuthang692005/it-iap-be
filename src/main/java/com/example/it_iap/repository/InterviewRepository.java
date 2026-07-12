@@ -20,16 +20,18 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
     Optional<Interview> findWithInterviewQuestionsAndQuestionByIdAndProfile_UserId(Long interviewId, UUID userId);
 
     @EntityGraph(attributePaths = {"interviewQuestions", "interviewQuestions.question", "promptVersion"})
-    Optional<Interview> findWithInterviewQuestionsAndQuestionById(Long interviewId, UUID userId);
+    Optional<Interview> findWithInterviewQuestionsAndQuestionById(Long interviewId);
 
     @EntityGraph(attributePaths = {"profile"})
     @Query("""
-        SELECT i FROM Interview i
-        WHERE (:profileId IS NULL OR i.profile.id = :profileId)
-          AND (:mode IS NULL OR i.mode = :mode)
-          AND (:status IS NULL OR i.status = :status)
-    """)
+    SELECT i FROM Interview i
+    WHERE (:userId IS NULL OR i.profile.user.id = :userId)
+      AND (:profileId IS NULL OR i.profile.id = :profileId)
+      AND (:mode IS NULL OR i.mode = :mode)
+      AND (:status IS NULL OR i.status = :status)
+""")
     Page<Interview> getInterviewHistory(
+            @Param("userId") UUID userId,
             @Param("profileId") Long profileId,
             @Param("mode") InterviewMode mode,
             @Param("status") InterviewStatus status,
