@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.MessageType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -361,7 +362,7 @@ public class InterviewServiceImpl implements InterviewService {
 
         int page = Math.max(0, request.getPages() - 1);
         int size = 10;
-        PageRequest pageable = PageRequest.of(page, size);
+        PageRequest pageable = PageRequest.of(page, size, Sort.by("id").descending());
         InterviewMode interviewMode = InterviewMode.from(request.getMode());
         InterviewStatus interviewStatus = InterviewStatus.from(request.getStatus());
 

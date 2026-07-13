@@ -20,6 +20,7 @@ import com.example.it_iap.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,7 +67,7 @@ public class ReportServiceImpl implements ReportService {
     public Page<ReportResponse> searchReport (SearchReportRequest request) {
         int page = Math.max(0, request.getPages() - 1);
         int size = 10;
-        PageRequest pageable = PageRequest.of(page, size);
+        PageRequest pageable = PageRequest.of(page, size, Sort.by("id").descending());
         ReportType reportType =ReportType.fromString(request.getReportType());
         ReportStatus reportStatus = ReportStatus.fromString(request.getStatus());
 
