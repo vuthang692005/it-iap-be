@@ -102,7 +102,8 @@ public class InterviewServiceImpl implements InterviewService {
                 question.getCategory().getDisplayName(),
                 interviewQuestion.getEndAt(),
                 hasNextQuestion,
-                interviewMode
+                interviewMode,
+                null
         );
     }
 
@@ -138,7 +139,8 @@ public class InterviewServiceImpl implements InterviewService {
                 question.getCategory().getDisplayName(),
                 interviewQuestion.getEndAt(),
                 hasNextQuestion,
-                interviewMode
+                interviewMode,
+                null
         );
     }
 
@@ -229,7 +231,8 @@ public class InterviewServiceImpl implements InterviewService {
                 question.getCategory().getDisplayName(),
                 nextInterviewQuestion.getEndAt(),
                 hasNextQuestion,
-                interviewMode
+                interviewMode,
+                false
         );
     }
 
@@ -244,7 +247,9 @@ public class InterviewServiceImpl implements InterviewService {
 
         InterviewQuestion interviewQuestion = interviewQuestionService.getCurrentQuestion(interviewId);
         Question question = interviewQuestion.getQuestion();
+
         boolean hasNextQuestion = interviewQuestionService.hasNextQuestion(interview.getId(), interviewQuestion.getOrderIndex());
+        boolean isComplete = interviewQuestion.getAiFeedback() != null;
 
         return new CurrentQuestionResponse(
                 interviewQuestion.getId(),
@@ -252,7 +257,8 @@ public class InterviewServiceImpl implements InterviewService {
                 question.getCategory().getDisplayName(),
                 interviewQuestion.getEndAt(),
                 hasNextQuestion,
-                interview.getMode()
+                interview.getMode(),
+                isComplete
         );
     }
 

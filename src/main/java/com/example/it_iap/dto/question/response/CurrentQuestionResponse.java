@@ -17,4 +17,5 @@ public class CurrentQuestionResponse {
     private LocalDateTime timeEnd;
     private boolean hasNext;
     private InterviewMode interviewMode;
+    private Boolean isComplete;
 }

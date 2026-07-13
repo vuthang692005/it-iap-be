@@ -93,6 +93,12 @@ public class InterviewQuestionServiceImpl implements InterviewQuestionService {
 
     public InterviewQuestion findValidQuestionForUser (long interviewQuestionId){
         UUID userId = SecurityUtils.getCurrentUserId();
+        boolean isAdmin = SecurityUtils.isAdmin();
+
+        if(isAdmin){
+            return interviewQuestionRepository.findById(interviewQuestionId)
+                    .orElseThrow(() -> new AppException(ErrorCode.QUESTION_INTERVIEW_NOT_FOUND));
+        }
 
         return interviewQuestionRepository.findValidQuestionForUser(interviewQuestionId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_INTERVIEW_NOT_FOUND));

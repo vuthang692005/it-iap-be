@@ -68,7 +68,7 @@ public class ReportServiceImpl implements ReportService {
         int page = Math.max(0, request.getPages() - 1);
         int size = 10;
         PageRequest pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        ReportType reportType =ReportType.fromString(request.getReportType());
+        ReportType reportType = ReportType.fromString(request.getReportType());
         ReportStatus reportStatus = ReportStatus.fromString(request.getStatus());
 
         Page<Reports> reports = reportsRepository.searchReports(reportType, reportStatus, request.getEmail(), pageable);
