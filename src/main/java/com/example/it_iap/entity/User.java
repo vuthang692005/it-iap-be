@@ -1,12 +1,15 @@
 package com.example.it_iap.entity;
 
+import com.example.it_iap.entity.Json.DailyStudyStat;
 import com.example.it_iap.entity.enums.Role;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -46,6 +49,19 @@ public class User extends Auditable{
     private boolean enable2fa = false;
 
     private String secret2fa;
+
+    private Integer currentStreak = 0;
+
+    private Integer longestStreak = 0;
+
+    private LocalDate lastInterviewDate;
+
+    private Integer totalCompletedInterviews = 0;
+
+    private Double currentGpa = 0.0;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    private List<DailyStudyStat> dailyStudyStats = new ArrayList<>();
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Enumerated(EnumType.STRING)

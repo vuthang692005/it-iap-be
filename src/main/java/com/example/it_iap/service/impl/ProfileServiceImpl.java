@@ -3,6 +3,7 @@ package com.example.it_iap.service.impl;
 import com.example.it_iap.dto.profile.request.ProfileRequest;
 import com.example.it_iap.dto.profile.response.ProfileResponse;
 import com.example.it_iap.dto.profile.response.ProfileSummaryResponse;
+import com.example.it_iap.entity.Json.DailyStudyStat;
 import com.example.it_iap.entity.Profile;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.TargetLevel;
@@ -18,8 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service

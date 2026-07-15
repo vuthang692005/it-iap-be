@@ -73,7 +73,7 @@ public class AIServiceImpl implements AIService {
 
         if (event.userAnswer() == null || event.userAnswer().trim().isEmpty()) {
             aiFeedback = new AIFeedback(
-                    0f,
+                    0f, 0f, 0f,
                     "Ứng viên không đưa ra câu trả lời hoặc đã hết thời gian làm bài."
             );
         }else {
@@ -97,7 +97,7 @@ public class AIServiceImpl implements AIService {
                 log.error("Lỗi khi gọi AI cho InterviewQuestionId {}: {}", event.interviewQuestionId(), e.getMessage());
 
                 aiFeedback = new AIFeedback(
-                        null,
+                        null, null, null,
                         "Hệ thống lỗi điểm câu này sẽ không được tính."
                 );
             }
@@ -139,11 +139,24 @@ public class AIServiceImpl implements AIService {
             interviewData.append(String.format("- Phân loại: %s\n", fq.getQuestionType() != null ? fq.getQuestionType().getDisplayName() : "Không rõ"));
 
             if (fq.getFeedback() != null) {
-                String pointStr = fq.getFeedback().getPoint() != null ? String.valueOf(fq.getFeedback().getPoint()) : null;
-                interviewData.append(String.format("- Điểm câu hỏi: %s\n", pointStr));
-                interviewData.append(String.format("- Nhận xét chi tiết: %s\n", fq.getFeedback().getFeedback()));
+                // Lấy 3 đầu điểm (xử lý an toàn với null)
+                String pointStr = fq.getFeedback().getPoint() != null ? String.valueOf(fq.getFeedback().getPoint()) : "N/A";
+                String articulationPointStr = fq.getFeedback().getArticulationPoint() != null ? String.valueOf(fq.getFeedback().getArticulationPoint()) : "N/A";
+                String focusPointStr = fq.getFeedback().getFocusPoint() != null ? String.valueOf(fq.getFeedback().getFocusPoint()) : "N/A";
+
+                // Truyền cả 3 đầu điểm vào Prompt
+                interviewData.append(String.format("- Điểm chuyên môn (point): %s\n", pointStr));
+                interviewData.append(String.format("- Điểm tư duy trình bày (articulationPoint): %s\n", articulationPointStr));
+                interviewData.append(String.format("- Điểm bám sát trọng tâm (focusPoint): %s\n", focusPointStr));
+
+                // Xử lý field nhận xét (feedback/content tùy cách bạn đặt tên biến trong code thực tế)
+                String feedbackContent = fq.getFeedback().getFeedback() != null ? fq.getFeedback().getFeedback() : "Không có nhận xét";
+                interviewData.append(String.format("- Nhận xét chi tiết (feedback): %s\n", feedbackContent));
             } else {
-                interviewData.append("- Điểm câu hỏi: N/A\n- Nhận xét chi tiết: Chưa có dữ liệu.\n");
+                interviewData.append("- Điểm chuyên môn: N/A\n");
+                interviewData.append("- Điểm tư duy trình bày: N/A\n");
+                interviewData.append("- Điểm bám sát trọng tâm: N/A\n");
+                interviewData.append("- Nhận xét chi tiết: Chưa có dữ liệu.\n");
             }
 
             interviewData.append("\n"); // Cách dòng giữa các câu

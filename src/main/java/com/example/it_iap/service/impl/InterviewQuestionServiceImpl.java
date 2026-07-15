@@ -149,8 +149,8 @@ public class InterviewQuestionServiceImpl implements InterviewQuestionService {
     }
 
     @Transactional
-    public void completeQuestion (InterviewQuestion interviewQuestion, String feedback, Float point){
-        AIFeedback aiFeedback = new AIFeedback(point, feedback);
+    public void completeQuestion (InterviewQuestion interviewQuestion, String feedback, Float point, Float articulationPoint, Float focusPoint){
+        AIFeedback aiFeedback = new AIFeedback(point, articulationPoint, focusPoint, feedback);
 
         interviewQuestion.setAiFeedback(aiFeedback);
         interviewQuestionRepository.save(interviewQuestion);
