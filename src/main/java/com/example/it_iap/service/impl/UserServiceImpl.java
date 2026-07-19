@@ -3,6 +3,8 @@ package com.example.it_iap.service.impl;
 import com.example.it_iap.cache.CacheRepository;
 import com.example.it_iap.dto.user.request.*;
 import com.example.it_iap.dto.user.response.UserResponse;
+import com.example.it_iap.dto.user.response.UserStreakResponse;
+import com.example.it_iap.entity.Json.DailyStudyStat;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.enums.UploadFolder;
 import com.example.it_iap.entity.enums.Role;
@@ -19,13 +21,15 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -183,5 +187,126 @@ public class UserServiceImpl implements UserService {
                 user.isActive(),
                 user.getCreatedAt(),
                 user.getDeletedAt());
+    }
+
+    @Transactional
+    public void updateInterviewStreak() {
+        User user = getCurrentUser();
+
+        // Lấy ngày hiện tại
+        LocalDate today = LocalDate.now();
+
+        // Trường hợp 1: User mới hoàn thành phỏng vấn lần đầu tiên trong đời
+        if (user.getLastInterviewDate() == null) {
+            user.setCurrentStreak(1);
+            user.setLongestStreak(1);
+            user.setLastInterviewDate(today);
+
+            userRepository.save(user);
+            return;
+        }
+
+        LocalDate lastDate = user.getLastInterviewDate();
+
+        // Trường hợp 2: Đã làm bài phỏng vấn hôm nay rồi -> Bỏ qua, không cộng thêm
+        if (lastDate.isEqual(today)) {
+            return;
+        }
+
+        // Trường hợp 3: Hôm qua có làm -> Duy trì chuỗi, cộng thêm 1
+        else if (lastDate.isEqual(today.minusDays(1))) {
+            int newStreak = user.getCurrentStreak() + 1;
+            user.setCurrentStreak(newStreak);
+
+            // Kiểm tra xem có phá kỷ lục của chính mình không
+            if (newStreak > user.getLongestStreak()) {
+                user.setLongestStreak(newStreak);
+            }
+        }
+
+        // Trường hợp 4: Đã bỏ lỡ ít nhất 1 ngày -> Đứt chuỗi, bắt đầu lại từ 1
+        else {
+            user.setCurrentStreak(1);
+        }
+
+        // Cuối cùng: Luôn cập nhật ngày phỏng vấn gần nhất là hôm nay
+        user.setLastInterviewDate(today);
+
+        userRepository.save(user);
+    }
+
+    public UserStreakResponse getActualCurrentStreak() {
+        User user = getCurrentUser();
+
+        // 1. Xử lý an toàn Null (phòng trường hợp data cũ)
+        int current = (user.getCurrentStreak() == null) ? 0 : user.getCurrentStreak();
+        int longest = (user.getLongestStreak() == null) ? 0 : user.getLongestStreak();
+        LocalDate lastDate = user.getLastInterviewDate();
+
+        // 2. Nếu chưa từng làm bài nào hoặc đang ở mốc 0
+        if (current == 0 || lastDate == null) {
+            return new UserStreakResponse(0, longest);
+        }
+
+        // 3. Lấy ngày hiện tại
+        LocalDate today = LocalDate.now();
+
+        // 4. Lazy Evaluation: Kiểm tra xem chuỗi đã "nguội" chưa
+        // Nếu ngày cuối cùng làm phỏng vấn diễn ra TRƯỚC HÔM QUA (cách đây >= 2 ngày)
+        if (lastDate.isBefore(today.minusDays(1))) {
+            // Đứt chuỗi: currentStreak trả về 0, nhưng longestStreak vẫn giữ nguyên
+            return new UserStreakResponse(0, longest);
+        }
+
+        // 5. Nếu vừa làm hôm nay, hoặc làm hôm qua -> Chuỗi vẫn đang sống
+        return new UserStreakResponse(current, longest);
+    }
+
+    public void updateStudyStats (){
+        User user = getCurrentUser();
+
+        LocalDate today = LocalDate.now();
+        List<DailyStudyStat> dailyStudyStats = user.getDailyStudyStats();
+
+        // Tìm xem ngày hôm nay đã có trong list chưa
+        Optional<DailyStudyStat> todayStatOpt = dailyStudyStats.stream()
+                .filter(stat -> stat.getDate().equals(today))
+                .findFirst();
+
+        if (todayStatOpt.isPresent()) {
+            // Nếu đã có, chỉ cần cộng dồn số câu hỏi
+            DailyStudyStat todayStat = todayStatOpt.get();
+            todayStat.setTotalQuestions(todayStat.getTotalQuestions() + 1);
+        } else {
+            // Nếu chưa có, thêm mới record cho ngày hôm nay
+            dailyStudyStats.add(new DailyStudyStat(today, 1));
+
+            // Kiểm tra giới hạn 91 ngày
+            if (dailyStudyStats.size() > 91) {
+                dailyStudyStats.removeFirst();
+            }
+        }
+
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateUserRankStats(Float newInterviewScore) {
+        User user = getCurrentUser();
+
+        // 1. Lấy dữ liệu cũ (Xử lý an toàn Null)
+        int oldTotal = (user.getTotalCompletedInterviews() == null) ? 0 : user.getTotalCompletedInterviews();
+        double oldGpa = (user.getCurrentGpa() == null) ? 0.0 : user.getCurrentGpa();
+
+        // 2. Tính toán số liệu mới
+        int newTotal = oldTotal + 1;
+
+        // Công thức tính GPA trung bình cộng dồn
+        double newGpa = ((oldGpa * oldTotal) + newInterviewScore) / newTotal;
+
+        // 3. Cập nhật và lưu lại
+        user.setTotalCompletedInterviews(newTotal);
+        user.setCurrentGpa(newGpa);
+        userRepository.save(user);
     }
 }

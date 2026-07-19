@@ -50,6 +50,7 @@ public class InterviewServiceImpl implements InterviewService {
     private final AIService aiService;
     private final ChatMessageService chatMessageService;
     private final ObjectMapper objectMapper;
+    private final UserService userService;
 
     @Transactional
     public InterviewIdResponse createInterview (String mode, String title, long profileId) {
@@ -119,10 +120,15 @@ public class InterviewServiceImpl implements InterviewService {
 
         interviewQuestionService.saveUserAnswerForStressInterview(answeredIq, userAnswer);
 
+        Profile profile = interview.getProfile();
+        userService.updateStudyStats();
+
         InterviewQuestion interviewQuestion = interviewQuestionService
                 .activateNextUnansweredQuestion(interview.getId(), interviewMode);
 
         if (interviewQuestion == null) {
+            userService.updateInterviewStreak();
+
             interview.setStatus(InterviewStatus.COMPLETED);
             interview.setCompletedAt(LocalDateTime.now());
 
@@ -176,7 +182,9 @@ public class InterviewServiceImpl implements InterviewService {
                     interviewQuestionService.completeQuestion(
                             interviewQuestion,
                             aiInteractive.getContent(),
-                            aiInteractive.getPoint()
+                            aiInteractive.getPoint(),
+                            aiInteractive.getArticulationPoint(),
+                            aiInteractive.getFocusPoint()
                     );
                 } catch (Exception e) {
                     log.error("Lưu Feedback thất bại, tiến hành xóa tin nhắn rác...", e);
@@ -212,9 +220,15 @@ public class InterviewServiceImpl implements InterviewService {
         }
 
         interviewQuestionService.completeInterviewQuestion(interviewQuestion);
+
+        Profile profile = interview.getProfile();
+        userService.updateStudyStats();
+
         InterviewQuestion nextInterviewQuestion = interviewQuestionService.activateNextUnansweredQuestion(interview.getId(), interviewMode);
 
         if (nextInterviewQuestion == null) {
+            userService.updateInterviewStreak();
+
             interview.setStatus(InterviewStatus.COMPLETED);
             interview.setCompletedAt(LocalDateTime.now());
 
@@ -304,6 +318,8 @@ public class InterviewServiceImpl implements InterviewService {
 
             interview.setOverallResult(overallResult);
             interviewRepository.save(interview);
+
+            userService.updateUserRankStats(overallResult.getTotalPoint());
         }
 
         return new GetFeedbackResponse(
