@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import com.example.it_iap.dto.notification.response.AdminGetNotificationResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -76,4 +77,12 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                 ORDER BY n.createdAt DESC
             """)
     Page<AdminGetNotificationResponse> findAllForAdmin(Pageable pageable);
+
+    @Modifying
+    @Transactional
+    @Query("""
+                DELETE FROM Notification n
+                WHERE n.identifyCode = :identifyCode
+            """)
+    int deleteByIdentifyCode(@Param("identifyCode") String identifyCode);
 }

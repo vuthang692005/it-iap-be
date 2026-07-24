@@ -22,4 +22,6 @@ public interface NotificationService {
     void readAllNotification();
 
     Page<AdminGetNotificationResponse> adminGetNotification(@Min(1) int page, @Max(50) int size);
+
+    void deleteNotification(String identifyCode);
 }

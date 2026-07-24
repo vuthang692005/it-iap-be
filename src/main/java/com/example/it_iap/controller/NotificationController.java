@@ -70,7 +70,8 @@ public class NotificationController {
                         .build());
     }
 
-    @Operation(summary = "Admin lấy thông báo đã tạo từ admin hoặc system") // Tạm thời gửi toàn bộ sau custom thêm
+    @Operation(summary = "Admin lấy thông báo đã tạo từ admin hoặc system")
+    // Tạm thời lấy toàn bộ không lọc sau custom thêm
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     @GetMapping("/admin")
     public ResponseEntity<?> adminGetNotification(
@@ -80,6 +81,16 @@ public class NotificationController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.<Page<AdminGetNotificationResponse>>builder()
                         .data(response)
+                        .build());
+    }
+
+    @Operation(summary = "Admin xóa thông báo theo identify code")
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @DeleteMapping("/{identifyCode}")
+    public ResponseEntity<?> deleteNotification(@PathVariable String identifyCode) {
+        notificationService.deleteNotification(identifyCode);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.builder()
                         .build());
     }
 }

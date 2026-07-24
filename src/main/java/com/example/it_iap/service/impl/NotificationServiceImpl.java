@@ -104,4 +104,9 @@ public class NotificationServiceImpl implements NotificationService {
         Page<AdminGetNotificationResponse> response = notificationRepository.findAllForAdmin(pageable);
         return response;
     }
+
+    @Override
+    public void deleteNotification(String identifyCode) {
+        notificationRepository.deleteByIdentifyCode(identifyCode);
+    }
 }
