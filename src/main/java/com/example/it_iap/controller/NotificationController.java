@@ -2,8 +2,11 @@ package com.example.it_iap.controller;
 
 import com.example.it_iap.dto.notification.request.AdminCreateNotificationRequest;
 import com.example.it_iap.dto.notification.request.ReadNotificationRequest;
+import com.example.it_iap.dto.notification.response.AdminGetNotificationResponse;
 import com.example.it_iap.dto.notification.response.ReadNotificationResponse;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -64,6 +67,19 @@ public class NotificationController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.<NotificationResponse>builder()
                         .code(201)
+                        .build());
+    }
+
+    @Operation(summary = "Admin lấy thông báo đã tạo từ admin hoặc system") // Tạm thời gửi toàn bộ sau custom thêm
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @GetMapping("/admin")
+    public ResponseEntity<?> adminGetNotification(
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "10") @Max(50) int size) {
+        Page<AdminGetNotificationResponse> response = notificationService.adminGetNotification(page, size);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.<Page<AdminGetNotificationResponse>>builder()
+                        .data(response)
                         .build());
     }
 }

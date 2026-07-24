@@ -5,17 +5,13 @@ import java.util.UUID;
 
 import com.example.it_iap.dto.notification.request.AdminCreateNotificationRequest;
 import com.example.it_iap.dto.notification.request.ReadNotificationRequest;
+import com.example.it_iap.dto.notification.response.AdminGetNotificationResponse;
 import com.example.it_iap.dto.notification.response.ReadNotificationResponse;
 import com.example.it_iap.entity.Notification;
 import com.example.it_iap.entity.enums.NotificationType;
-import com.example.it_iap.entity.enums.Role;
 import com.example.it_iap.repository.UserRepository;
 import com.example.it_iap.util.RandomReplyIdentifyCode;
-import com.openai.models.beta.threads.messages.MessageDelta;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
 import com.example.it_iap.dto.NotificationSliceResponse;
@@ -99,5 +95,13 @@ public class NotificationServiceImpl implements NotificationService {
     public void readAllNotification() {
         User user = userService.getCurrentUser();
         notificationRepository.readAll(user.getId());
+    }
+
+    @Override
+    public Page<AdminGetNotificationResponse> adminGetNotification(int page, int size) {
+        Sort sort = Sort.by(Sort.Order.desc("createdAt"));
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        Page<AdminGetNotificationResponse> response = notificationRepository.findAllForAdmin(pageable);
+        return response;
     }
 }

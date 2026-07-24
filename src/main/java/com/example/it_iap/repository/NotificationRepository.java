@@ -3,6 +3,8 @@ package com.example.it_iap.repository;
 import java.util.Set;
 import java.util.UUID;
 
+import com.example.it_iap.dto.notification.response.AdminGetNotificationResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -28,7 +30,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                 )
                 FROM Notification n
                 WHERE n.user.id = :id
-                ORDER BY n.createdAt DESC
             """)
     Slice<NotificationResponse> findAllByUser_id(UUID id, Pageable pageable);
 
@@ -52,4 +53,27 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                 WHERE n.user.id = :userId
             """)
     void readAll(@Param("userId") UUID userId);
+
+    @Query("""
+                SELECT new com.example.it_iap.dto.notification.response.AdminGetNotificationResponse(
+                    n.identifyCode,
+                    n.title,
+                    n.content,
+                    n.type,
+                    n.link,
+                    n.createdAt
+                )
+                FROM Notification n
+                WHERE n.type IN (
+                    com.example.it_iap.entity.enums.NotificationType.ADMIN,
+                    com.example.it_iap.entity.enums.NotificationType.SYSTEM
+                )
+                AND n.id = (
+                    SELECT MAX(n2.id)
+                    FROM Notification n2
+                    WHERE n2.identifyCode = n.identifyCode
+                )
+                ORDER BY n.createdAt DESC
+            """)
+    Page<AdminGetNotificationResponse> findAllForAdmin(Pageable pageable);
 }
