@@ -5,7 +5,8 @@ public enum NotificationType {
     ADMIN,    // Admin
     INTERVIEW_RESULT,    // Kết quả phỏng vấn
     WARNING,      // Cảnh báo
-    PROMO      // Gói nạp? Quảng cáo? chệu khôm bit
+    PROMO,     // Gói nạp? Quảng cáo? chệu khôm bit
+    STREAK     // chuỗi học tập
     ;
 
     public static NotificationType from(String value) {
