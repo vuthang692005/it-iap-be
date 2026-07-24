@@ -56,6 +56,7 @@ public enum ValidationError {
     INTERVIEW_STATUS_INVALID("Trạng thái buổi phỏng vấn không hợp lệ"),
     USER_MESSAGE_INVALID("Câu hỏi không được để trống"),
     TWO_FACTOR_CODE_INVALID("Mã xác thực 2 bước không hợp lệ"),
+    RATING_INVALID("Điểm đánh giá phải trong khoảng từ 1 đến 5"),
     ;
     private final String message;
 
