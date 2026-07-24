@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import com.example.it_iap.dto.notification.request.AdminCreateNotificationRequest;
+import com.example.it_iap.dto.notification.request.ReadNotificationRequest;
+import com.example.it_iap.dto.notification.response.ReadNotificationResponse;
 import com.example.it_iap.entity.Notification;
 import com.example.it_iap.entity.enums.NotificationType;
 import com.example.it_iap.entity.enums.Role;
@@ -86,4 +88,10 @@ public class NotificationServiceImpl implements NotificationService {
         } while (slice.hasNext());
     }
 
+    @Override
+    public ReadNotificationResponse readNotification(ReadNotificationRequest request) {
+        User user = userService.getCurrentUser();
+        int read = notificationRepository.markAsRead(request.getNotificationId(), user.getId());
+        return new ReadNotificationResponse(request.getNotificationId(), read);
+    }
 }

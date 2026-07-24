@@ -1,6 +1,8 @@
 package com.example.it_iap.controller;
 
 import com.example.it_iap.dto.notification.request.AdminCreateNotificationRequest;
+import com.example.it_iap.dto.notification.request.ReadNotificationRequest;
+import com.example.it_iap.dto.notification.response.ReadNotificationResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +35,17 @@ public class NotificationController {
                         .build());
     }
 
+    @Operation(summary = "Đọc thông báo")
+    @PutMapping
+    public ResponseEntity<?> readNotification(
+            @RequestBody ReadNotificationRequest request) {
+        ReadNotificationResponse response = notificationService.readNotification(request);
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.<ReadNotificationResponse>builder()
+                        .data(response)
+                        .build());
+    }
+
     @Operation(summary = "Admin tạo thông báo cho toàn bộ người dùng") // Tạm thời gửi toàn bộ sau custom thêm
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     @PostMapping
@@ -44,4 +57,6 @@ public class NotificationController {
                         .code(201)
                         .build());
     }
+
+
 }
