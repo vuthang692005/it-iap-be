@@ -78,4 +78,7 @@ public class User extends Auditable{
 
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Reports> reports;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Feedback> feedbacks;
 }

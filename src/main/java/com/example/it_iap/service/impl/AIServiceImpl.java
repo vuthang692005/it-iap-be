@@ -16,6 +16,7 @@ import com.example.it_iap.entity.enums.TargetPosition;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.InterviewQuestionRepository;
+import com.example.it_iap.repository.QuestionRepository;
 import com.example.it_iap.service.AIService;
 import com.example.it_iap.service.ChatSessionService;
 import lombok.RequiredArgsConstructor;
@@ -46,18 +47,28 @@ public class AIServiceImpl implements AIService {
     private final ChatClient statelessChatClient;
 
     private final InterviewQuestionRepository interviewQuestionRepository;
+    private final QuestionRepository questionRepository;
     private final ChatSessionService chatSessionService;
 
     public List<AICreateQuestionRequest> generateQuestion (int quantity, TargetLevel level, TargetPosition position, PromptVersion promptVersion){
         String systemPromptTemplate = promptVersion.getPromptContent();
 
+        List<String> existingQuestions = questionRepository.findContentByLevelAndPosition(level, position);
+
+        String existingQuestionsText = existingQuestions.isEmpty()
+                ? "Chưa có câu hỏi nào trong hệ thống."
+                : String.join("\n- ", existingQuestions);
+
         return statelessChatClient
                 .prompt()
                 .system(systemPromptTemplate)
-                .user(u -> u.text("Hãy tạo {quantity} câu hỏi phỏng vấn cho vị trí {position} ở cấp độ {level}.")
+                .user(u -> u.text("Hãy tạo {quantity} câu hỏi phỏng vấn cho vị trí {position} ở cấp độ {level}.\n\n" +
+                                "Tuyệt đối KHÔNG tạo câu hỏi có nội dung trùng lặp với các câu hỏi đã có dưới đây:\n" +
+                                "- {existingQuestions}")
                         .param("quantity", quantity)
                         .param("position", position.getName())
-                        .param("level", level.getName()))
+                        .param("level", level.getName())
+                        .param("existingQuestions", existingQuestionsText))
                 .options(OpenAiChatOptions.builder()
                         .model(promptVersion.getModel()))
                 .call()
