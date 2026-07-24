@@ -14,4 +14,6 @@ public interface NotificationService {
     void createNotification(@Valid AdminCreateNotificationRequest request);
 
     ReadNotificationResponse readNotification(ReadNotificationRequest request);
+
+    void readAllNotification();
 }

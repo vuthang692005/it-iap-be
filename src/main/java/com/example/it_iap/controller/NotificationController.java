@@ -46,6 +46,15 @@ public class NotificationController {
                         .build());
     }
 
+    @Operation(summary = "Đọc tất cả thông báo")
+    @PutMapping("/read-all")
+    public ResponseEntity<?> readAllNotification() {
+        notificationService.readAllNotification();
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.builder()
+                        .build());
+    }
+
     @Operation(summary = "Admin tạo thông báo cho toàn bộ người dùng") // Tạm thời gửi toàn bộ sau custom thêm
     @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
     @PostMapping
@@ -57,6 +66,4 @@ public class NotificationController {
                         .code(201)
                         .build());
     }
-
-
 }

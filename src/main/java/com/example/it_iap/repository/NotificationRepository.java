@@ -37,13 +37,19 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     @Modifying
     @Transactional
     @Query("""
-        UPDATE Notification n
-        SET n.read = true
-        WHERE n.id IN :ids
-          AND n.user.id = :userId
-    """)
-    int markAsRead(
-            @Param("ids") Set<Long> ids,
-            @Param("userId") UUID userId
-    );
+                UPDATE Notification n
+                SET n.read = true
+                WHERE n.id IN :ids
+                  AND n.user.id = :userId
+            """)
+    int markAsRead(@Param("ids") Set<Long> ids, @Param("userId") UUID userId);
+
+    @Modifying
+    @Transactional
+    @Query("""
+                UPDATE Notification n
+                SET n.read = true
+                WHERE n.user.id = :userId
+            """)
+    void readAll(@Param("userId") UUID userId);
 }

@@ -46,13 +46,13 @@ public class NotificationServiceImpl implements NotificationService {
         Sort sort = Sort.by(Sort.Order.desc("createdAt"));
         Pageable pageable = PageRequest.of(page - 1, 15, sort);
         Slice<NotificationResponse> slice = notificationRepository.findAllByUser_id(userId, pageable);
-        
+
         int unread = notificationRepository.countByUser_idAndReadIsFalse(userId);
 
         return new NotificationSliceResponse<>(
-            slice.getContent(),
-            unread,
-            slice.hasNext()
+                slice.getContent(),
+                unread,
+                slice.hasNext()
         );
     }
 
@@ -93,5 +93,11 @@ public class NotificationServiceImpl implements NotificationService {
         User user = userService.getCurrentUser();
         int read = notificationRepository.markAsRead(request.getNotificationId(), user.getId());
         return new ReadNotificationResponse(request.getNotificationId(), read);
+    }
+
+    @Override
+    public void readAllNotification() {
+        User user = userService.getCurrentUser();
+        notificationRepository.readAll(user.getId());
     }
 }
