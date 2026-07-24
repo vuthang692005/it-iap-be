@@ -1,8 +1,11 @@
 package com.example.it_iap.repository;
 
 import com.example.it_iap.entity.User;
+import com.example.it_iap.entity.enums.Role;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,4 +28,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             @Param("phoneNumber") String phoneNumber,
             Pageable pageable
     );
+
+    Slice<User> findAllBy(PageRequest of);
 }

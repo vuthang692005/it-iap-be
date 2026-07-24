@@ -1,11 +1,11 @@
 package com.example.it_iap.controller;
 
+import com.example.it_iap.dto.notification.request.AdminCreateNotificationRequest;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.it_iap.dto.ApiResponse;
 import com.example.it_iap.dto.NotificationSliceResponse;
@@ -30,6 +30,18 @@ public class NotificationController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.<NotificationSliceResponse<NotificationResponse>>builder()
                         .data(response)
+                        .build());
+    }
+
+    @Operation(summary = "Admin tạo thông báo cho toàn bộ người dùng") // Tạm thời gửi toàn bộ sau custom thêm
+    @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
+    @PostMapping
+    public ResponseEntity<?> createNotification(
+            @RequestBody @Valid AdminCreateNotificationRequest request) {
+        notificationService.createNotification(request);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.<NotificationResponse>builder()
+                        .code(201)
                         .build());
     }
 }

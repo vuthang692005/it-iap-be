@@ -2,6 +2,7 @@ package com.example.it_iap.entity.enums;
 
 public enum NotificationType {
     SYSTEM,   // Hệ thống
+    ADMIN,    // Admin
     INTERVIEW_RESULT,    // Kết quả phỏng vấn
     WARNING,      // Cảnh báo
     PROMO      // Gói nạp? Quảng cáo? chệu khôm bit

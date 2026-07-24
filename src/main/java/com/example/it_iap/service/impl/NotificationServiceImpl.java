@@ -1,7 +1,15 @@
 package com.example.it_iap.service.impl;
 
+import java.util.List;
 import java.util.UUID;
 
+import com.example.it_iap.dto.notification.request.AdminCreateNotificationRequest;
+import com.example.it_iap.entity.Notification;
+import com.example.it_iap.entity.enums.NotificationType;
+import com.example.it_iap.entity.enums.Role;
+import com.example.it_iap.repository.UserRepository;
+import com.example.it_iap.util.RandomReplyIdentifyCode;
+import com.openai.models.beta.threads.messages.MessageDelta;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -17,12 +25,14 @@ import com.example.it_iap.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "NOTIFICATION_SERVICE")
 public class NotificationServiceImpl implements NotificationService {
     private final UserService userService;
+    private final UserRepository userRepository;
 
     private final NotificationRepository notificationRepository;
 
@@ -43,5 +53,37 @@ public class NotificationServiceImpl implements NotificationService {
             slice.hasNext()
         );
     }
-    
+
+    @Override
+    @Transactional
+    public void createNotification(AdminCreateNotificationRequest request) {
+        int page = 0;
+        int size = 500; // 500 user 1 lần gửi
+
+        Slice<User> slice;
+
+        do {
+            slice = userRepository.findAllBy(PageRequest.of(page, size)); // Không biết xử lý với Role của thắng nên findAll cho lẹ :((
+            String identifyCode = RandomReplyIdentifyCode.generate();
+            List<Notification> notifications = slice.getContent()
+                    .stream()
+                    .map(user -> {
+                        Notification notification = new Notification();
+                        notification.setIdentifyCode(identifyCode);
+                        notification.setUser(user);
+                        notification.setTitle(request.getTitle());
+                        notification.setContent(request.getContent());
+                        notification.setType(NotificationType.ADMIN);
+                        notification.setRead(false);
+                        notification.setLink(request.getLink());
+                        return notification;
+                    })
+                    .toList();
+
+            notificationRepository.saveAll(notifications);
+
+            page++;
+        } while (slice.hasNext());
+    }
+
 }
