@@ -32,5 +32,5 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     Slice<User> findAllBy(PageRequest of);
 
-    Slice<User> findAllByCurrentStreakGreaterThanAndLastInterviewDateBefore(int i, LocalDateTime yesterday, PageRequest of);
+    Slice<User> findAllByCurrentStreakGreaterThanAndLastInterviewDateAfter(int currentStreak, LocalDateTime time, PageRequest of);
 }

@@ -26,7 +26,7 @@ public class NotificationScheduler {
 
     /* Nhắc nhở giữ chuỗi */
     @Transactional
-    @Scheduled(cron = "0 0 21 * * *", zone = "Asia/Ho_Chi_Minh")
+    @Scheduled(cron = "0 0 5 * * *", zone = "Asia/Ho_Chi_Minh") // Nhắc sớm từ 5h sáng để online thấy luôn
     public void reminderStreak() {
         int page = 0;
         int size = 363; // Nhắc 363 đứa 1 lần
@@ -34,8 +34,8 @@ public class NotificationScheduler {
         Slice<User> slice;
 
         do {
-            LocalDateTime yesterday = LocalDateTime.now().minusHours(21);
-            slice = userRepository.findAllByCurrentStreakGreaterThanAndLastInterviewDateBefore(2, yesterday, PageRequest.of(page, size));
+            LocalDateTime time = LocalDateTime.now().minusDays(1).minusHours(5);
+            slice = userRepository.findAllByCurrentStreakGreaterThanAndLastInterviewDateAfter(2, time, PageRequest.of(page, size));
             log.info("NOTIFICATION_SCHEDULER RUNNING...");
             List<Notification> notifications = slice.getContent()
                     .stream()
