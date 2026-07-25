@@ -7,6 +7,7 @@ public enum NotificationType {
     WARNING,      // Cảnh báo
     PROMO,     // Gói nạp? Quảng cáo? chệu khôm bit
     REPORT,     // Báo cáo
+    FEEDBACK,   // Thông báo có feedback
     STREAK     // chuỗi học tập
     ;
 

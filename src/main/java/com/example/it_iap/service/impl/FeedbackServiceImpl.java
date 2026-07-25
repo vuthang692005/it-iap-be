@@ -5,16 +5,22 @@ import com.example.it_iap.dto.feedback.request.FeedbackFilterRequest;
 import com.example.it_iap.dto.feedback.request.FeedbackRequest;
 import com.example.it_iap.dto.feedback.response.FeedbackResponse;
 import com.example.it_iap.entity.Feedback;
+import com.example.it_iap.entity.Notification;
 import com.example.it_iap.entity.User;
+import com.example.it_iap.entity.enums.NotificationType;
 import com.example.it_iap.enums.UploadFolder;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.FeedbackRepository;
+import com.example.it_iap.repository.NotificationRepository;
 import com.example.it_iap.service.CloudinaryService;
 import com.example.it_iap.service.FeedbackService;
 import com.example.it_iap.service.UserService;
+import com.example.it_iap.util.RandomReplyIdentifyCode;
 import com.example.it_iap.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -30,6 +36,10 @@ public class FeedbackServiceImpl implements FeedbackService {
     private final UserService userService;
     private final FeedbackRepository feedbackRepository;
     private final CloudinaryService cloudinaryService;
+    private final NotificationRepository notificationRepository;
+
+    @Value("${app.frontend-url}")
+    private String clientUrl;
 
     @Transactional
     public FeedbackResponse createFeedback(FeedbackRequest request) {
@@ -76,6 +86,15 @@ public class FeedbackServiceImpl implements FeedbackService {
         feedback.setAdminReply(request.getAdminReply());
 
         feedback = feedbackRepository.save(feedback);
+
+        Notification notification = new Notification();
+        notification.setUser(feedback.getUser());
+        notification.setIdentifyCode(RandomReplyIdentifyCode.generate());
+        notification.setTitle("Đã có feedback từ đội ngũ quản trị!");
+        notification.setContent("Cảm ơn bạn đã dành thời gian chờ đợi. Đội ngũ quản trị đã xem xét và đưa ra feedback cụ thể");
+        notification.setType(NotificationType.FEEDBACK);
+        notification.setLink(clientUrl + "/feedbacks#" + feedbackId); // fe lồng link vào thẻ <a>
+        notificationRepository.save(notification);
 
         return mapToResponse(feedback);
     }
