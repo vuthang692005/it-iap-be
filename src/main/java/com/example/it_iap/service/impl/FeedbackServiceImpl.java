@@ -63,7 +63,12 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
 
-        Page<Feedback> feedbackPage = feedbackRepository.findFeedbacksWithFilter(request.getRating(), userId, pageable);
+        Page<Feedback> feedbackPage = feedbackRepository.findFeedbacksWithFilter(
+                request.getRating(),
+                userId,
+                request.getHasAdminReply(),
+                request.getHasImageUrl(),
+                pageable);
 
         return feedbackPage.map(this::mapToResponse);
     }
@@ -100,13 +105,21 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     private FeedbackResponse mapToResponse(Feedback feedback) {
+        boolean isAdmin = SecurityUtils.isAdmin();
+        String email = null;
+
+        if(isAdmin){
+            email = feedback.getUser().getEmail();
+        }
+
         return new FeedbackResponse(
                 feedback.getId(),
                 feedback.getContent(),
                 feedback.getImageUrl(),
                 feedback.getRating(),
                 feedback.getAdminReply(),
-                feedback.getUser().getEmail(),
+                feedback.getUser().getFullName(),
+                email,
                 feedback.getCreatedAt()
         );
     }

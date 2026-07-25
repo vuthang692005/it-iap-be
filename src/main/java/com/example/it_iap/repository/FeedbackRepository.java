@@ -12,8 +12,18 @@ import java.util.UUID;
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
     @Query("SELECT f FROM Feedback f WHERE " +
             "(:rating IS NULL OR f.rating = :rating) AND " +
-            "(:userId IS NULL OR f.user.id = :userId)")
-    Page<Feedback> findFeedbacksWithFilter(@Param("rating") Integer rating,
-                                           @Param("userId") UUID userId,
-                                           Pageable pageable);
+            "(:userId IS NULL OR f.user.id = :userId) AND " +
+            "(:hasAdminReply IS NULL OR " +
+            "(:hasAdminReply = true AND f.adminReply IS NOT NULL) OR " +
+            "(:hasAdminReply = false AND f.adminReply IS NULL)) AND " +
+            "(:hasImageUrl IS NULL OR " +
+            "(:hasImageUrl = true AND f.imageUrl IS NOT NULL) OR " +
+            "(:hasImageUrl = false AND f.imageUrl IS NULL))")
+    Page<Feedback> findFeedbacksWithFilter(
+            @Param("rating") Integer rating,
+            @Param("userId") UUID userId,
+            @Param("hasAdminReply") Boolean hasAdminReply,
+            @Param("hasImageUrl") Boolean hasImageUrl,
+            Pageable pageable
+    );
 }
