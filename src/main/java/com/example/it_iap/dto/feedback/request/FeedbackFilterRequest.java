@@ -10,6 +10,8 @@ import org.hibernate.validator.constraints.Range;
 public class FeedbackFilterRequest {
     @Range(min = 1, max = 5, message = "RATING_INVALID")
     private Integer rating;
-    private int page;
+    private int page = 1;
     private Boolean onlyMine;
+    private Boolean hasAdminReply;
+    private Boolean hasImageUrl;
 }
