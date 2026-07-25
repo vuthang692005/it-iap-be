@@ -72,7 +72,6 @@ public class NotificationServiceImpl implements NotificationService {
                         notification.setTitle(request.getTitle());
                         notification.setContent(request.getContent());
                         notification.setType(NotificationType.ADMIN);
-                        notification.setRead(false);
                         notification.setLink(request.getLink());
                         return notification;
                     })

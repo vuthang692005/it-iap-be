@@ -201,7 +201,7 @@ public class UserServiceImpl implements UserService {
         User user = getCurrentUser();
 
         // Lấy ngày hiện tại
-        LocalDate today = LocalDate.now();
+        LocalDateTime today = LocalDateTime.now();
 
         // Trường hợp 1: User mới hoàn thành phỏng vấn lần đầu tiên trong đời
         if (user.getLastInterviewDate() == null) {
@@ -213,7 +213,7 @@ public class UserServiceImpl implements UserService {
             return;
         }
 
-        LocalDate lastDate = user.getLastInterviewDate();
+        LocalDateTime lastDate = user.getLastInterviewDate();
 
         // Trường hợp 2: Đã làm bài phỏng vấn hôm nay rồi -> Bỏ qua, không cộng thêm
         if (lastDate.isEqual(today)) {
@@ -259,7 +259,7 @@ public class UserServiceImpl implements UserService {
         // 1. Xử lý an toàn Null (phòng trường hợp data cũ)
         int current = (user.getCurrentStreak() == null) ? 0 : user.getCurrentStreak();
         int longest = (user.getLongestStreak() == null) ? 0 : user.getLongestStreak();
-        LocalDate lastDate = user.getLastInterviewDate();
+        LocalDateTime lastDate = user.getLastInterviewDate();
 
         // 2. Nếu chưa từng làm bài nào hoặc đang ở mốc 0
         if (current == 0 || lastDate == null) {
@@ -267,7 +267,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 3. Lấy ngày hiện tại
-        LocalDate today = LocalDate.now();
+        LocalDateTime today = LocalDateTime.now();
 
         // 4. Lazy Evaluation: Kiểm tra xem chuỗi đã "nguội" chưa
         // Nếu ngày cuối cùng làm phỏng vấn diễn ra TRƯỚC HÔM QUA (cách đây >= 2 ngày)
