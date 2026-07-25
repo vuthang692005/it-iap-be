@@ -1,28 +1,35 @@
 package com.example.it_iap.service.impl;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.example.it_iap.dto.report.request.CreateReportRequest;
 import com.example.it_iap.dto.report.request.SearchReportRequest;
 import com.example.it_iap.dto.report.request.UpdateReportRequest;
 import com.example.it_iap.dto.report.request.UserSearchReportRequest;
 import com.example.it_iap.dto.report.response.ReportResponse;
 import com.example.it_iap.entity.InterviewQuestion;
+import com.example.it_iap.entity.Notification;
 import com.example.it_iap.entity.Reports;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.InterviewStatus;
+import com.example.it_iap.entity.enums.NotificationType;
 import com.example.it_iap.entity.enums.ReportStatus;
 import com.example.it_iap.entity.enums.ReportType;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.InterviewQuestionRepository;
+import com.example.it_iap.repository.NotificationRepository;
 import com.example.it_iap.repository.ReportsRepository;
 import com.example.it_iap.service.ReportService;
 import com.example.it_iap.service.UserService;
+import com.example.it_iap.util.RandomReplyIdentifyCode;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +37,10 @@ public class ReportServiceImpl implements ReportService {
     private final ReportsRepository reportsRepository;
     private final InterviewQuestionRepository interviewQuestionRepository;
     private final UserService userService;
+    private final NotificationRepository notificationRepository;
+
+    @Value("${app.frontend-url}")
+    private String clientUrl;
 
     @Transactional
     public void createReport (CreateReportRequest request){
@@ -85,6 +96,15 @@ public class ReportServiceImpl implements ReportService {
         reports.setAdminReply(request.getAdminReply());
 
         reports = reportsRepository.save(reports);
+        
+        Notification notification = new Notification();
+        notification.setUser(reports.getUser());
+        notification.setIdentifyCode(RandomReplyIdentifyCode.generate());
+        notification.setTitle("Báo cáo: Phỏng vấn #" + reports.getInterviewQuestion().getInterview().getId() + ", " + "Q#" + reports.getInterviewQuestion().getId() + " đã được phản hồi!");
+        notification.setContent("Cảm ơn bạn đã dành thời gian báo cáo vấn đề. Ý kiến của bạn giúp chúng tôi nâng cao chất lượng hệ thống. Báo cáo của bạn đã được xem xét và phản hồi.");
+        notification.setType(NotificationType.REPORT);
+        notification.setLink(clientUrl + "/reports#" + reportId); // fe lồng link vào thẻ <a>
+        notificationRepository.save(notification);
 
         return buildReportResponse(reports);
     }

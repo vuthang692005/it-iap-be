@@ -6,6 +6,7 @@ public enum NotificationType {
     INTERVIEW_RESULT,    // Kết quả phỏng vấn
     WARNING,      // Cảnh báo
     PROMO,     // Gói nạp? Quảng cáo? chệu khôm bit
+    REPORT,     // Báo cáo
     STREAK     // chuỗi học tập
     ;
 
