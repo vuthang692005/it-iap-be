@@ -1,10 +1,12 @@
 package com.example.it_iap.repository;
 
 import com.example.it_iap.entity.Interview;
+import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.InterviewMode;
 import com.example.it_iap.entity.enums.InterviewStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -51,4 +53,24 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
             Long profileId,
             InterviewStatus status
     );
+
+    @Query("""
+            SELECT u AS user, COUNT(i) AS unfinishedInterviewCount
+            FROM Interview i
+            JOIN i.profile p
+            JOIN p.user u
+            WHERE i.status = :status
+            GROUP BY u
+            ORDER BY u.id
+            """)
+    Slice<UnfinishedInterviewReminder> findUnfinishedInterviewRemindersByStatus(
+            @Param("status") InterviewStatus status,
+            Pageable pageable
+    );
+
+    interface UnfinishedInterviewReminder {
+        User getUser();
+
+        Long getUnfinishedInterviewCount();
+    }
 }

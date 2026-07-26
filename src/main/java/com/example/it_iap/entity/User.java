@@ -21,7 +21,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class User extends Auditable{
+public class User extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @JdbcTypeCode(SqlTypes.BINARY)
@@ -54,7 +54,7 @@ public class User extends Auditable{
 
     private Integer longestStreak = 0;
 
-    private LocalDate lastInterviewDate;
+    private LocalDateTime lastInterviewDate;
 
     private Integer totalCompletedInterviews = 0;
 

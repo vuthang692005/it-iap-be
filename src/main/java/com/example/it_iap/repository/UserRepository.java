@@ -2,16 +2,20 @@ package com.example.it_iap.repository;
 
 import com.example.it_iap.entity.User;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, UUID> {
     boolean existsByEmail(String email);
+
     Optional<User> findByEmail(String email);
 
     @Query("SELECT u FROM User u WHERE " +
@@ -25,4 +29,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             @Param("phoneNumber") String phoneNumber,
             Pageable pageable
     );
+
+    Slice<User> findAllBy(PageRequest of);
+
+    Slice<User> findAllByCurrentStreakGreaterThanAndLastInterviewDateAfter(int currentStreak, LocalDateTime time, PageRequest of);
 }
