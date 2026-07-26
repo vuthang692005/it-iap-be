@@ -56,6 +56,7 @@ public enum ErrorCode {
     CHAT_HISTORY_NOT_FOUND(404, "Không tìm thấy lịch sử chat", HttpStatus.NOT_FOUND),
     REPORT_NOT_FOUND(404,"Báo cáo không tồn tại", HttpStatus.NOT_FOUND),
     FEEDBACK_NOT_FOUND(404,"Đánh giá không tồn tại", HttpStatus.NOT_FOUND),
+    BANNER_NOT_FOUND(404, "Banner không tồn tại", HttpStatus.NOT_FOUND),
 
     //UNAUTHENTICATED
     TOKEN_INVALID(401, "Thông tin xác thực không hợp lệ", HttpStatus.UNAUTHORIZED),
