@@ -57,6 +57,7 @@ public enum ValidationError {
     USER_MESSAGE_INVALID("Câu hỏi không được để trống"),
     TWO_FACTOR_CODE_INVALID("Mã xác thực 2 bước không hợp lệ"),
     RATING_INVALID("Điểm đánh giá phải trong khoảng từ 1 đến 5"),
+    BANNER_CONTENT_INVALID("Nội dung banner không hợp lệ"),
     ;
     private final String message;
 
