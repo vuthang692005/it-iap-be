@@ -1,21 +1,26 @@
 package com.example.it_iap.service.impl;
 
 import com.example.it_iap.cache.CacheRepository;
+import com.example.it_iap.dto.notification.response.NotificationResponse;
 import com.example.it_iap.dto.user.request.*;
 import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.dto.user.response.UserStreakResponse;
 import com.example.it_iap.entity.Json.DailyStudyStat;
+import com.example.it_iap.entity.Notification;
 import com.example.it_iap.entity.User;
+import com.example.it_iap.entity.enums.NotificationType;
 import com.example.it_iap.enums.UploadFolder;
 import com.example.it_iap.entity.enums.Role;
 import com.example.it_iap.enums.VerificationPurpose;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
+import com.example.it_iap.repository.NotificationRepository;
 import com.example.it_iap.repository.UserRepository;
 import com.example.it_iap.service.CloudinaryService;
 import com.example.it_iap.service.EmailService;
 import com.example.it_iap.service.UserService;
 import com.example.it_iap.service.VerificationService;
+import com.example.it_iap.util.RandomReplyIdentifyCode;
 import com.example.it_iap.util.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 
@@ -42,6 +47,7 @@ public class UserServiceImpl implements UserService {
     private final VerificationService verificationService;
     private final EmailService emailService;
     private final CacheRepository cacheRepository;
+    private final NotificationRepository notificationRepository;
 
     @Value("${app.user.default-password}")
     private String defaultPassword;
@@ -81,6 +87,7 @@ public class UserServiceImpl implements UserService {
 
         return users.map(this::buildProfileResponse);
     }
+
     public UserResponse createUser(CreateUserRequest request) {
         String email = request.getEmail();
         if (userRepository.existsByEmail(email)) {
@@ -109,19 +116,19 @@ public class UserServiceImpl implements UserService {
         // Nếu isActive là false thì đặt thời gian deleteAt
         if (!isActive) {
             user.setDeletedAt(LocalDateTime.now());
-        }else {
+        } else {
             user.setDeletedAt(null); // Bắt buộc phải clear khi mở khóa lại
         }
 
         return buildProfileResponse(userRepository.save(user));
     }
-    
+
     public UserResponse getInfo() {
         User user = getCurrentUser();
         return buildProfileResponse(user);
     }
 
-    
+
     public UserResponse updateInfo(UpdateUserInfoRequest request) {
         User user = getCurrentUser();
         user.setFullName(request.getFullName());
@@ -129,11 +136,11 @@ public class UserServiceImpl implements UserService {
         return buildProfileResponse(userRepository.save(user));
     }
 
-    public void changeEmail (ChangeEmailRequest request){
+    public void changeEmail(ChangeEmailRequest request) {
         User user = getCurrentUser();
         String newEmail = request.getNewEmail();
 
-        if (newEmail.equals(user.getEmail())){
+        if (newEmail.equals(user.getEmail())) {
             throw new AppException(ErrorCode.EMAIL_ALREADY_USED);
         }
 
@@ -149,7 +156,7 @@ public class UserServiceImpl implements UserService {
         emailService.sendVerifyOtp(newEmail, user.getFullName(), otp, purpose);
     }
 
-    public void verifyChangeEmail(String otpCode){
+    public void verifyChangeEmail(String otpCode) {
         User user = getCurrentUser();
 
         VerificationPurpose purpose = VerificationPurpose.CHANGE_EMAIL;
@@ -194,7 +201,7 @@ public class UserServiceImpl implements UserService {
         User user = getCurrentUser();
 
         // Lấy ngày hiện tại
-        LocalDate today = LocalDate.now();
+        LocalDateTime today = LocalDateTime.now();
 
         // Trường hợp 1: User mới hoàn thành phỏng vấn lần đầu tiên trong đời
         if (user.getLastInterviewDate() == null) {
@@ -206,7 +213,7 @@ public class UserServiceImpl implements UserService {
             return;
         }
 
-        LocalDate lastDate = user.getLastInterviewDate();
+        LocalDateTime lastDate = user.getLastInterviewDate();
 
         // Trường hợp 2: Đã làm bài phỏng vấn hôm nay rồi -> Bỏ qua, không cộng thêm
         if (lastDate.isEqual(today)) {
@@ -218,9 +225,20 @@ public class UserServiceImpl implements UserService {
             int newStreak = user.getCurrentStreak() + 1;
             user.setCurrentStreak(newStreak);
 
+            Notification notification = new Notification();
+            notification.setUser(user);
+            notification.setIdentifyCode(RandomReplyIdentifyCode.generate());
+            notification.setTitle("Chúc mừng đạt chuỗi ôn luyện " + newStreak + " ngày!");
+            notification.setType(NotificationType.STREAK);
+            notification.setContent("Bạn đã duy trì ôn luyện phỏng vấn liên tục trong " +
+                    newStreak +
+                    " ngày. Hãy tiếp tục giữ vững chuỗi để cải thiện kỹ năng và sẵn sàng chinh phục những buổi phỏng vấn sắp tới!");
+            notificationRepository.save(notification);
+
             // Kiểm tra xem có phá kỷ lục của chính mình không
             if (newStreak > user.getLongestStreak()) {
                 user.setLongestStreak(newStreak);
+                // Sau làm noti phá kỉ lục ở đây cx dc
             }
         }
 
@@ -241,7 +259,7 @@ public class UserServiceImpl implements UserService {
         // 1. Xử lý an toàn Null (phòng trường hợp data cũ)
         int current = (user.getCurrentStreak() == null) ? 0 : user.getCurrentStreak();
         int longest = (user.getLongestStreak() == null) ? 0 : user.getLongestStreak();
-        LocalDate lastDate = user.getLastInterviewDate();
+        LocalDateTime lastDate = user.getLastInterviewDate();
 
         // 2. Nếu chưa từng làm bài nào hoặc đang ở mốc 0
         if (current == 0 || lastDate == null) {
@@ -249,7 +267,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // 3. Lấy ngày hiện tại
-        LocalDate today = LocalDate.now();
+        LocalDateTime today = LocalDateTime.now();
 
         // 4. Lazy Evaluation: Kiểm tra xem chuỗi đã "nguội" chưa
         // Nếu ngày cuối cùng làm phỏng vấn diễn ra TRƯỚC HÔM QUA (cách đây >= 2 ngày)
@@ -262,7 +280,7 @@ public class UserServiceImpl implements UserService {
         return new UserStreakResponse(current, longest);
     }
 
-    public void updateStudyStats (){
+    public void updateStudyStats() {
         User user = getCurrentUser();
 
         LocalDate today = LocalDate.now();

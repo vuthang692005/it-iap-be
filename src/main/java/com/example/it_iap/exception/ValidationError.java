@@ -58,6 +58,8 @@ public enum ValidationError {
     TWO_FACTOR_CODE_INVALID("Mã xác thực 2 bước không hợp lệ"),
     RATING_INVALID("Điểm đánh giá phải trong khoảng từ 1 đến 5"),
     BANNER_CONTENT_INVALID("Nội dung banner không hợp lệ"),
+    INVALID_NOTIFICATION_TITLE("Tiêu đề thông báo không hợp lệ"),
+    INVALID_NOTIFICATION_CONTENT("Nội dung thông báo không hợp lệ"),
     ;
     private final String message;
 
