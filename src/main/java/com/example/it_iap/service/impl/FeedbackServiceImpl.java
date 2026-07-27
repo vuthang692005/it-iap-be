@@ -90,10 +90,10 @@ public class FeedbackServiceImpl implements FeedbackService {
         Notification notification = new Notification();
         notification.setUser(feedback.getUser());
         notification.setIdentifyCode(RandomReplyIdentifyCode.generate());
-        notification.setTitle("Đã có feedback từ đội ngũ quản trị!");
-        notification.setContent("Cảm ơn bạn đã dành thời gian chờ đợi. Đội ngũ quản trị đã xem xét và đưa ra feedback cụ thể");
+        notification.setTitle("Đã có phản hồi từ đội ngũ quản trị!");
+        notification.setContent("Cảm ơn bạn đã dành thời gian gửi phản hổi.");
         notification.setType(NotificationType.FEEDBACK);
-        notification.setLink(clientUrl + "/feedbacks#" + feedbackId); // fe lồng link vào thẻ <a>
+        notification.setLink(feedbackId.toString());
         notificationRepository.save(notification);
 
         return mapToResponse(feedback);

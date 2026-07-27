@@ -67,7 +67,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
                 FROM Notification n
                 WHERE n.type IN (
                     com.example.it_iap.entity.enums.NotificationType.ADMIN,
-                    com.example.it_iap.entity.enums.NotificationType.SYSTEM
+                    com.example.it_iap.entity.enums.NotificationType.PROMO
                 )
                 AND n.id = (
                     SELECT MAX(n2.id)

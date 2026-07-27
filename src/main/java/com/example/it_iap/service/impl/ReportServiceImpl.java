@@ -103,7 +103,7 @@ public class ReportServiceImpl implements ReportService {
         notification.setTitle("Báo cáo: Phỏng vấn #" + reports.getInterviewQuestion().getInterview().getId() + ", " + "Q#" + reports.getInterviewQuestion().getId() + " đã được phản hồi!");
         notification.setContent("Cảm ơn bạn đã dành thời gian báo cáo vấn đề. Ý kiến của bạn giúp chúng tôi nâng cao chất lượng hệ thống. Báo cáo của bạn đã được xem xét và phản hồi.");
         notification.setType(NotificationType.REPORT);
-        notification.setLink(clientUrl + "/reports#" + reportId); // fe lồng link vào thẻ <a>
+        notification.setLink(reports.getId().toString()); // fe lồng link vào thẻ <a>
         notificationRepository.save(notification);
 
         return buildReportResponse(reports);
