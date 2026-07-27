@@ -49,6 +49,8 @@ public class UserServiceImpl implements UserService {
     private final CacheRepository cacheRepository;
     private final NotificationRepository notificationRepository;
 
+    private static final Set<Integer> STREAK_MILESTONES = Set.of(3, 7, 14, 20, 30, 40, 60, 75, 90);
+
     @Value("${app.user.default-password}")
     private String defaultPassword;
 
@@ -224,17 +226,19 @@ public class UserServiceImpl implements UserService {
         else if (lastDate.isEqual(today.minusDays(1))) {
             int newStreak = user.getCurrentStreak() + 1;
             user.setCurrentStreak(newStreak);
-
-            Notification notification = new Notification();
-            notification.setUser(user);
-            notification.setIdentifyCode(RandomReplyIdentifyCode.generate());
-            notification.setTitle("Chúc mừng đạt chuỗi ôn luyện " + newStreak + " ngày!");
-            notification.setType(NotificationType.STREAK);
-            notification.setContent("Bạn đã duy trì ôn luyện phỏng vấn liên tục trong " +
-                    newStreak +
-                    " ngày. Hãy tiếp tục giữ vững chuỗi để cải thiện kỹ năng và sẵn sàng chinh phục những buổi phỏng vấn sắp tới!");
-            notificationRepository.save(notification);
-
+            
+            if (STREAK_MILESTONES.contains(newStreak)) {
+                Notification notification = new Notification();
+                notification.setUser(user);
+                notification.setIdentifyCode(RandomReplyIdentifyCode.generate());
+                notification.setTitle("Chúc mừng đạt chuỗi ôn luyện " + newStreak + " ngày!");
+                notification.setType(NotificationType.STREAK);
+                notification.setContent("Bạn đã duy trì ôn luyện phỏng vấn liên tục trong " +
+                        newStreak +
+                        " ngày. Hãy tiếp tục giữ vững chuỗi để cải thiện kỹ năng và sẵn sàng chinh phục những buổi phỏng vấn sắp tới!");
+                notificationRepository.save(notification);
+            }
+            
             // Kiểm tra xem có phá kỷ lục của chính mình không
             if (newStreak > user.getLongestStreak()) {
                 user.setLongestStreak(newStreak);
