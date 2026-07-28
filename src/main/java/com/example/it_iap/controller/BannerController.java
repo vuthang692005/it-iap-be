@@ -14,7 +14,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/banners")
+@RequestMapping("/api/v1/banners")
 @RequiredArgsConstructor
 public class BannerController {
     private final BannerService bannerService;
