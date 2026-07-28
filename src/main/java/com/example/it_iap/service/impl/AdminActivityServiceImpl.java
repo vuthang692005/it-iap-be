@@ -33,15 +33,13 @@ public class AdminActivityServiceImpl implements AdminActivityService {
     }
 
     public Page<AdminActivityLogResponse> getActivityLogs(AdminActionType actionType, int page) {
+        int page1 = Math.max(0, page - 1);
         int size = 10;
 
-        // 1. Tạo Pageable với sắp xếp createdAt giảm dần (mới nhất lên đầu)
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page1, size, Sort.by("createdAt").descending());
 
-        // 2. Gọi DB
         Page<AdminActivityLog> entityPage = adminActivityLogRepository.getLogsWithFilter(actionType, pageable);
 
-        // 3. Map Entity -> DTO
         return entityPage.map(log -> new  AdminActivityLogResponse(
                 log.getId(),
                 log.getActionType(),

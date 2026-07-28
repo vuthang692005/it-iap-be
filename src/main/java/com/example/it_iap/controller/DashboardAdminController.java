@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/admin/dashboard")
+@RequestMapping("/api/v1/admin/dashboard")
 @RequiredArgsConstructor
 @PreAuthorize("hasAuthority('SCOPE_ADMIN')")
 public class DashboardAdminController {
