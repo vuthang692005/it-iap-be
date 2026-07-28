@@ -30,6 +30,8 @@ public class Interview extends Auditable{
     @Enumerated(EnumType.STRING)
     private InterviewStatus status;
 
+    private LocalDateTime startAt;
+
     private LocalDateTime completedAt;
 
     @JdbcTypeCode(SqlTypes.JSON)
@@ -43,7 +45,7 @@ public class Interview extends Auditable{
     @JoinColumn(name = "profile_id", nullable = false)
     private Profile profile;
 
-    @OneToMany(mappedBy = "interview", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "interview", fetch = FetchType.LAZY, cascade = CascadeType.MERGE)
     private List<InterviewQuestion> interviewQuestions;
 
     @Version

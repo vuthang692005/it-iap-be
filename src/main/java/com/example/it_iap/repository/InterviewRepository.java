@@ -4,6 +4,8 @@ import com.example.it_iap.entity.Interview;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.InterviewMode;
 import com.example.it_iap.entity.enums.InterviewStatus;
+import com.example.it_iap.entity.enums.TargetLevel;
+import com.example.it_iap.entity.enums.TargetPosition;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -68,9 +70,59 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
             Pageable pageable
     );
 
+    long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    long countByCreatedAtBetweenAndOverallResultNotNull(LocalDateTime startDate, LocalDateTime endDate);
+
+    long countByOverallResultNotNull();
+
+
     interface UnfinishedInterviewReminder {
         User getUser();
-
         Long getUnfinishedInterviewCount();
     }
+
+    @Query("""
+        SELECT FUNCTION('DATE', i.createdAt) AS date, COUNT(i.id) AS count
+        FROM Interview i
+        WHERE i.status = :status
+          AND i.createdAt BETWEEN :startDate AND :endDate
+        GROUP BY FUNCTION('DATE', i.createdAt)
+        ORDER BY FUNCTION('DATE', i.createdAt) ASC
+    """)
+    List<TrendProjection> countInterviewTrendsByDate(
+            @Param("status") InterviewStatus status,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    interface TrendProjection {
+        java.sql.Date getDate();
+        Long getCount();
+    }
+
+    @Query("""
+        SELECT FUNCTION('DATE', i.createdAt) AS date,
+               FUNCTION('HOUR', i.createdAt) AS hour,
+               COUNT(i.id) AS count
+        FROM Interview i
+        WHERE i.status = :status
+          AND i.createdAt BETWEEN :startDate AND :endDate
+        GROUP BY FUNCTION('DATE', i.createdAt), FUNCTION('HOUR', i.createdAt)
+        ORDER BY FUNCTION('DATE', i.createdAt) ASC, FUNCTION('HOUR', i.createdAt) ASC
+    """)
+    List<HourlyTrendProjection> countInterviewTrendsByHour(
+            @Param("status") InterviewStatus status,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    interface HourlyTrendProjection {
+        java.sql.Date getDate();
+        Integer getHour(); // Thêm hàm lấy ra Giờ (0 - 23)
+        Long getCount();
+    }
+
+    @EntityGraph(attributePaths = {"interviewQuestions"})
+    List<Interview> findByStatusAndStartAtBefore(InterviewStatus status, LocalDateTime time);
 }
