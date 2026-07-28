@@ -2,7 +2,7 @@ package com.example.it_iap.service.impl;
 
 import java.time.LocalDateTime;
 
-import com.example.it_iap.service.AdminActivityService;
+import com.example.it_iap.service.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -14,12 +14,9 @@ import com.example.it_iap.entity.Question;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.QuestionRepository;
-import com.example.it_iap.service.QuestionService;
 import com.example.it_iap.dto.question.request.AICreateQuestionRequest;
 import com.example.it_iap.entity.PromptVersion;
 import com.example.it_iap.entity.enums.*;
-import com.example.it_iap.service.AIService;
-import com.example.it_iap.service.PromptVersionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +32,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final AIService aiService;
     private final PromptVersionService promptVersionService;
     private final AdminActivityService adminActivityService;
+    private final UserService userService;
 
     @Override
     public QuestionResponse createQuestion(QuestionRequest request) {
@@ -52,7 +50,7 @@ public class QuestionServiceImpl implements QuestionService {
         String desc = String.format("Tạo câu hỏi thủ công cho vị trí %s-%s",
                 question.getPosition(),
                 question.getLevel());
-        adminActivityService.logActivity(AdminActionType.CREATE_MANUAL_QUESTION, desc);
+        adminActivityService.logActivity(AdminActionType.CREATE_MANUAL_QUESTION, desc, userService.getCurrentUser());
 
         return toQuestionResponse(question);
     }
@@ -175,7 +173,7 @@ public class QuestionServiceImpl implements QuestionService {
                 questions.size(),
                 position,
                 level);
-        adminActivityService.logActivity(AdminActionType.GENERATE_AI_QUESTIONS, desc);
+        adminActivityService.logActivity(AdminActionType.GENERATE_AI_QUESTIONS, desc, userService.getCurrentUser());
 
         return questions;
     }

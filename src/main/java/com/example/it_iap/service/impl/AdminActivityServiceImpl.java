@@ -22,8 +22,7 @@ public class AdminActivityServiceImpl implements AdminActivityService {
     private final UserService userService;
 
     @Async
-    public void logActivity(AdminActionType actionType, String description) {
-        User user = userService.getCurrentUser();
+    public void logActivity(AdminActionType actionType, String description, User user) {
 
         AdminActivityLog log = new AdminActivityLog();
         log.setActionType(actionType);

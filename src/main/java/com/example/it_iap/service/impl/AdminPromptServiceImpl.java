@@ -6,6 +6,7 @@ import com.example.it_iap.dto.adminPrompt.response.AdminPromptSummaryResponse;
 import com.example.it_iap.dto.promptVersion.request.PromptVersionRequest;
 import com.example.it_iap.entity.AdminPrompt;
 import com.example.it_iap.entity.PromptVersion;
+import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.AdminActionType;
 import com.example.it_iap.entity.enums.PromptUseCase;
 import com.example.it_iap.exception.AppException;
@@ -14,6 +15,7 @@ import com.example.it_iap.repository.AdminPromptRepository;
 import com.example.it_iap.service.AdminActivityService;
 import com.example.it_iap.service.AdminPromptService;
 import com.example.it_iap.service.PromptVersionService;
+import com.example.it_iap.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,6 +28,7 @@ public class AdminPromptServiceImpl implements AdminPromptService {
     private final AdminPromptRepository adminPromptRepository;
     private final PromptVersionService promptVersionService;
     private final AdminActivityService adminActivityService;
+    private final UserService userService;
 
     @Transactional
     public AdminPromptSummaryResponse createAdminPrompt (AdminPromptRequest request){
@@ -45,16 +48,17 @@ public class AdminPromptServiceImpl implements AdminPromptService {
         PromptVersion promptVersion =
                 promptVersionService.createPromptVersion(request.getPromptVersionRequest(), adminPrompt);
 
+        User user = userService.getCurrentUser();
         String desc = String.format("Tạo mới Prompt (Key: %s) kèm version đầu: %s",
                 adminPrompt.getPromptKey(),
                 promptVersion.getVersion());
-        adminActivityService.logActivity(AdminActionType.CREATE_PROMPT, desc);
+        adminActivityService.logActivity(AdminActionType.CREATE_PROMPT, desc, user);
 
         if(request.getPromptVersionRequest().isActive()){
             String desc2 = String.format("Kích hoạt version %s của Prompt (Key: %s)",
                     promptVersion.getVersion(),
                     adminPrompt.getPromptKey());
-            adminActivityService.logActivity(AdminActionType.ACTIVATE_PROMPT_VERSION, desc2);
+            adminActivityService.logActivity(AdminActionType.ACTIVATE_PROMPT_VERSION, desc2, user);
         }
 
         return new AdminPromptSummaryResponse(
@@ -75,16 +79,17 @@ public class AdminPromptServiceImpl implements AdminPromptService {
 
         PromptVersion promptVersion = promptVersionService.createPromptVersion(request, adminPrompt);
 
+        User user = userService.getCurrentUser();
         String desc = String.format("Thêm version mới (%s) cho Prompt (Key: %s)",
                 promptVersion.getVersion(),
                 adminPrompt.getPromptKey());
-        adminActivityService.logActivity(AdminActionType.CREATE_PROMPT_VERSION, desc);
+        adminActivityService.logActivity(AdminActionType.CREATE_PROMPT_VERSION, desc, user);
 
         if(request.isActive()){
             String desc2 = String.format("Kích hoạt version %s của Prompt (Key: %s)",
                     promptVersion.getVersion(),
                     adminPrompt.getPromptKey());
-            adminActivityService.logActivity(AdminActionType.ACTIVATE_PROMPT_VERSION, desc2);
+            adminActivityService.logActivity(AdminActionType.ACTIVATE_PROMPT_VERSION, desc2, user);
         }
 
         return new AdminPromptResponse(
