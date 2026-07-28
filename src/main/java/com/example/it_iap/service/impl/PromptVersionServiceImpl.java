@@ -14,6 +14,7 @@ import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.PromptVersionRepository;
 import com.example.it_iap.service.AdminActivityService;
 import com.example.it_iap.service.PromptVersionService;
+import com.example.it_iap.service.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 public class PromptVersionServiceImpl implements PromptVersionService {
     private final PromptVersionRepository promptVersionRepository;
     private final AdminActivityService adminActivityService;
+    private final UserService userService;
 
     private void isValidProviderAndModel(String provider, String model) {
         ProviderType providerType = ProviderType.from(provider);
@@ -95,7 +97,7 @@ public class PromptVersionServiceImpl implements PromptVersionService {
         String desc = String.format("Kích hoạt version %s của Prompt (Key: %s)",
                 request.getVersion(),
                 request.getPromptKey());
-        adminActivityService.logActivity(AdminActionType.ACTIVATE_PROMPT_VERSION, desc);
+        adminActivityService.logActivity(AdminActionType.ACTIVATE_PROMPT_VERSION, desc, userService.getCurrentUser());
     }
 
     public PromptVersion getPromptActive (PromptUseCase useCase){

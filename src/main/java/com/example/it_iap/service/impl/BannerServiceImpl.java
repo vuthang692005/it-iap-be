@@ -29,12 +29,12 @@ public class BannerServiceImpl implements BannerService {
 
         Pageable pageable = PageRequest.of(page1, size, Sort.by("createdAt").descending());
         Page<Banner> bannerPage = bannerRepository.findAll(pageable);
-        return bannerPage.map(this::mapToResponseDTO);
+        return bannerPage.map(banner -> mapToResponseDTO(banner, true));
     }
 
     public BannerResponse getActiveBanner() {
         return bannerRepository.findFirstByIsActiveTrueOrderByIdDesc()
-                .map(this::mapToResponseDTO)
+                .map(banner -> mapToResponseDTO(banner, false))
                 .orElse(null);
     }
 
@@ -57,7 +57,7 @@ public class BannerServiceImpl implements BannerService {
         banner.setActive(request.isActive());
 
         Banner savedBanner = bannerRepository.save(banner);
-        return mapToResponseDTO(savedBanner);
+        return mapToResponseDTO(savedBanner, true);
     }
 
     @Transactional
@@ -82,7 +82,7 @@ public class BannerServiceImpl implements BannerService {
         }
 
         Banner updatedBanner = bannerRepository.save(existingBanner);
-        return mapToResponseDTO(updatedBanner);
+        return mapToResponseDTO(updatedBanner, true);
     }
 
     @Transactional
@@ -98,14 +98,19 @@ public class BannerServiceImpl implements BannerService {
         bannerRepository.save(banner);
     }
 
-    private BannerResponse mapToResponseDTO(Banner banner) {
+    private BannerResponse mapToResponseDTO(Banner banner, boolean showIsActive) {
         if (banner == null) return null;
+
+        Boolean isActive = null;
+        if (showIsActive){
+            isActive = banner.isActive();
+        }
         return new  BannerResponse(
                 banner.getId(),
                 banner.getTitle(),
                 banner.getContent(),
                 banner.getImageUrl(),
-                banner.isActive(),
+                isActive,
                 banner.getMarquee()
         );
     }

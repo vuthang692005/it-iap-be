@@ -15,6 +15,6 @@ public class AdminActivityLogResponse {
     private AdminActionType actionType;
     private String description;
     private String adminEmail;
-    @JsonFormat(pattern = "dd/MM/yyyy HH:mm")
+    @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")
     private LocalDateTime createdAt;
 }
