@@ -86,7 +86,9 @@ public class InterviewServiceImpl implements InterviewService {
         }
 
         interview.setStatus(InterviewStatus.IN_PROGRESS);
+        interview.setStartAt(LocalDateTime.now());
         interview = interviewRepository.save(interview);
+
         InterviewMode interviewMode = interview.getMode();
 
         InterviewQuestion interviewQuestion = interviewQuestionService

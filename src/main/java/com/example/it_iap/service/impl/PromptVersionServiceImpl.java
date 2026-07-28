@@ -5,12 +5,14 @@ import com.example.it_iap.dto.promptVersion.request.PromptVersionIdRequest;
 import com.example.it_iap.dto.promptVersion.request.PromptVersionRequest;
 import com.example.it_iap.entity.AdminPrompt;
 import com.example.it_iap.entity.PromptVersion;
+import com.example.it_iap.entity.enums.AdminActionType;
 import com.example.it_iap.entity.enums.ModelType;
 import com.example.it_iap.entity.enums.PromptUseCase;
 import com.example.it_iap.entity.enums.ProviderType;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.PromptVersionRepository;
+import com.example.it_iap.service.AdminActivityService;
 import com.example.it_iap.service.PromptVersionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class PromptVersionServiceImpl implements PromptVersionService {
     private final PromptVersionRepository promptVersionRepository;
+    private final AdminActivityService adminActivityService;
 
     private void isValidProviderAndModel(String provider, String model) {
         ProviderType providerType = ProviderType.from(provider);
@@ -88,6 +91,11 @@ public class PromptVersionServiceImpl implements PromptVersionService {
 
         promptVersion.setLastActivatedAt(LocalDateTime.now());
         promptVersionRepository.save(promptVersion);
+
+        String desc = String.format("Kích hoạt version %s của Prompt (Key: %s)",
+                request.getVersion(),
+                request.getPromptKey());
+        adminActivityService.logActivity(AdminActionType.ACTIVATE_PROMPT_VERSION, desc);
     }
 
     public PromptVersion getPromptActive (PromptUseCase useCase){

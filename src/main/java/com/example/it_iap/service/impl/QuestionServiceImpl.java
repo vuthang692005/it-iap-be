@@ -2,6 +2,7 @@ package com.example.it_iap.service.impl;
 
 import java.time.LocalDateTime;
 
+import com.example.it_iap.service.AdminActivityService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionRepository questionRepository;
     private final AIService aiService;
     private final PromptVersionService promptVersionService;
+    private final AdminActivityService adminActivityService;
 
     @Override
     public QuestionResponse createQuestion(QuestionRequest request) {
@@ -44,7 +46,15 @@ public class QuestionServiceImpl implements QuestionService {
         question.setSource(Source.ADMIN);
         // Tạo thủ công tức là chỉ admin nên APPROVE
         question.setStatus(QuestionStatus.APPROVED);
-        return toQuestionResponse(questionRepository.save(question));
+
+        question = questionRepository.save(question);
+
+        String desc = String.format("Tạo câu hỏi thủ công cho vị trí %s-%s",
+                question.getPosition(),
+                question.getLevel());
+        adminActivityService.logActivity(AdminActionType.CREATE_MANUAL_QUESTION, desc);
+
+        return toQuestionResponse(question);
     }
 
     @Override
@@ -159,6 +169,14 @@ public class QuestionServiceImpl implements QuestionService {
             return question;
         }).toList();
 
-        return questionRepository.saveAll(questions);
+        questions = questionRepository.saveAll(questions);
+
+        String desc = String.format("Tạo %d câu hỏi bằng AI cho vị trí %s-%s",
+                questions.size(),
+                position,
+                level);
+        adminActivityService.logActivity(AdminActionType.GENERATE_AI_QUESTIONS, desc);
+
+        return questions;
     }
 }

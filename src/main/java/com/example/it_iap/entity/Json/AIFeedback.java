@@ -8,7 +8,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-    @AllArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor
 public class AIFeedback {
     @JsonPropertyDescription("Điểm số chuyên môn của câu hỏi dựa trên đáp án mẫu. Sẽ được dùng để tính Core Knowledge, Problem Solving, hoặc Applied Experience tùy theo loại câu hỏi. Chấm trên thang điểm 10, lẻ đến 0.5.")
