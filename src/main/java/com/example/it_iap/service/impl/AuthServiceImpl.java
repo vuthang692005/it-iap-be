@@ -5,15 +5,19 @@ import com.example.it_iap.dto.auth.request.*;
 import com.example.it_iap.dto.auth.response.AuthResponse;
 import com.example.it_iap.dto.auth.response.RoleResponse;
 import com.example.it_iap.dto.auth.response.TwoFactorResponse;
+import com.example.it_iap.entity.Notification;
 import com.example.it_iap.entity.User;
+import com.example.it_iap.entity.enums.NotificationType;
 import com.example.it_iap.entity.enums.Role;
 import com.example.it_iap.enums.CookieKey;
 import com.example.it_iap.enums.VerificationPurpose;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
+import com.example.it_iap.repository.NotificationRepository;
 import com.example.it_iap.repository.UserRepository;
 import com.example.it_iap.service.*;
 import com.example.it_iap.util.AesUtil;
+import com.example.it_iap.util.RandomReplyIdentifyCode;
 import com.nimbusds.jose.*;
 import com.nimbusds.jwt.SignedJWT;
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,6 +54,8 @@ public class AuthServiceImpl implements AuthService {
     private final VerificationService verificationService;
     private final CookieService cookieService;
     private final UserService userService;
+    private final SessionService sessionService;
+    private final NotificationRepository notificationRepository;
 
     private final SecretGenerator secretGenerator = new DefaultSecretGenerator();
     private final CodeVerifier verifier = new DefaultCodeVerifier(new DefaultCodeGenerator(), new SystemTimeProvider());
@@ -129,6 +135,10 @@ public class AuthServiceImpl implements AuthService {
     }
 
     public RoleResponse login(LoginRequest request, HttpServletResponse response) throws JOSEException {
+        return login(request, null, response);
+    }
+
+    public RoleResponse login(LoginRequest request, HttpServletRequest httpRequest, HttpServletResponse response) throws JOSEException {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
         Set<Role> userRoles = null;
@@ -153,11 +163,25 @@ public class AuthServiceImpl implements AuthService {
             return new RoleResponse(userRoles, user.isEnable2fa());
         }
 
-        String accessToken = tokenService.generateAccessToken(user);
-        String refreshToken = tokenService.generateRefreshToken(user);
+        String sessionId = UUID.randomUUID().toString();
+        String refreshTokenId = UUID.randomUUID().toString();
+        sessionService.createSession(user, httpRequest, sessionId, refreshTokenId);
+
+        String accessToken = tokenService.generateAccessToken(user, sessionId);
+        String refreshToken = tokenService.generateRefreshToken(user, sessionId, refreshTokenId);
 
         cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
         cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
+
+        // Tạo thông báo cảnh báo cho luồng đăng nhập Email/Password
+        Notification notification = new Notification();
+        notification.setUser(user);
+        notification.setIdentifyCode(RandomReplyIdentifyCode.generate());
+        notification.setTitle("Cảnh báo an toàn: Phát hiện đăng nhập mới");
+        notification.setContent("Tài khoản của bạn vừa được đăng nhập thành công bằng Email và Mật khẩu. Nếu không phải bạn thực hiện, hãy đổi mật khẩu ngay và bật tính năng Xác thực 2 bước (2FA) để tăng cường bảo vệ tài khoản.");
+        notification.setType(NotificationType.WARNING);
+        notification.setLink(null);
+        notificationRepository.save(notification);
 
         userRoles = user.getRoles();
         return new RoleResponse(userRoles, user.isEnable2fa());
@@ -191,8 +215,13 @@ public class AuthServiceImpl implements AuthService {
         if (!verifier.isValidCode(aesUtil.decrypt(user.getSecret2fa()), req.getTotp())) {
             throw new AppException(ErrorCode.TWO_FACTOR_CODE_INVALID);
         }
-        String accessToken = tokenService.generateAccessToken(user);
-        String refreshToken = tokenService.generateRefreshToken(user);
+
+        String sessionId = UUID.randomUUID().toString();
+        String refreshTokenId = UUID.randomUUID().toString();
+        sessionService.createSession(user, request, sessionId, refreshTokenId);
+
+        String accessToken = tokenService.generateAccessToken(user, sessionId);
+        String refreshToken = tokenService.generateRefreshToken(user, sessionId, refreshTokenId);
 
         cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
         cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
@@ -212,6 +241,7 @@ public class AuthServiceImpl implements AuthService {
 
         SignedJWT signedJWT = tokenService.verifyRefreshToken(token);
         String subject = signedJWT.getJWTClaimsSet().getSubject();
+        String sid = signedJWT.getJWTClaimsSet().getStringClaim("sid");
         UUID userId;
 
         try {
@@ -230,8 +260,16 @@ public class AuthServiceImpl implements AuthService {
             throw new AppException(ErrorCode.ACCOUNT_DISABLED);
         }
 
-        String accessToken = tokenService.generateAccessToken(user);
-        String refreshToken = tokenService.generateRefreshToken(user);
+        if (sid != null && !sid.isBlank()) {
+            if (!sessionService.isSessionActive(userId, sid)) {
+                throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
+            }
+            sessionService.updateLastActive(sid);
+        }
+
+        String newRefreshTokenId = UUID.randomUUID().toString();
+        String accessToken = tokenService.generateAccessToken(user, sid);
+        String refreshToken = tokenService.generateRefreshToken(user, sid, newRefreshTokenId);
 
         cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
         cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
@@ -272,6 +310,22 @@ public class AuthServiceImpl implements AuthService {
         // Kiểm tra token
         if (refreshToken == null || refreshToken.isBlank()) {
             throw new AppException(ErrorCode.REFRESH_TOKEN_EXPIRED);
+        }
+
+        SignedJWT signedJWT = SignedJWT.parse(refreshToken);
+        String subject = signedJWT.getJWTClaimsSet().getSubject();
+        String sid = signedJWT.getJWTClaimsSet().getStringClaim("sid");
+
+        if (sid != null && !sid.isBlank() && subject != null) {
+            try {
+                UUID userId = UUID.fromString(subject);
+                User user = userRepository.findById(userId).orElse(null);
+                if (user != null) {
+                    sessionService.revokeSession(user, sid);
+                }
+            } catch (Exception e) {
+                log.warn("Lỗi khi thu hồi session trong logout: {}", e.getMessage());
+            }
         }
 
         // Thu hồi token
