@@ -41,8 +41,9 @@ public class AuthController {
     @Operation(summary = "Đăng nhập", description = "Đăng nhập hệ thống, trả về vai trò và cấu hình cookie")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<RoleResponse>> login(@RequestBody @Valid LoginRequest request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response) throws JOSEException {
-        RoleResponse userRoles = authService.login(request, response);
+        RoleResponse userRoles = authService.login(request, httpRequest, response);
         return ResponseEntity.ok(
                 ApiResponse.<RoleResponse>builder()
                         .data(userRoles)

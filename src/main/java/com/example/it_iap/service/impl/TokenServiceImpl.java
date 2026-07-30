@@ -33,48 +33,64 @@ public class TokenServiceImpl implements TokenService {
     @Value("${jwt.signerKey}")
     private String signerKey;
     private static final String CLAIM_IS_ACCESS_TOKEN = "isAccessToken";
-
     private static final String CLAIM_IS_REFRESH_TOKEN = "isRefreshToken";
-
     private static final String CLAIM_IS_PREAUTH_TOKEN = "isPreAuthToken";
+    private static final String CLAIM_SESSION_ID = "sid";
 
     private static final String PREFIX = "auth:token:white:";
-
     private static final String PREFIX_PREAUTH = "preAuth:token:white:";
 
+    @Override
     public String generateAccessToken(User user) throws JOSEException {
+        return generateAccessToken(user, null);
+    }
+
+    @Override
+    public String generateAccessToken(User user, String sessionId) throws JOSEException {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+        JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
                 .subject(user.getId().toString())
                 .issuer("test")
                 .issueTime(new Date())
                 .claim("scope", buildScope(user))
                 .claim(CLAIM_IS_ACCESS_TOKEN, true)
-                .expirationTime(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)))
-                .build();
+                .expirationTime(Date.from(Instant.now().plus(10, ChronoUnit.MINUTES)));
 
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
+        if (sessionId != null && !sessionId.isBlank()) {
+            claimsBuilder.claim(CLAIM_SESSION_ID, sessionId);
+        }
+
+        Payload payload = new Payload(claimsBuilder.build().toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
 
         jwsObject.sign(new MACSigner(signerKey));
         return jwsObject.serialize();
     }
 
+    @Override
     public String generateRefreshToken(User user) throws JOSEException {
-        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
-        String refreshTokenId = UUID.randomUUID().toString();
+        return generateRefreshToken(user, null, null);
+    }
 
-        JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
+    @Override
+    public String generateRefreshToken(User user, String sessionId, String refreshTokenId) throws JOSEException {
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+        String jti = (refreshTokenId != null && !refreshTokenId.isBlank()) ? refreshTokenId : UUID.randomUUID().toString();
+
+        JWTClaimsSet.Builder claimsBuilder = new JWTClaimsSet.Builder()
                 .subject(user.getId().toString())
                 .issuer("test")
                 .issueTime(new Date())
                 .claim(CLAIM_IS_REFRESH_TOKEN, true)
-                .jwtID(refreshTokenId)
-                .expirationTime(Date.from(Instant.now().plus(7, ChronoUnit.DAYS)))
-                .build();
+                .jwtID(jti)
+                .expirationTime(Date.from(Instant.now().plus(7, ChronoUnit.DAYS)));
 
-        Payload payload = new Payload(jwtClaimsSet.toJSONObject());
+        if (sessionId != null && !sessionId.isBlank()) {
+            claimsBuilder.claim(CLAIM_SESSION_ID, sessionId);
+        }
+
+        Payload payload = new Payload(claimsBuilder.build().toJSONObject());
         JWSObject jwsObject = new JWSObject(header, payload);
 
         jwsObject.sign(new MACSigner(signerKey));
@@ -82,10 +98,11 @@ public class TokenServiceImpl implements TokenService {
         String refreshToken = jwsObject.serialize();
         String key = PREFIX + user.getId();
 
-        cacheRepository.addToSet(key, refreshTokenId, Duration.ofDays(7));
+        cacheRepository.addToSet(key, jti, Duration.ofDays(7));
         return refreshToken;
     }
 
+    @Override
     public String generatePreAuthToken(User user) throws JOSEException {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         String preAuthTokenId = UUID.randomUUID().toString();
@@ -121,6 +138,7 @@ public class TokenServiceImpl implements TokenService {
         return stringJoiner.toString();
     }
 
+    @Override
     public SignedJWT verifyRefreshToken(String token) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(signerKey.getBytes());
         SignedJWT signedJWT = SignedJWT.parse(token);
@@ -152,24 +170,23 @@ public class TokenServiceImpl implements TokenService {
         return signedJWT;
     }
 
+    @Override
     public void revokeRefreshToken(String refreshToken, boolean isLogout) throws ParseException, JOSEException {
-        // Lấy thông tin từ token
         SignedJWT signedJWT = SignedJWT.parse(refreshToken);
         String userId = signedJWT.getJWTClaimsSet().getSubject();
         String refreshTokenId = signedJWT.getJWTClaimsSet().getJWTID();
 
         String key = PREFIX + userId;
         if (!isLogout) {
-            // Kiểm tra xem token CÒN trong Whitelist không
             if (!cacheRepository.isMemberOfSet(key, refreshTokenId)) {
                 throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
             }
         }
 
-        // Thu hồi trong redis nếu có
         cacheRepository.removeFromSet(key, refreshTokenId);
     }
 
+    @Override
     public SignedJWT verifyPreAuthToken(String token)
             throws JOSEException, ParseException {
 
@@ -190,8 +207,8 @@ public class TokenServiceImpl implements TokenService {
         return signedJWT;
     }
 
+    @Override
     public void revokePreAuthToken(String preAuth) throws ParseException, JOSEException {
-        // Lấy thông tin từ token
         SignedJWT signedJWT = SignedJWT.parse(preAuth);
         String userId = signedJWT.getJWTClaimsSet().getSubject();
         String preAuthTokenId = signedJWT.getJWTClaimsSet().getJWTID();
@@ -200,7 +217,6 @@ public class TokenServiceImpl implements TokenService {
         if (!cacheRepository.isMemberOfSet(key, preAuthTokenId)) {
             throw new AppException(ErrorCode.AUTHENTICATION_FAILED);
         }
-        // Thu hồi trong redis nếu có
         cacheRepository.removeFromSet(key, preAuthTokenId);
     }
 }

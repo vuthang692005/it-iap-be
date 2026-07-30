@@ -129,6 +129,20 @@
             <artifactId>totp</artifactId>
             <version>1.7.1</version>
         </dependency>
+
+		<!-- User-Agent Parser -->
+		<dependency>
+			<groupId>nl.basjes.parse.useragent</groupId>
+			<artifactId>yauaa</artifactId>
+			<version>7.26.0</version>
+		</dependency>
+
+		<!-- GeoIP2 (IP to Location) -->
+		<dependency>
+			<groupId>com.maxmind.geoip2</groupId>
+			<artifactId>geoip2</artifactId>
+			<version>4.2.0</version>
+		</dependency>
 	</dependencies>
 
 	<dependencyManagement>

@@ -3,6 +3,7 @@ package com.example.it_iap.oauth2;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.enums.CookieKey;
 import com.example.it_iap.service.CookieService;
+import com.example.it_iap.service.SessionService;
 import com.example.it_iap.service.TokenService;
 import com.nimbusds.jose.JOSEException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +16,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 @Slf4j
@@ -25,6 +27,7 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
 
     private final TokenService tokenService;
     private final CookieService cookieService;
+    private final SessionService sessionService;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request,
@@ -36,15 +39,17 @@ public class CustomSuccessHandler implements AuthenticationSuccessHandler {
         User user = principal.getUser();
 
         if (!user.isActive()) {
-            // Nghiệp vụ: Chặn user bị ban cố tình lách luật bằng cách đăng nhập qua Google.
-            // Dùng redirect kèm param lỗi để Frontend hiển thị popup.
             response.sendRedirect(frontendUrl + "auth/login?error=account_disabled");
             return;
         }
 
         try {
-            String accessToken = tokenService.generateAccessToken(user);
-            String refreshToken = tokenService.generateRefreshToken(user);
+            String sessionId = UUID.randomUUID().toString();
+            String refreshTokenId = UUID.randomUUID().toString();
+            sessionService.createSession(user, request, sessionId, refreshTokenId);
+
+            String accessToken = tokenService.generateAccessToken(user, sessionId);
+            String refreshToken = tokenService.generateRefreshToken(user, sessionId, refreshTokenId);
 
             cookieService.add(response, CookieKey.ACCESS_TOKEN, accessToken);
             cookieService.add(response, CookieKey.REFRESH_TOKEN, refreshToken);
