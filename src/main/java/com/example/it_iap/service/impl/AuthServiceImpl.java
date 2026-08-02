@@ -36,13 +36,18 @@ import dev.samstevens.totp.secret.DefaultSecretGenerator;
 import dev.samstevens.totp.secret.SecretGenerator;
 import dev.samstevens.totp.time.SystemTimeProvider;
 
+import org.springframework.beans.factory.annotation.Value;
 import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j(topic = "AuthServiceImpl")
 public class AuthServiceImpl implements AuthService {
+    @Value("${app.frontend-url}")
+    private String clientUrl;
+
     private final CacheRepository cacheRepository;
 
     private final UserRepository userRepository;
@@ -389,11 +394,123 @@ public class AuthServiceImpl implements AuthService {
         }
         user.setEnable2fa(false);
         user.setSecret2fa(null);
+        user.setScheduled2faDisableAt(null);
         userRepository.save(user);
+
+        // Hủy các token reset 2FA đang chờ trong Redis nếu có
+        String pendingToken = cacheRepository.get("2fa:user_reset_pending:" + user.getId()).orElse(null);
+        if (pendingToken != null) {
+            cacheRepository.delete(VerificationPurpose.RESET_2FA.getPrefix() + pendingToken);
+            cacheRepository.delete("2fa:user_reset_pending:" + user.getId());
+        }
+
+        String cancel24hToken = cacheRepository.get("2fa:user_cancel_24h:" + user.getId()).orElse(null);
+        if (cancel24hToken != null) {
+            cacheRepository.delete(VerificationPurpose.SCHEDULED_2FA_DISABLE.getPrefix() + cancel24hToken);
+            cacheRepository.delete("2fa:user_cancel_24h:" + user.getId());
+        }
     }
 
     public boolean status2fa() {
         User user = userService.getCurrentUser();
         return user.isEnable2fa();
+    }
+
+    public void requestReset2fa() {
+        User user = userService.getCurrentUser();
+        if (!user.isEnable2fa()) {
+            throw new AppException(ErrorCode.TWO_FACTOR_NOT_ENABLED);
+        }
+
+        // Kiểm tra nếu đang trong tiến trình đếm ngược 24h gỡ 2FA
+        if (user.getScheduled2faDisableAt() != null) {
+            throw new AppException(ErrorCode.RESET_2FA_SCHEDULED);
+        }
+
+        // Kiểm tra nếu đang có yêu cầu 10 phút chưa xác nhận/từ chối
+        if (cacheRepository.exists("2fa:user_reset_pending:" + user.getId())) {
+            throw new AppException(ErrorCode.RESET_2FA_PENDING);
+        }
+
+        String resetToken = UUID.randomUUID().toString();
+        VerificationPurpose purpose = VerificationPurpose.RESET_2FA;
+        String key = purpose.getPrefix() + resetToken;
+
+        // Lưu vào redis 10 phút
+        cacheRepository.save(key, user.getId().toString(), purpose.getTtl());
+        cacheRepository.save("2fa:user_reset_pending:" + user.getId(), resetToken, purpose.getTtl());
+
+        String confirmUrl = clientUrl + "/reset-2fa/confirm?token=" + resetToken;
+        String cancelUrl = clientUrl + "/reset-2fa/cancel?token=" + resetToken;
+
+        emailService.sendReset2faEmail(user.getEmail(), user.getFullName(), confirmUrl, cancelUrl, purpose);
+    }
+
+    public void confirmReset2fa(ResetTwoFactorRequest request) {
+        String token = request.getToken();
+        VerificationPurpose purpose = VerificationPurpose.RESET_2FA;
+        String key = purpose.getPrefix() + token;
+
+        String userIdStr = cacheRepository.get(key)
+                .orElseThrow(() -> new AppException(ErrorCode.RESET_2FA_TOKEN_INVALID));
+
+        UUID userId = UUID.fromString(userIdStr);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        if (!user.isEnable2fa()) {
+            throw new AppException(ErrorCode.TWO_FACTOR_NOT_ENABLED);
+        }
+
+        // Kích hoạt hoãn 24 giờ gỡ 2FA
+        user.setScheduled2faDisableAt(LocalDateTime.now().plusHours(24));
+        userRepository.save(user);
+
+        // Tạo token hủy 24h và lưu Redis
+        String cancel24hToken = UUID.randomUUID().toString();
+        VerificationPurpose scheduledPurpose = VerificationPurpose.SCHEDULED_2FA_DISABLE;
+        String cancel24hKey = scheduledPurpose.getPrefix() + cancel24hToken;
+        cacheRepository.save(cancel24hKey, user.getId().toString(), scheduledPurpose.getTtl());
+        cacheRepository.save("2fa:user_cancel_24h:" + user.getId(), cancel24hToken, scheduledPurpose.getTtl());
+
+        // Gửi email 2: Thông báo đếm ngược 24h kèm link hủy 24h
+        String cancelUrl = clientUrl + "/reset-2fa/cancel?token=" + cancel24hToken;
+        emailService.sendScheduled2faEmail(user.getEmail(), user.getFullName(), cancelUrl, scheduledPurpose);
+
+        // Xóa token reset 10 phút ban đầu
+        cacheRepository.delete(key);
+        cacheRepository.delete("2fa:user_reset_pending:" + user.getId());
+    }
+
+    public void cancelReset2fa(ResetTwoFactorRequest request) {
+        String token = request.getToken();
+        
+        // Kiểm tra xem token thuộc loại 10m hay 24h
+        String resetKey = VerificationPurpose.RESET_2FA.getPrefix() + token;
+        String scheduledKey = VerificationPurpose.SCHEDULED_2FA_DISABLE.getPrefix() + token;
+
+        String userIdStr = cacheRepository.get(resetKey)
+                .orElseGet(() -> cacheRepository.get(scheduledKey)
+                        .orElseThrow(() -> new AppException(ErrorCode.RESET_2FA_TOKEN_INVALID)));
+
+        UUID userId = UUID.fromString(userIdStr);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        // Hủy lịch gỡ 2FA 24h nếu đang có
+        boolean wasScheduled = user.getScheduled2faDisableAt() != null;
+        if (wasScheduled) {
+            user.setScheduled2faDisableAt(null);
+            userRepository.save(user);
+        }
+
+        // Xóa các token liên quan trong Redis
+        cacheRepository.delete(resetKey);
+        cacheRepository.delete(scheduledKey);
+        cacheRepository.delete("2fa:user_reset_pending:" + user.getId());
+        cacheRepository.delete("2fa:user_cancel_24h:" + user.getId());
+
+        // Gửi email 3: Thông báo đã hủy gỡ 2FA thành công
+        emailService.sendNotificationEmail(user.getEmail(), user.getFullName(), VerificationPurpose.CANCELLED_2FA_DISABLE);
     }
 }
