@@ -35,4 +35,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Slice<User> findAllByCurrentStreakGreaterThanAndLastInterviewDateAfter(int currentStreak, LocalDateTime time, PageRequest of);
 
     long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
+
+    java.util.List<User> findAllByScheduled2faDisableAtIsNotNullAndScheduled2faDisableAtBefore(LocalDateTime now);
 }

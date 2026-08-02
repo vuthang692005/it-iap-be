@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yêu cầu khôi phục xác thực 2 bước (2FA)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 32px 20px;
+        }
+        .email-header h1 {
+            margin: 0 0 6px 0;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .email-header p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.85;
+            font-weight: 400;
+        }
+        .email-body {
+            padding: 36px 32px;
+            color: #334155;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        .greeting {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            color: #1e293b;
+        }
+        .email-body p {
+            margin-bottom: 14px;
+        }
+        .action-section {
+            text-align: center;
+            margin: 32px 0;
+            padding: 24px 20px;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+        }
+        .btn-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 16px;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.2s ease;
+            box-sizing: border-box;
+            width: 80%;
+            max-width: 320px;
+        }
+        .btn-confirm {
+            background-color: #2563eb;
+            color: #ffffff !important;
+        }
+        .btn-confirm:hover {
+            background-color: #1d4ed8;
+        }
+        .btn-cancel {
+            background-color: #ef4444;
+            color: #ffffff !important;
+        }
+        .btn-cancel:hover {
+            background-color: #dc2626;
+        }
+        .expiry-text {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 16px;
+        }
+        .note-box {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 14px 16px;
+            color: #92400e;
+            font-size: 13px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 24px;
+            line-height: 1.6;
+        }
+        .sign-off {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #475569;
+        }
+        .sign-off strong {
+            color: #1e293b;
+        }
+        .email-footer {
+            background-color: #f8fafc;
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+        .email-footer p {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="email-container">
+    <div class="email-header">
+        <h1>IT-IAP</h1>
+        <p>Nền tảng luyện phỏng vấn IT bằng AI</p>
+    </div>
+
+    <div class="email-body">
+        <div class="greeting">
+            Xin chào, <span th:text="${fullName}">Người dùng</span>!
+        </div>
+
+        <p>Chúng tôi nhận được yêu cầu khôi phục / gỡ tính năng xác thực 2 bước (2FA) cho tài khoản của bạn. Vui lòng chọn hành động tương ứng bên dưới:</p>
+
+        <div class="action-section">
+            <div class="btn-container">
+                <a th:href="${confirmUrl}" class="btn btn-confirm">Xác nhận gỡ 2FA</a>
+                <a th:href="${cancelUrl}" class="btn btn-cancel">Không phải tôi (Hủy yêu cầu)</a>
+            </div>
+            <p class="expiry-text">
+                Đường dẫn này có hiệu lực trong <b th:text="${ttlMinutes}">10</b> phút
+                kể từ <b th:text="${timeNow}">HH:mm:ss</b>
+                ngày <b th:text="${dateNow}">dd/MM/yyyy</b>.
+            </p>
+        </div>
+
+        <div class="note-box">
+            <strong>Lưu ý bảo mật quan trọng:</strong><br>
+            • Khi bạn chọn <b>"Xác nhận gỡ 2FA"</b>, tính năng 2FA sẽ <b>CHƯA bị tắt ngay</b> mà sẽ đi vào thời gian đếm ngược <b>24 giờ</b> trước khi chính thức tắt để bảo vệ tài khoản khỏi truy cập trái phép.<br>
+            • Nếu bạn không gửi yêu cầu này, vui lòng nhấn ngay <b>"Không phải tôi"</b> để đảm bảo an toàn cho tài khoản.
+        </div>
+
+        <div class="sign-off">
+            Trân trọng,<br>
+            <strong>Đội ngũ IT-IAP</strong>
+        </div>
+    </div>
+
+    <div class="email-footer">
+        <p>Đây là email tự động từ hệ thống. Vui lòng không phản hồi lại email này.</p>
+        <p>&copy; 2026 IT-IAP. All rights reserved.</p>
+    </div>
+</div>
+
+</body>
+</html>

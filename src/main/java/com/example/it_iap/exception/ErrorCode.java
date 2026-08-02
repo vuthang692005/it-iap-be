@@ -34,6 +34,9 @@ public enum ErrorCode {
     TWO_FACTOR_ENABLED(400, "Tài khoản đã bật xác minh 2 bước rồi", HttpStatus.BAD_REQUEST),
     TWO_FACTOR_NOT_ENABLED(400, "Tài khoản chưa bật xác minh 2 bước", HttpStatus.BAD_REQUEST),
     TWO_FACTOR_CODE_INVALID(400, "Mã xác thực 2 bước không hợp lệ hoặc chưa chính xác", HttpStatus.BAD_REQUEST),
+    RESET_2FA_TOKEN_INVALID(400, "Đường dẫn yêu cầu khôi phục 2FA không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST),
+    RESET_2FA_PENDING(400, "Bạn đã gửi một yêu cầu gỡ 2FA trước đó. Vui lòng kiểm tra email hoặc thử lại sau 10 phút", HttpStatus.BAD_REQUEST),
+    RESET_2FA_SCHEDULED(400, "Tài khoản của bạn đang trong tiến trình đếm ngược gỡ 2FA. Vui lòng kiểm tra email nếu muốn hủy yêu cầu", HttpStatus.BAD_REQUEST),
     
     //EXISTED
     EMAIL_EXISTED(409, "Email đã được sử dụng", HttpStatus.CONFLICT),
