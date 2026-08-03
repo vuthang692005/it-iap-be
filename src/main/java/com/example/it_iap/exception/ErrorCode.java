@@ -37,12 +37,15 @@ public enum ErrorCode {
     RESET_2FA_TOKEN_INVALID(400, "Đường dẫn yêu cầu khôi phục 2FA không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST),
     RESET_2FA_PENDING(400, "Bạn đã gửi một yêu cầu gỡ 2FA trước đó. Vui lòng kiểm tra email hoặc thử lại sau 10 phút", HttpStatus.BAD_REQUEST),
     RESET_2FA_SCHEDULED(400, "Tài khoản của bạn đang trong tiến trình đếm ngược gỡ 2FA. Vui lòng kiểm tra email nếu muốn hủy yêu cầu", HttpStatus.BAD_REQUEST),
-    
+    CURRENT_STREAK_NOT_ENOUGH(400, "Chuỗi hiện tại chưa đủ để chia sẻ, hãy cố gắng cải thiện thêm nhé", HttpStatus.BAD_REQUEST),
+    CURRENT_GPA_TOO_LOW(400, "Điểm GPA hiện tại hơi thấp để chia sẻ, hãy cố gắng cải thiện thêm nhé", HttpStatus.BAD_REQUEST),
+
     //EXISTED
     EMAIL_EXISTED(409, "Email đã được sử dụng", HttpStatus.CONFLICT),
     UNVERIFIED_ACCOUNT_EXISTS(409, "Tài khoản đã đăng ký nhưng chưa kích hoạt. Một mã OTP mới vừa được gửi đến email của bạn", HttpStatus.CONFLICT),
     VERSION_EXISTS(409, "Phiên bản đã tồn tại", HttpStatus.CONFLICT),
     PROMPT_KEY_EXISTS(409, "Prompt key đã tôn tại", HttpStatus.CONFLICT),
+    YOU_ALREADY_SHARE_TODAY(409, "Hôm nay bạn đã chia sẻ rồi", HttpStatus.CONFLICT),
 
     //CONFLICT
     CONCURRENT_UPDATE(409, "Dữ liệu đang được xử lý bởi một yêu cầu khác, vui lòng không thao tác liên tục!", HttpStatus.CONFLICT),
