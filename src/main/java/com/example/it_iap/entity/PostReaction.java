@@ -34,7 +34,8 @@ import lombok.Setter;
     },
     indexes = {
         @Index(name = "idx_reaction_post", columnList = "post_id"),
-        @Index(name = "idx_reaction_user", columnList = "user_id")
+        @Index(name = "idx_reaction_user", columnList = "user_id"),
+        @Index(name = "idx_reaction_user_post", columnList = "user_id, post_id")
     }
 )
 @Getter

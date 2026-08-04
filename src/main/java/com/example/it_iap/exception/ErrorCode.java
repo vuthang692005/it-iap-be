@@ -39,6 +39,7 @@ public enum ErrorCode {
     RESET_2FA_SCHEDULED(400, "Tài khoản của bạn đang trong tiến trình đếm ngược gỡ 2FA. Vui lòng kiểm tra email nếu muốn hủy yêu cầu", HttpStatus.BAD_REQUEST),
     CURRENT_STREAK_NOT_ENOUGH(400, "Chuỗi hiện tại chưa đủ để chia sẻ, hãy cố gắng cải thiện thêm nhé", HttpStatus.BAD_REQUEST),
     CURRENT_GPA_TOO_LOW(400, "Điểm GPA hiện tại hơi thấp để chia sẻ, hãy cố gắng cải thiện thêm nhé", HttpStatus.BAD_REQUEST),
+    NOT_ABLE_TO_REACT(400, "Bạn không thể thả cảm xúc với bài viết này", HttpStatus.BAD_REQUEST),
 
     //EXISTED
     EMAIL_EXISTED(409, "Email đã được sử dụng", HttpStatus.CONFLICT),

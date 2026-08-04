@@ -60,6 +60,7 @@ public enum ValidationError {
     BANNER_CONTENT_INVALID("Nội dung banner không hợp lệ"),
     INVALID_NOTIFICATION_TITLE("Tiêu đề thông báo không hợp lệ"),
     INVALID_NOTIFICATION_CONTENT("Nội dung thông báo không hợp lệ"),
+    REACTYPE_INVALID("Loại cảm xúc không hợp lệ"),
     ;
     private final String message;
 

@@ -6,15 +6,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.it_iap.dto.ApiResponse;
 import com.example.it_iap.dto.ForumPostSliceResponse;
+import com.example.it_iap.dto.forumPost.request.ReactPostRequest;
 import com.example.it_iap.dto.forumPost.response.GetForumPostDTO;
 import com.example.it_iap.service.ForumPostService;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -69,6 +72,15 @@ public class ForumPostController {
         forumPostService.changePostVisible(postId);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
+                    .build());
+    }
+
+    @PostMapping("/react/{postId}")
+    public ResponseEntity<?> reactPost(@PathVariable Long postId, @RequestBody @Valid ReactPostRequest request) {
+        GetForumPostDTO response = forumPostService.reactPost(postId, request);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.<GetForumPostDTO>builder()
+                    .data(response)
                     .build());
     }
 }
