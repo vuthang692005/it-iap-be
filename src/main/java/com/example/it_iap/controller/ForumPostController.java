@@ -17,6 +17,7 @@ import com.example.it_iap.dto.forumPost.request.ReactPostRequest;
 import com.example.it_iap.dto.forumPost.response.GetForumPostDTO;
 import com.example.it_iap.service.ForumPostService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -28,6 +29,7 @@ import lombok.RequiredArgsConstructor;
 public class ForumPostController {
     private final ForumPostService forumPostService;
 
+    @Operation(summary = "Chia sẻ bài đăng Streak", description = "Chia sẻ số chuỗi hiện tại thành bài đăng")
     @PostMapping("/share/streak")
     public ResponseEntity<?> shareStreakPost() {
         forumPostService.shareStreakPost();
@@ -37,6 +39,7 @@ public class ForumPostController {
                         .build());
     }
 
+    @Operation(summary = "Chia sẻ bài đăng GPA", description = "Chia sẻ điểm GPA thành bài đăng")
     @PostMapping("/share/grade")
     public ResponseEntity<?> shareGradePost() {
         forumPostService.shareGradePost();
@@ -46,6 +49,7 @@ public class ForumPostController {
                         .build());
     }
 
+    @Operation(summary = "Lấy bài đăng của chung", description = "Seed từ (10000 - 99999)")
     @GetMapping
     public ResponseEntity<?> getPosts(
         @RequestParam @Min(1) int page, 
@@ -57,6 +61,7 @@ public class ForumPostController {
                     .build());
     }
 
+    @Operation(summary = "Lấy bài đăng của bản thân")
     @GetMapping("/me")
     public ResponseEntity<?> getMyPosts(
         @RequestParam @Min(1) int page) {
@@ -67,6 +72,7 @@ public class ForumPostController {
                     .build());
     }
 
+    @Operation(summary = "Đổi chế độ hiển thị bài đăng")
     @PutMapping("/change-visible/{postId}")
     public ResponseEntity<?> changePostVisible(@PathVariable Long postId) {
         forumPostService.changePostVisible(postId);
@@ -75,6 +81,7 @@ public class ForumPostController {
                     .build());
     }
 
+    @Operation(summary = "Thả cảm xúc bài đăng", description = "LOVE - HAHA - WOW")
     @PostMapping("/react/{postId}")
     public ResponseEntity<?> reactPost(@PathVariable Long postId, @RequestBody @Valid ReactPostRequest request) {
         GetForumPostDTO response = forumPostService.reactPost(postId, request);
