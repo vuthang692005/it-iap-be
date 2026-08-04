@@ -1,11 +1,9 @@
 package com.example.it_iap.entity.enums;
 
 public enum ReactionType {
-    LIKE,
     LOVE,
     HAHA,
-    WOW,
-    ANGRY
+    WOW
     ;
 
     public static ReactionType fromString (String value) {

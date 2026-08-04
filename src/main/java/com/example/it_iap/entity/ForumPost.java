@@ -1,10 +1,13 @@
 package com.example.it_iap.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.example.it_iap.entity.enums.ForumPostType;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,6 +19,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,6 +43,12 @@ public class ForumPost extends Auditable {
     ForumPostType postType;
 
     @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "TEXT", nullable = false)
+    @Column(columnDefinition = "JSON", nullable = false)
     JsonNode sharedData;
+
+    @Column(name = "is_visible", nullable = false)
+    boolean visible = true;
+
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    List<PostReaction> reactions = new ArrayList<>();
 }

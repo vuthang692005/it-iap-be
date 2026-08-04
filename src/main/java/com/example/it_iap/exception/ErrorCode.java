@@ -64,6 +64,7 @@ public enum ErrorCode {
     FEEDBACK_NOT_FOUND(404,"Đánh giá không tồn tại", HttpStatus.NOT_FOUND),
     BANNER_NOT_FOUND(404, "Banner không tồn tại", HttpStatus.NOT_FOUND),
     SESSION_NOT_FOUND(404, "Phiên đăng nhập không tồn tại", HttpStatus.NOT_FOUND),
+    POST_NOT_FOUND(404, "Bài đăng không tồn tại", HttpStatus.NOT_FOUND),
 
     //UNAUTHENTICATED
     TOKEN_INVALID(401, "Thông tin xác thực không hợp lệ", HttpStatus.UNAUTHORIZED),

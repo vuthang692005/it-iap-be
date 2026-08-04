@@ -3,8 +3,15 @@ package com.example.it_iap.service.impl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.example.it_iap.dto.ForumPostSliceResponse;
+import com.example.it_iap.dto.forumPost.response.GetForumPostDTO;
 import com.example.it_iap.entity.ForumPost;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.ForumPostType;
@@ -15,11 +22,11 @@ import com.example.it_iap.record.StreakSharedData;
 import com.example.it_iap.repository.ForumPostRepository;
 import com.example.it_iap.service.ForumPostService;
 import com.example.it_iap.service.UserService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +37,7 @@ public class ForumPostServiceImpl implements ForumPostService {
 
     private final ForumPostRepository forumPostRepository;
 
-    private final ObjectMapper objectMapper;
+    private final JsonMapper jsonMapper;
 
     @Override
     public void shareStreakPost() {
@@ -80,12 +87,52 @@ public class ForumPostServiceImpl implements ForumPostService {
         forumPostRepository.save(forumPost);
     }
 
+    @Override
+    public ForumPostSliceResponse<GetForumPostDTO> getPosts(int page, int seed) {
+        User user = userService.getCurrentUser();
+
+        Pageable pageable = PageRequest.of(page - 1, 3); // Lấy 3 bài tính toán cho lẹ
+
+        Slice<GetForumPostDTO> slice = forumPostRepository.getPosts(user.getId(), seed, pageable);
+
+        return new ForumPostSliceResponse<>(
+            slice.getContent(), 
+            slice.hasNext()
+        );
+    }
+    
+    @Override
+    public ForumPostSliceResponse<GetForumPostDTO> getMyPosts(int page) {
+        User user = userService.getCurrentUser();
+
+        Pageable pageable = PageRequest.of(page - 1, 3, Sort.by("createdAt").descending()); // Lấy 3 bài tính toán cho lẹ
+
+        Slice<GetForumPostDTO> slice = forumPostRepository.getMyPosts(user.getId(), pageable);
+
+        return new ForumPostSliceResponse<>(
+            slice.getContent(), 
+            slice.hasNext()
+        );
+    }
+
+    @Transactional
+    @Override
+    public void changePostVisible(Long postId) {
+        User user = userService.getCurrentUser();
+
+        ForumPost forumPost = forumPostRepository.findByIdAndUserId(postId, user.getId())
+            .orElseThrow(() -> new AppException(ErrorCode.POST_NOT_FOUND));
+
+        forumPost.setVisible(!forumPost.isVisible());
+        forumPostRepository.save(forumPost);
+    }
+
     private JsonNode createStreakData(User user) {
         StreakSharedData data = new StreakSharedData(
             user.getCurrentStreak()
         );
 
-        return objectMapper.valueToTree(data);
+        return jsonMapper.valueToTree(data);
     }
 
     private JsonNode createGradeData(User user) {
@@ -95,6 +142,6 @@ public class ForumPostServiceImpl implements ForumPostService {
             user.getTotalCompletedInterviews()
         );
 
-        return objectMapper.valueToTree(data);
+        return jsonMapper.valueToTree(data);
     }
 }
