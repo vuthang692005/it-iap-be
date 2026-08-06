@@ -15,5 +15,6 @@ public interface PromotionService {
     PromotionResponse createPromotion(CreatePromotionRequest request);
     PromotionResponse toggleActiveStatus(Long promotionId);
     List<TierInfoResponse> getAvailableTiers();
+    Promotion getActivePromotionByTier(AccountTier tier);
     Page<PromotionResponse> getAllPromotions(int page);
 }

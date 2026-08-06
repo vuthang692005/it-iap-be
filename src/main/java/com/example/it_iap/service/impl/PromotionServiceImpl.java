@@ -85,6 +85,11 @@ public class PromotionServiceImpl implements PromotionService {
             throw new AppException(ErrorCode.DISCOUNT_PERCENTAGE_INVALID);
         }
 
+        // 🌟 BỔ SUNG: Kiểm tra nếu giảm theo tiền mặt thì phải nhỏ hơn giá của gói
+        if (type == DiscountType.FIXED_AMOUNT && request.getDiscountValue() >= tier.getPrice()) {
+            throw new AppException(ErrorCode.DISCOUNT_AMOUNT_EXCEEDS_PRICE);
+        }
+
         // Kiểm tra rule: Chỉ 1 khuyến mãi active cho 1 gói
         boolean hasOverlap = promotionRepository.hasOverlappingPromotionForTier(
                 tier, request.getStartDate(), request.getEndDate(), null);
@@ -141,11 +146,12 @@ public class PromotionServiceImpl implements PromotionService {
         return Arrays.stream(AccountTier.values())
                 .filter(tier -> tier != AccountTier.BASIC) // Bỏ qua gói mặc định
                 .map(tier -> {
-                    // Cố gắng tìm khuyến mãi đang chạy của gói này
-                    PromotionResponse activePromoResponse = promotionRepository
-                            .findActivePromotionByTier(tier, LocalDateTime.now())
-                            .map(this::mapToResponse)
-                            .orElse(null);
+                    Promotion promotion = getActivePromotionByTier(tier);
+                    PromotionResponse activePromoResponse = null;
+
+                    if(promotion != null){
+                        activePromoResponse = mapToResponse(promotion);
+                    }
 
                     return new TierInfoResponse(
                             tier.name(),
@@ -157,6 +163,12 @@ public class PromotionServiceImpl implements PromotionService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    public Promotion getActivePromotionByTier(AccountTier tier) {
+        return promotionRepository
+                .findActivePromotionByTier(tier, LocalDateTime.now())
+                .orElse(null);
     }
 
     public Page<PromotionResponse> getAllPromotions(int page) {
