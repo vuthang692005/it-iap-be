@@ -1,7 +1,6 @@
 package com.example.it_iap.service.impl;
 
 import com.example.it_iap.cache.CacheRepository;
-import com.example.it_iap.dto.notification.response.NotificationResponse;
 import com.example.it_iap.dto.user.request.*;
 import com.example.it_iap.dto.user.response.UserResponse;
 import com.example.it_iap.dto.user.response.UserStreakResponse;
@@ -194,6 +193,8 @@ public class UserServiceImpl implements UserService {
                 user.getPhoneNumber(),
                 user.getAvatarUrl(),
                 user.isActive(),
+                user.getActiveTier(),
+                user.getSubscriptionEndDate(),
                 user.getCreatedAt(),
                 user.getDeletedAt());
     }

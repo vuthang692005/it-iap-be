@@ -48,7 +48,12 @@ public class AdminPromptServiceImpl implements AdminPromptService {
         PromptVersion promptVersion =
                 promptVersionService.createPromptVersion(request.getPromptVersionRequest(), adminPrompt);
 
-        User user = userService.getCurrentUser();
+        User user = null;
+        try {
+            user = userService.getCurrentUser();
+        } catch (Exception ignored) {
+        }
+
         String desc = String.format("Tạo mới Prompt (Key: %s) kèm version đầu: %s",
                 adminPrompt.getPromptKey(),
                 promptVersion.getVersion());
