@@ -61,6 +61,16 @@ public enum ValidationError {
     INVALID_NOTIFICATION_TITLE("Tiêu đề thông báo không hợp lệ"),
     INVALID_NOTIFICATION_CONTENT("Nội dung thông báo không hợp lệ"),
     REACTYPE_INVALID("Loại cảm xúc không hợp lệ"),
+    ACCOUNT_TIER_INVALID("Gói tài khoản không hợp lệ"),
+    RETURN_URL_INVALID("Đường dẫn trả về (returnUrl) không hợp lệ"),
+    CANCEL_URL_INVALID("Đường dẫn hủy đơn (cancelUrl) không hợp lệ"),
+    PROMOTION_CODE_BLANK("Mã khuyến mãi không được để trống"),
+    PROMOTION_NAME_BLANK("Tên khuyến mãi không được để trống"),
+    DISCOUNT_TYPE_INVALID("Loại hình giảm giá không hợp lệ"),
+    DISCOUNT_VALUE_NULL("Giá trị giảm giá không được để trống"),
+    DISCOUNT_VALUE_MIN("Giá trị giảm giá phải lớn hơn 0"),
+    START_DATE_NULL("Thời gian bắt đầu không được để trống"),
+    END_DATE_NULL("Thời gian kết thúc không được để trống"),
     ;
     private final String message;
 

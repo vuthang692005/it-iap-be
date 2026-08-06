@@ -42,10 +42,6 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     }
 
     public void updateTotalTokenUsed (int tokensToAdd, ChatSession chatSession){
-        if(chatSession.getSessionLimitTokens() != null &&
-                chatSession.getTotalTokensUsed() >= chatSession.getSessionLimitTokens()){
-            throw new AppException(ErrorCode.TOKEN_LIMIT_EXCEEDED);
-        }
         chatSession.setTotalTokensUsed(chatSession.getTotalTokensUsed() + tokensToAdd);
         chatSessionRepository.save(chatSession);
     }
@@ -72,11 +68,13 @@ public class ChatSessionServiceImpl implements ChatSessionService {
     public ChatSessionResponse createChatSession (ChatSessionRequest request){
         User user = userService.getCurrentUser();
         PromptVersion promptVersion = promptVersionService.getPromptActive(PromptUseCase.CUSTOMER_SUPPORT);
+        int sessionLimitTokens = user.getActiveTier().getMaxChatbotTokens();
 
         ChatSession chatSession = new ChatSession();
         chatSession.setTitle(request.getTitle());
         chatSession.setUser(user);
         chatSession.setPromptVersion(promptVersion);
+        chatSession.setSessionLimitTokens(sessionLimitTokens);
 
         chatSession = chatSessionRepository.save(chatSession);
 

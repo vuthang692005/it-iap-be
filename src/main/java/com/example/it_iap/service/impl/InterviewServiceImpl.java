@@ -32,6 +32,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -77,7 +78,26 @@ public class InterviewServiceImpl implements InterviewService {
 
     @Transactional
     public CurrentQuestionResponse startInterview (long interviewId) {
-        UUID userId = SecurityUtils.getCurrentUserId();
+        User user = userService.getCurrentUser();
+        UUID userId = user.getId();
+
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
+
+        List<InterviewStatus> countedStatuses = List.of(
+                InterviewStatus.IN_PROGRESS,
+                InterviewStatus.COMPLETED
+        );
+
+        int todayUsedInterviews = interviewRepository.countTodayInterviews(
+                userId, countedStatuses, startOfDay, endOfDay);
+
+        int maxInterviews = user.getActiveTier().getMaxDailyInterviews();
+
+        if (todayUsedInterviews >= maxInterviews) {
+            throw new AppException(ErrorCode.DAILY_INTERVIEW_LIMIT_EXCEEDED);
+        }
+
         Interview interview = interviewRepository.findByIdAndProfile_UserId(interviewId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));
 
