@@ -14,7 +14,7 @@ public interface InterviewQuestionService {
     boolean hasNextQuestion (Long interviewId, int currentOrderIndex);
     void saveUserAnswerForStressInterview (InterviewQuestion interviewQuestion, String userAnswer);
     InterviewQuestion findValidQuestionForUser (long interviewQuestionId);
-    void completeQuestion (InterviewQuestion interviewQuestion, String feedback, Float point);
+    void completeQuestion (InterviewQuestion interviewQuestion, String feedback, Float point, Float articulationPoint, Float focusPoint);
     boolean lockQuestionForProcessing(long id);
     void unlockQuestion(long id);
     void completeInterviewQuestion (InterviewQuestion interviewQuestion);

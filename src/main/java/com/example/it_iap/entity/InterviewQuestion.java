@@ -9,6 +9,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Getter
@@ -53,4 +54,7 @@ public class InterviewQuestion extends Auditable{
 
     @OneToOne(mappedBy = "interviewQuestion", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private ChatSession chatSession;
+
+    @OneToMany(mappedBy = "interviewQuestion", fetch = FetchType.LAZY)
+    private List<Reports> reports;
 }

@@ -3,9 +3,11 @@ package com.example.it_iap.service.impl;
 import com.example.it_iap.dto.ai.response.AIInteractive;
 import com.example.it_iap.dto.chatMessage.response.ChatMessageResponse;
 import com.example.it_iap.dto.interview.FeedbackForQuestion;
+import com.example.it_iap.dto.interview.request.GetInterviewHistoryRequest;
 import com.example.it_iap.dto.interview.response.GetFeedbackResponse;
 import com.example.it_iap.dto.interview.response.GetHintResponse;
 import com.example.it_iap.dto.interview.response.InterviewIdResponse;
+import com.example.it_iap.dto.interview.response.InterviewResponse;
 import com.example.it_iap.dto.question.response.CurrentQuestionResponse;
 import com.example.it_iap.entity.*;
 import com.example.it_iap.entity.Json.OverallResult;
@@ -24,9 +26,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.MessageType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
@@ -45,6 +51,7 @@ public class InterviewServiceImpl implements InterviewService {
     private final AIService aiService;
     private final ChatMessageService chatMessageService;
     private final ObjectMapper objectMapper;
+    private final UserService userService;
 
     @Transactional
     public InterviewIdResponse createInterview (String mode, String title, long profileId) {
@@ -71,7 +78,26 @@ public class InterviewServiceImpl implements InterviewService {
 
     @Transactional
     public CurrentQuestionResponse startInterview (long interviewId) {
-        UUID userId = SecurityUtils.getCurrentUserId();
+        User user = userService.getCurrentUser();
+        UUID userId = user.getId();
+
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
+
+        List<InterviewStatus> countedStatuses = List.of(
+                InterviewStatus.IN_PROGRESS,
+                InterviewStatus.COMPLETED
+        );
+
+        int todayUsedInterviews = interviewRepository.countTodayInterviews(
+                userId, countedStatuses, startOfDay, endOfDay);
+
+        int maxInterviews = user.getActiveTier().getMaxDailyInterviews();
+
+        if (todayUsedInterviews >= maxInterviews) {
+            throw new AppException(ErrorCode.DAILY_INTERVIEW_LIMIT_EXCEEDED);
+        }
+
         Interview interview = interviewRepository.findByIdAndProfile_UserId(interviewId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));
 
@@ -80,7 +106,9 @@ public class InterviewServiceImpl implements InterviewService {
         }
 
         interview.setStatus(InterviewStatus.IN_PROGRESS);
+        interview.setStartAt(LocalDateTime.now());
         interview = interviewRepository.save(interview);
+
         InterviewMode interviewMode = interview.getMode();
 
         InterviewQuestion interviewQuestion = interviewQuestionService
@@ -97,7 +125,8 @@ public class InterviewServiceImpl implements InterviewService {
                 question.getCategory().getDisplayName(),
                 interviewQuestion.getEndAt(),
                 hasNextQuestion,
-                interviewMode
+                interviewMode,
+                null
         );
     }
 
@@ -113,10 +142,15 @@ public class InterviewServiceImpl implements InterviewService {
 
         interviewQuestionService.saveUserAnswerForStressInterview(answeredIq, userAnswer);
 
+        Profile profile = interview.getProfile();
+        userService.updateStudyStats();
+
         InterviewQuestion interviewQuestion = interviewQuestionService
                 .activateNextUnansweredQuestion(interview.getId(), interviewMode);
 
         if (interviewQuestion == null) {
+            userService.updateInterviewStreak();
+
             interview.setStatus(InterviewStatus.COMPLETED);
             interview.setCompletedAt(LocalDateTime.now());
 
@@ -133,7 +167,8 @@ public class InterviewServiceImpl implements InterviewService {
                 question.getCategory().getDisplayName(),
                 interviewQuestion.getEndAt(),
                 hasNextQuestion,
-                interviewMode
+                interviewMode,
+                null
         );
     }
 
@@ -169,7 +204,9 @@ public class InterviewServiceImpl implements InterviewService {
                     interviewQuestionService.completeQuestion(
                             interviewQuestion,
                             aiInteractive.getContent(),
-                            aiInteractive.getPoint()
+                            aiInteractive.getPoint(),
+                            aiInteractive.getArticulationPoint(),
+                            aiInteractive.getFocusPoint()
                     );
                 } catch (Exception e) {
                     log.error("Lưu Feedback thất bại, tiến hành xóa tin nhắn rác...", e);
@@ -205,9 +242,15 @@ public class InterviewServiceImpl implements InterviewService {
         }
 
         interviewQuestionService.completeInterviewQuestion(interviewQuestion);
+
+        Profile profile = interview.getProfile();
+        userService.updateStudyStats();
+
         InterviewQuestion nextInterviewQuestion = interviewQuestionService.activateNextUnansweredQuestion(interview.getId(), interviewMode);
 
         if (nextInterviewQuestion == null) {
+            userService.updateInterviewStreak();
+
             interview.setStatus(InterviewStatus.COMPLETED);
             interview.setCompletedAt(LocalDateTime.now());
 
@@ -224,7 +267,8 @@ public class InterviewServiceImpl implements InterviewService {
                 question.getCategory().getDisplayName(),
                 nextInterviewQuestion.getEndAt(),
                 hasNextQuestion,
-                interviewMode
+                interviewMode,
+                false
         );
     }
 
@@ -239,7 +283,9 @@ public class InterviewServiceImpl implements InterviewService {
 
         InterviewQuestion interviewQuestion = interviewQuestionService.getCurrentQuestion(interviewId);
         Question question = interviewQuestion.getQuestion();
+
         boolean hasNextQuestion = interviewQuestionService.hasNextQuestion(interview.getId(), interviewQuestion.getOrderIndex());
+        boolean isComplete = interviewQuestion.getAiFeedback() != null;
 
         return new CurrentQuestionResponse(
                 interviewQuestion.getId(),
@@ -247,14 +293,24 @@ public class InterviewServiceImpl implements InterviewService {
                 question.getCategory().getDisplayName(),
                 interviewQuestion.getEndAt(),
                 hasNextQuestion,
-                interview.getMode()
+                interview.getMode(),
+                isComplete
         );
     }
 
     public GetFeedbackResponse getFeedback (long interviewId){
         UUID userId = SecurityUtils.getCurrentUserId();
-        Interview interview = interviewRepository.findWithInterviewQuestionsAndQuestionByIdAndProfile_UserId(interviewId, userId)
-                .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));
+        boolean isAdmin = SecurityUtils.isAdmin();
+        Interview interview = null;
+
+        if (isAdmin) {
+            interview = interviewRepository.findWithInterviewQuestionsAndQuestionById(interviewId)
+                    .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));
+        }
+        else {
+            interview = interviewRepository.findWithInterviewQuestionsAndQuestionByIdAndProfile_UserId(interviewId, userId)
+                    .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));
+        }
 
         if(interview.getStatus() != InterviewStatus.COMPLETED){
             throw new AppException(ErrorCode.INTERVIEW_NOT_COMPLETED);
@@ -284,10 +340,13 @@ public class InterviewServiceImpl implements InterviewService {
 
             interview.setOverallResult(overallResult);
             interviewRepository.save(interview);
+
+            userService.updateUserRankStats(overallResult.getTotalPoint());
         }
 
         return new GetFeedbackResponse(
                 isProcessing,
+                interview.getMode(),
                 feedbackForQuestions,
                 overallResult
         );
@@ -340,5 +399,33 @@ public class InterviewServiceImpl implements InterviewService {
         interviewQuestionRepository.save(interviewQuestion);
 
         return new GetHintResponse(interviewQuestion.getQuestion().getHintContent());
+    }
+
+    public Page<InterviewResponse> getInterviewHistory (GetInterviewHistoryRequest request){
+        UUID userId = SecurityUtils.getCurrentUserId();
+
+        int page = Math.max(0, request.getPages() - 1);
+        int size = 10;
+        PageRequest pageable = PageRequest.of(page, size, Sort.by("id").descending());
+        InterviewMode interviewMode = InterviewMode.from(request.getMode());
+        InterviewStatus interviewStatus = InterviewStatus.from(request.getStatus());
+
+        Page<Interview> interviews = interviewRepository
+                .getInterviewHistory(userId ,request.getProfileId(), interviewMode, interviewStatus, pageable);
+
+        return interviews.map(this::buildInterviewResponse);
+    }
+
+    private InterviewResponse buildInterviewResponse (Interview interview){
+        return new InterviewResponse(
+                interview.getTitle(),
+                interview.getMode(),
+                interview.getStatus(),
+                interview.getCreatedAt(),
+                interview.getCompletedAt(),
+                interview.getProfile().getId(),
+                interview.getProfile().getTitle(),
+                interview.getId()
+        );
     }
 }

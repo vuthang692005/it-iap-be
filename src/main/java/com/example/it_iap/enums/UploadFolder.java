@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public enum UploadFolder {
     USER_AVATAR("users/avatars"),
+    FEEDBACK_IMAGE("feedbacks"),
+    BANNER_IMAGE("banners"),
     ;
     private final String folder;
 }

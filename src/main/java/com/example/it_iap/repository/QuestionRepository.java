@@ -36,6 +36,12 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
             Pageable pageable
     );
 
+    @Query("SELECT q.content FROM Question q WHERE q.level = :level AND q.position = :position")
+    List<String> findContentByLevelAndPosition(
+            @Param("level") TargetLevel level,
+            @Param("position") TargetPosition position
+    );
+
     @Query(value = "SELECT * FROM question q " +
             "WHERE q.level = :#{#level.name()} " +
             "AND q.position = :#{#position.name()} " +

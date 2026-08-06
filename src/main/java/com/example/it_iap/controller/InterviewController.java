@@ -4,15 +4,18 @@ import com.example.it_iap.dto.ApiResponse;
 import com.example.it_iap.dto.ai.response.AIInteractive;
 import com.example.it_iap.dto.chatMessage.response.ChatMessageResponse;
 import com.example.it_iap.dto.interview.request.CreateInterviewRequest;
+import com.example.it_iap.dto.interview.request.GetInterviewHistoryRequest;
 import com.example.it_iap.dto.interview.request.SubmitAnswerRequest;
 import com.example.it_iap.dto.interview.response.GetFeedbackResponse;
 import com.example.it_iap.dto.interview.response.GetHintResponse;
 import com.example.it_iap.dto.interview.response.InterviewIdResponse;
+import com.example.it_iap.dto.interview.response.InterviewResponse;
 import com.example.it_iap.dto.question.response.CurrentQuestionResponse;
 import com.example.it_iap.service.InterviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -164,5 +167,18 @@ public class InterviewController {
         return ResponseEntity.ok(ApiResponse.<GetHintResponse>builder()
                 .data(interviewService.getHint(interviewQuestionId))
                 .build());
+    }
+
+    @Operation(summary = "Lấy lịch sử phỏng vấn", description = "Lấy danh sách lịch sử các buổi phỏng vấn của người dùng (có phân trang và lọc)")
+    @GetMapping("/history")
+    public ResponseEntity<ApiResponse<Page<InterviewResponse>>> getInterviewHistory(
+            @ModelAttribute @Valid GetInterviewHistoryRequest request) {
+
+        Page<InterviewResponse> response = interviewService.getInterviewHistory(request);
+
+        return ResponseEntity.ok(
+                ApiResponse.<Page<InterviewResponse>>builder()
+                        .data(response)
+                        .build());
     }
 }

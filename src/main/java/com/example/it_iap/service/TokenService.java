@@ -8,7 +8,12 @@ import java.text.ParseException;
 
 public interface TokenService {
     String generateAccessToken(User user) throws JOSEException;
+    String generateAccessToken(User user, String sessionId) throws JOSEException;
     String generateRefreshToken(User user) throws JOSEException;
+    String generateRefreshToken(User user, String sessionId, String refreshTokenId) throws JOSEException;
     SignedJWT verifyRefreshToken(String token) throws JOSEException, ParseException;
     void revokeRefreshToken(String refreshToken, boolean isLogout) throws JOSEException, ParseException;
+    SignedJWT verifyPreAuthToken(String token) throws JOSEException, ParseException;
+    void revokePreAuthToken(String preAuth) throws ParseException, JOSEException;
+    String generatePreAuthToken(User user) throws JOSEException;
 }

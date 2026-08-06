@@ -44,6 +44,8 @@ spring:
             scope:
               - profile
               - email
+    aes:
+      key: ${AES_KEY}          
   output:
     ansi:
       enabled: ALWAYS
@@ -62,9 +64,18 @@ spring:
     redis:
       host: ${REDIS_HOST}
       port: ${REDIS_PORT}
+
 cloudinary:
   cloud-name: ${CLOUDINARY_CLOUD_NAME}
   api-key: ${CLOUDINARY_API_KEY}
   api-secret: ${CLOUDINARY_API_SECRET}
+
+payos:
+  payout-client-id: ${PAYOS_PAYOUT_CLIENT_ID}
+  payout-api-key: ${PAYOS_PAYOUT_API_KEY}
+  payout-checksum-key: ${PAYOS_PAYOUT_CHECKSUM_KEY}
+  # Logging level: DEBUG | INFO | NONE
+  log-level: NONE
+
 jwt:
   signerKey: ${SIGNER_KEY}

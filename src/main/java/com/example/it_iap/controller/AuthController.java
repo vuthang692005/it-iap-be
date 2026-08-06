@@ -41,8 +41,20 @@ public class AuthController {
     @Operation(summary = "Đăng nhập", description = "Đăng nhập hệ thống, trả về vai trò và cấu hình cookie")
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<RoleResponse>> login(@RequestBody @Valid LoginRequest request,
+            HttpServletRequest httpRequest,
             HttpServletResponse response) throws JOSEException {
-        RoleResponse userRoles = authService.login(request, response);
+        RoleResponse userRoles = authService.login(request, httpRequest, response);
+        return ResponseEntity.ok(
+                ApiResponse.<RoleResponse>builder()
+                        .data(userRoles)
+                        .build());
+    }
+
+    @Operation(summary = "Đăng nhập xác minh 2 bước", description = "Đăng nhập hệ thống xác minh 2 bước, trả về vai trò và cấu hình cookie")
+    @PostMapping("/login/verify-2fa")
+    public ResponseEntity<ApiResponse<RoleResponse>> login(@RequestBody @Valid TwoFactorRequest req, HttpServletRequest request,
+            HttpServletResponse response) throws ParseException, JOSEException {
+        RoleResponse userRoles = authService.login2fa(req, request, response);
         return ResponseEntity.ok(
                 ApiResponse.<RoleResponse>builder()
                         .data(userRoles)

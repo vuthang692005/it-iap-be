@@ -33,6 +33,13 @@ public class ProfileServiceImpl implements ProfileService {
     public ProfileResponse createProfile (ProfileRequest request){
         User currentUser = userService.getCurrentUser();
 
+        int currentProfiles = profileRepository.countByUserId(currentUser.getId());
+        int maxProfiles = currentUser.getActiveTier().getMaxProfiles();
+
+        if (currentProfiles >= maxProfiles) {
+            throw new AppException(ErrorCode.PROFILE_LIMIT_EXCEEDED);
+        }
+
         Profile profile = new Profile();
         profile.setUser(currentUser);
 
@@ -86,12 +93,21 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = profileRepository.findWithUserByIdAndDeletedAtIsNull(profileId)
                 .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_FOUND));
 
-        UUID userId = profile.getUser().getId();
+        User user = profile.getUser();
+        UUID userId = user.getId();
         UUID currentId = SecurityUtils.getCurrentUserId();
 
         if (!userId.equals(currentId)) {
             throw new AppException(ErrorCode.ACCESS_DENIED);
         }
+
+        int maxProfiles = user.getActiveTier().getMaxProfiles();
+        int profileRank = profileRepository.countByUserIdAndIdLessThanEqualAndDeletedAtIsNull(userId, profileId);
+
+        if (profileRank > maxProfiles) {
+            throw new AppException(ErrorCode.PROFILE_LOCKED_DUE_TO_DOWNGRADE);
+        }
+
         return profile;
     }
 

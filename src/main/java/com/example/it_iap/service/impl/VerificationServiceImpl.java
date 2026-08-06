@@ -5,6 +5,8 @@ import com.example.it_iap.enums.VerificationPurpose;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.service.VerificationService;
+import com.example.it_iap.util.AesUtil;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,16 +19,28 @@ import java.util.concurrent.ThreadLocalRandom;
 public class VerificationServiceImpl implements VerificationService {
     private final CacheRepository cacheRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AesUtil aesUtil;
+
+    public String createSecret(String secret, String cacheKey, VerificationPurpose purpose) {
+        String key = purpose.getPrefix() + cacheKey;
+        Duration ttl = purpose.getTtl();
+        String secretEncrypt = aesUtil.encrypt(secret);
+        cacheRepository.save(
+                key,
+                secretEncrypt,
+                ttl);
+        return secretEncrypt;
+    }
 
     public String createOtp(String cacheKey, VerificationPurpose purpose) {
         String otp = generateOtp();
         String key = purpose.getPrefix() + cacheKey;
         Duration ttl = purpose.getTtl();
+
         cacheRepository.save(
                 key,
                 passwordEncoder.encode(otp),
-                ttl
-        );
+                ttl);
         return otp;
     }
 
@@ -50,7 +64,6 @@ public class VerificationServiceImpl implements VerificationService {
 
     private String generateOtp() {
         return String.valueOf(
-                ThreadLocalRandom.current().nextInt(100000, 1000000)
-        );
+                ThreadLocalRandom.current().nextInt(100000, 1000000));
     }
 }

@@ -3,6 +3,7 @@ package com.example.it_iap.service;
 import java.util.UUID;
 
 import com.example.it_iap.dto.user.request.*;
+import com.example.it_iap.dto.user.response.UserStreakResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.example.it_iap.dto.user.response.UserResponse;
@@ -20,4 +21,8 @@ public interface UserService {
     String updateAvatar(MultipartFile file);
     void changeEmail (ChangeEmailRequest request);
     void verifyChangeEmail(String otpCode);
+    void updateInterviewStreak();
+    UserStreakResponse getActualCurrentStreak();
+    void updateStudyStats ();
+    void updateUserRankStats(Float newInterviewScore);
 }

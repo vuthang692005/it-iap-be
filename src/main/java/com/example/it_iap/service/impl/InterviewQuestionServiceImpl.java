@@ -93,6 +93,12 @@ public class InterviewQuestionServiceImpl implements InterviewQuestionService {
 
     public InterviewQuestion findValidQuestionForUser (long interviewQuestionId){
         UUID userId = SecurityUtils.getCurrentUserId();
+        boolean isAdmin = SecurityUtils.isAdmin();
+
+        if(isAdmin){
+            return interviewQuestionRepository.findById(interviewQuestionId)
+                    .orElseThrow(() -> new AppException(ErrorCode.QUESTION_INTERVIEW_NOT_FOUND));
+        }
 
         return interviewQuestionRepository.findValidQuestionForUser(interviewQuestionId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.QUESTION_INTERVIEW_NOT_FOUND));
@@ -143,8 +149,8 @@ public class InterviewQuestionServiceImpl implements InterviewQuestionService {
     }
 
     @Transactional
-    public void completeQuestion (InterviewQuestion interviewQuestion, String feedback, Float point){
-        AIFeedback aiFeedback = new AIFeedback(point, feedback);
+    public void completeQuestion (InterviewQuestion interviewQuestion, String feedback, Float point, Float articulationPoint, Float focusPoint){
+        AIFeedback aiFeedback = new AIFeedback(point, articulationPoint, focusPoint, feedback);
 
         interviewQuestion.setAiFeedback(aiFeedback);
         interviewQuestionRepository.save(interviewQuestion);
