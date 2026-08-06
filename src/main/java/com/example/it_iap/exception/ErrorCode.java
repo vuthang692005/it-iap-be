@@ -45,7 +45,10 @@ public enum ErrorCode {
     PROFILE_LIMIT_EXCEEDED(400, "Bạn đã đạt giới hạn số lượng hồ sơ cho phép của gói cước hiện tại. Vui lòng nâng cấp gói để tạo thêm.", HttpStatus.BAD_REQUEST),
     DAILY_INTERVIEW_LIMIT_EXCEEDED(400, "Bạn đã hết số lượt phỏng vấn trong ngày. Vui lòng quay lại vào ngày mai hoặc nâng cấp gói cước", HttpStatus.BAD_REQUEST),
     PROFILE_LOCKED_DUE_TO_DOWNGRADE(400, "Hồ sơ này đã bị khóa do vượt quá giới hạn của gói cước hiện tại. Vui lòng nâng cấp gói hoặc xóa bớt các hồ sơ cũ để sử dụng", HttpStatus.BAD_REQUEST),
-
+    RESET_2FA_TOKEN_INVALID(400, "Đường dẫn yêu cầu khôi phục 2FA không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST),
+    RESET_2FA_PENDING(400, "Bạn đã gửi một yêu cầu gỡ 2FA trước đó. Vui lòng kiểm tra email hoặc thử lại sau 10 phút", HttpStatus.BAD_REQUEST),
+    RESET_2FA_SCHEDULED(400, "Tài khoản của bạn đang trong tiến trình đếm ngược gỡ 2FA. Vui lòng kiểm tra email nếu muốn hủy yêu cầu", HttpStatus.BAD_REQUEST),
+    
     //EXISTED
     EMAIL_EXISTED(409, "Email đã được sử dụng", HttpStatus.CONFLICT),
     UNVERIFIED_ACCOUNT_EXISTS(409, "Tài khoản đã đăng ký nhưng chưa kích hoạt. Một mã OTP mới vừa được gửi đến email của bạn", HttpStatus.CONFLICT),

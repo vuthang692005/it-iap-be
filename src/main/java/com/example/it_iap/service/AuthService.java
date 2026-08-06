@@ -25,4 +25,7 @@ public interface AuthService {
     RoleResponse login2fa(TwoFactorRequest req, HttpServletRequest request, HttpServletResponse response) throws JOSEException, ParseException;
     void disable2fa(TwoFactorRequest request);
     boolean status2fa();
+    void requestReset2fa();
+    void confirmReset2fa(ResetTwoFactorRequest request);
+    void cancelReset2fa(ResetTwoFactorRequest request);
 }

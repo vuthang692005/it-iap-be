@@ -51,6 +51,8 @@ public class User extends Auditable {
 
     private String secret2fa;
 
+    private LocalDateTime scheduled2faDisableAt;
+
     private Integer currentStreak = 0;
 
     private Integer longestStreak = 0;

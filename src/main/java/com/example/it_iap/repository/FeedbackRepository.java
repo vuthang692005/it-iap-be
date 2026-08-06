@@ -26,4 +26,7 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
             @Param("hasImageUrl") Boolean hasImageUrl,
             Pageable pageable
     );
+
+    @Query("SELECT COALESCE(AVG(f.rating), 0.0) FROM Feedback f")
+    Double getAverageRating();
 }

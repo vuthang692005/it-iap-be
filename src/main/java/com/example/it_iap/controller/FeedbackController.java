@@ -15,6 +15,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import com.example.it_iap.dto.feedback.response.FeedbackListResponse;
+
 @RestController
 @RequestMapping("/api/v1/feedbacks")
 @RequiredArgsConstructor
@@ -32,12 +34,12 @@ public class FeedbackController {
         );
     }
 
-    @Operation(summary = "Lấy danh sách đánh giá", description = "Lấy danh sách đánh giá có phân trang, có thể lọc theo số sao (rating)")
+    @Operation(summary = "Lấy danh sách đánh giá", description = "Lấy danh sách đánh giá có phân trang, có thể lọc theo số sao (rating), kèm tổng số feedback và trung bình số sao")
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<FeedbackResponse>>> getAllFeedbacks(@ModelAttribute @Valid FeedbackFilterRequest request) {
-        Page<FeedbackResponse> response = feedbackService.getAllFeedbacks(request);
+    public ResponseEntity<ApiResponse<FeedbackListResponse>> getAllFeedbacks(@ModelAttribute @Valid FeedbackFilterRequest request) {
+        FeedbackListResponse response = feedbackService.getAllFeedbacks(request);
         return ResponseEntity.ok(
-                ApiResponse.<Page<FeedbackResponse>>builder()
+                ApiResponse.<FeedbackListResponse>builder()
                         .data(response)
                         .build()
         );

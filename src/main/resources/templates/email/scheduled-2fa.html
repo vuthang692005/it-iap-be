@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cảnh báo bảo mật: Tính năng 2FA sẽ bị gỡ sau 24 giờ</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #b91c1c 0%, #ef4444 100%);
+            color: #ffffff;
+            text-align: center;
+            padding: 32px 20px;
+        }
+        .email-header h1 {
+            margin: 0 0 6px 0;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+        }
+        .email-header p {
+            margin: 0;
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+        .email-body {
+            padding: 36px 32px;
+            color: #334155;
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        .greeting {
+            font-size: 17px;
+            font-weight: 600;
+            margin-bottom: 18px;
+            color: #1e293b;
+        }
+        .email-body p {
+            margin-bottom: 14px;
+        }
+        .warning-box {
+            background-color: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            margin: 28px 0;
+        }
+        .warning-title {
+            color: #991b1b;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .warning-time {
+            font-size: 20px;
+            font-weight: 700;
+            color: #dc2626;
+            margin: 12px 0;
+        }
+        .btn-container {
+            text-align: center;
+            margin: 28px 0;
+        }
+        .btn-cancel {
+            display: inline-block;
+            background-color: #dc2626;
+            color: #ffffff !important;
+            padding: 14px 32px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+        }
+        .btn-cancel:hover {
+            background-color: #b91c1c;
+        }
+        .note-box {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 14px 16px;
+            color: #92400e;
+            font-size: 13px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 24px;
+            line-height: 1.6;
+        }
+        .sign-off {
+            margin-top: 28px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 14px;
+            color: #475569;
+        }
+        .sign-off strong {
+            color: #1e293b;
+        }
+        .email-footer {
+            background-color: #f8fafc;
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+        }
+        .email-footer p {
+            margin: 4px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="email-container">
+    <div class="email-header">
+        <h1>IT-IAP BẢO MẬT</h1>
+        <p>Cảnh báo yêu cầu gỡ xác thực 2 bước</p>
+    </div>
+
+    <div class="email-body">
+        <div class="greeting">
+            Xin chào, <span th:text="${fullName}">Người dùng</span>!
+        </div>
+
+        <p>Yêu cầu gỡ xác thực 2 bước (2FA) cho tài khoản của bạn đã được <b>XÁC NHẬN</b> thành công và hệ thống đã bắt đầu đếm ngược <b>24 giờ</b>.</p>
+
+        <div class="warning-box">
+            <div class="warning-title">THỜI ĐIỂM 2FA CHÍNH THỨC BỊ VÔ HIỆU HÓA:</div>
+            <div class="warning-time" th:text="${scheduledTime}">24 giờ tới</div>
+            <p style="margin: 0; font-size: 13px; color: #7f1d1d;">Sau thời điểm trên, bất kỳ ai có mật khẩu đều có thể đăng nhập vào tài khoản của bạn mà không cần mã OTP 2FA.</p>
+        </div>
+
+        <p style="text-align: center; font-weight: 600; color: #1e293b;">
+            Nếu bạn <b>KHÔNG</b> thực hiện thao tác này hoặc nghi ngờ tài khoản bị xâm nhập, hãy nhấn nút dưới đây để <b>HỦY NGAY LẬP TỨC</b>:
+        </p>
+
+        <div class="btn-container">
+            <a th:href="${cancelUrl}" class="btn-cancel">HỦY LỊCH GỠ 2FA NGAY LẬP TỨC</a>
+        </div>
+
+        <div class="note-box">
+            <strong>Lưu ý quan trọng:</strong> Nút bấm trên sẽ có hiệu lực trong suốt <b>24 giờ</b> đếm ngược. Nếu đây chính là yêu cầu của bạn, vui lòng bỏ qua email này.
+        </div>
+
+        <div class="sign-off">
+            Trân trọng,<br>
+            <strong>Đội ngũ Bảo mật IT-IAP</strong>
+        </div>
+    </div>
+
+    <div class="email-footer">
+        <p>Đây là email thông báo tự động từ hệ thống. Vui lòng không phản hồi lại email này.</p>
+        <p>&copy; 2026 IT-IAP. All rights reserved.</p>
+    </div>
+</div>
+
+</body>
+</html>

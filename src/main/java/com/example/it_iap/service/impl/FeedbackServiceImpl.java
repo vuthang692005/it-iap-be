@@ -30,6 +30,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
+import com.example.it_iap.dto.feedback.response.FeedbackListResponse;
+
 @Service
 @RequiredArgsConstructor
 public class FeedbackServiceImpl implements FeedbackService {
@@ -62,7 +64,7 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Transactional(readOnly = true)
-    public Page<FeedbackResponse> getAllFeedbacks(FeedbackFilterRequest request) {
+    public FeedbackListResponse getAllFeedbacks(FeedbackFilterRequest request) {
         int page = Math.max(0, request.getPage() - 1);
         int size = 10;
 
@@ -80,7 +82,17 @@ public class FeedbackServiceImpl implements FeedbackService {
                 request.getHasImageUrl(),
                 pageable);
 
-        return feedbackPage.map(this::mapToResponse);
+        Page<FeedbackResponse> responsePage = feedbackPage.map(this::mapToResponse);
+
+        long totalFeedbacks = feedbackRepository.count();
+        Double avgRatingRaw = feedbackRepository.getAverageRating();
+        double averageRating = Math.round((avgRatingRaw != null ? avgRatingRaw : 0.0) * 10.0) / 10.0;
+
+        return FeedbackListResponse.builder()
+                .feedbacks(responsePage)
+                .totalFeedbacks(totalFeedbacks)
+                .averageRating(averageRating)
+                .build();
     }
 
     @Transactional
