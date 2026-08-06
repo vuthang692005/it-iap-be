@@ -10,7 +10,6 @@ import org.springframework.http.HttpStatusCode;
 public enum ErrorCode {
     //INVALID
     DATA_INVALID(400,"Dữ liệu không hợp lệ", HttpStatus.BAD_REQUEST),
-    DISCOUNT_PERCENTAGE_INVALID(400,"Giá trị giảm theo phần trăm không được vượt quá 100", HttpStatus.BAD_REQUEST),
 
     //BUSINESS_ERROR
     OTP_VERIFICATION_FAILED(400,"Xác thực OTP thất bại", HttpStatus.BAD_REQUEST),
@@ -51,6 +50,9 @@ public enum ErrorCode {
     CURRENT_STREAK_NOT_ENOUGH(400, "Chuỗi hiện tại chưa đủ để chia sẻ, hãy cố gắng cải thiện thêm nhé", HttpStatus.BAD_REQUEST),
     CURRENT_GPA_TOO_LOW(400, "Điểm GPA hiện tại hơi thấp để chia sẻ, hãy cố gắng cải thiện thêm nhé", HttpStatus.BAD_REQUEST),
     NOT_ABLE_TO_REACT(400, "Bạn không thể thả cảm xúc với bài viết này", HttpStatus.BAD_REQUEST),
+    DISCOUNT_PERCENTAGE_INVALID(400,"Giá trị giảm theo phần trăm không được vượt quá 100", HttpStatus.BAD_REQUEST),
+    DISCOUNT_AMOUNT_EXCEEDS_PRICE(400,"Số tiền giảm giá phải nhỏ hơn giá gốc của gói cước", HttpStatus.BAD_REQUEST),
+
 
     //EXISTED
     EMAIL_EXISTED(409, "Email đã được sử dụng", HttpStatus.CONFLICT),

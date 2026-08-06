@@ -14,6 +14,4 @@ public class OrderPreviewRequest {
 
     @Min(value = 1, message = "Số lượng mua tối thiểu là 1")
     private Integer quantity = 1;
-
-    private String promotionCode;
 }

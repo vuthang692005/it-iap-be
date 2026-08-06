@@ -51,10 +51,7 @@ public class OrderServiceImpl implements OrderService {
         int quantity = request.getQuantity() != null ? request.getQuantity() : 1;
 
         // Lấy lại Promotion Entity để lưu khóa ngoại vào Order
-        Promotion appliedPromotion = null;
-        if (request.getPromotionCode() != null && !request.getPromotionCode().isBlank()) {
-            appliedPromotion = promotionService.validateAndGetPromotion(request.getPromotionCode(), targetTier);
-        }
+        Promotion appliedPromotion = promotionService.getActivePromotionByTier(targetTier);
 
         // 1. GỌI HÀM PREVIEW ĐỂ TÍNH TIỀN CHUẨN XÁC
         OrderPreviewResponse preview = previewOrder(user, targetTier, quantity, appliedPromotion);
@@ -125,37 +122,34 @@ public class OrderServiceImpl implements OrderService {
 
     @Transactional
     public void handlePayOSWebhook(Object webhookBody) {
-        try {
-            // 1. Dùng PayOS SDK để verify chữ ký (Checksum), đảm bảo request chuẩn từ PayOS
-            WebhookData data = payOSService.verifyWebhook(webhookBody);
+        // 1. Dùng PayOS SDK để verify chữ ký (Checksum), đảm bảo request chuẩn từ PayOS
+        WebhookData data = payOSService.verifyWebhook(webhookBody);
 
-            if (data == null) {
-                return; // Dữ liệu không hợp lệ
-            }
+        if (data == null) {
+            return; // Dữ liệu không hợp lệ
+        }
 
-            // 2. Tìm đơn hàng trong DB
-            Order order = orderRepository.findByOrderCode(data.getOrderCode())
-                    .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        // 2. Tìm đơn hàng trong DB
+        Order order = orderRepository.findByOrderCode(data.getOrderCode()).orElse(null);
 
-            // 3. Nếu đơn đã xử lý thì bỏ qua (Idempotent - Tránh xử lý đúp)
-            if (order.getStatus() == OrderStatus.PAID) {
-                return;
-            }
+        if (order == null) {
+            log.warn("Nhận webhook PayOS nhưng không tìm thấy mã đơn hàng: {}", data.getOrderCode());
+            return; // KHÔNG ném Exception. Trả về 200 OK để PayOS ngừng bắn lại (retry)
+        }
 
-            // 4. Nếu PayOS báo thanh toán thành công (Mã "00")
-            if ("00".equals(data.getCode()) || data.getAmount() >= order.getAmount()) {
-                // Cập nhật trạng thái Order
-                order.setStatus(OrderStatus.PAID);
-                orderRepository.save(order);
+        // 3. Nếu đơn đã xử lý thì bỏ qua (Idempotent - Tránh xử lý đúp)
+        if (order.getStatus() == OrderStatus.PAID) {
+            return;
+        }
 
-                // 5. GỌI SERVICE CẤP QUYỀN LỢI CHO USER
-                userSubscriptionService.handleSuccessfulPayment(order);
-            }
+        // 4. Nếu PayOS báo thanh toán thành công (Mã "00")
+        if ("00".equals(data.getCode()) || data.getAmount() >= order.getAmount()) {
+            // Cập nhật trạng thái Order
+            order.setStatus(OrderStatus.PAID);
+            orderRepository.save(order);
 
-        } catch (Exception e) {
-            // Log lỗi ra console để debug nếu PayOS verify thất bại
-            log.error("Lỗi xử lý Webhook PayOS: {}", e.getMessage(), e);
-            throw new AppException(ErrorCode.WEBHOOK_SIGNATURE_INVALID);
+            // 5. GỌI SERVICE CẤP QUYỀN LỢI CHO USER
+            userSubscriptionService.handleSuccessfulPayment(order);
         }
     }
 
@@ -201,11 +195,7 @@ public class OrderServiceImpl implements OrderService {
         int quantity = request.getQuantity() != null ? request.getQuantity() : 1;
 
         // Lấy Promotion Entity
-        Promotion appliedPromotion = null;
-        if (request.getPromotionCode() != null && !request.getPromotionCode().isBlank()) {
-            // Hàm này sẽ ném lỗi nếu mã sai, hết hạn hoặc không dành cho gói này
-            appliedPromotion = promotionService.validateAndGetPromotion(request.getPromotionCode(), targetTier);
-        }
+        Promotion appliedPromotion = promotionService.getActivePromotionByTier(targetTier);
 
         return previewOrder(user, targetTier, quantity, appliedPromotion);
     }

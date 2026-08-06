@@ -15,8 +15,6 @@ public class OrderRequest {
     @Min(value = 1, message = "Số lượng mua tối thiểu là 1")
     private Integer quantity = 1;
 
-    private String promotionCode;
-
     @NotBlank(message = "RETURN_URL_INVALID")
     private String returnUrl;
 
