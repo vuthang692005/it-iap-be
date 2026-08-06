@@ -60,6 +60,7 @@ public enum ValidationError {
     BANNER_CONTENT_INVALID("Nội dung banner không hợp lệ"),
     INVALID_NOTIFICATION_TITLE("Tiêu đề thông báo không hợp lệ"),
     INVALID_NOTIFICATION_CONTENT("Nội dung thông báo không hợp lệ"),
+    REACTYPE_INVALID("Loại cảm xúc không hợp lệ"),
     ACCOUNT_TIER_INVALID("Gói tài khoản không hợp lệ"),
     RETURN_URL_INVALID("Đường dẫn trả về (returnUrl) không hợp lệ"),
     CANCEL_URL_INVALID("Đường dẫn hủy đơn (cancelUrl) không hợp lệ"),

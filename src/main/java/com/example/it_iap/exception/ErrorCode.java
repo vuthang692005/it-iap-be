@@ -48,12 +48,16 @@ public enum ErrorCode {
     RESET_2FA_TOKEN_INVALID(400, "Đường dẫn yêu cầu khôi phục 2FA không hợp lệ hoặc đã hết hạn", HttpStatus.BAD_REQUEST),
     RESET_2FA_PENDING(400, "Bạn đã gửi một yêu cầu gỡ 2FA trước đó. Vui lòng kiểm tra email hoặc thử lại sau 10 phút", HttpStatus.BAD_REQUEST),
     RESET_2FA_SCHEDULED(400, "Tài khoản của bạn đang trong tiến trình đếm ngược gỡ 2FA. Vui lòng kiểm tra email nếu muốn hủy yêu cầu", HttpStatus.BAD_REQUEST),
-    
+    CURRENT_STREAK_NOT_ENOUGH(400, "Chuỗi hiện tại chưa đủ để chia sẻ, hãy cố gắng cải thiện thêm nhé", HttpStatus.BAD_REQUEST),
+    CURRENT_GPA_TOO_LOW(400, "Điểm GPA hiện tại hơi thấp để chia sẻ, hãy cố gắng cải thiện thêm nhé", HttpStatus.BAD_REQUEST),
+    NOT_ABLE_TO_REACT(400, "Bạn không thể thả cảm xúc với bài viết này", HttpStatus.BAD_REQUEST),
+
     //EXISTED
     EMAIL_EXISTED(409, "Email đã được sử dụng", HttpStatus.CONFLICT),
     UNVERIFIED_ACCOUNT_EXISTS(409, "Tài khoản đã đăng ký nhưng chưa kích hoạt. Một mã OTP mới vừa được gửi đến email của bạn", HttpStatus.CONFLICT),
     VERSION_EXISTS(409, "Phiên bản đã tồn tại", HttpStatus.CONFLICT),
     PROMPT_KEY_EXISTS(409, "Prompt key đã tôn tại", HttpStatus.CONFLICT),
+    YOU_ALREADY_SHARE_TODAY(409, "Hôm nay bạn đã chia sẻ rồi", HttpStatus.CONFLICT),
     PROMOTION_CODE_EXISTS(400, "Mã khuyến mãi này đã tồn tại", HttpStatus.CONFLICT),
 
 
@@ -74,6 +78,7 @@ public enum ErrorCode {
     FEEDBACK_NOT_FOUND(404,"Đánh giá không tồn tại", HttpStatus.NOT_FOUND),
     BANNER_NOT_FOUND(404, "Banner không tồn tại", HttpStatus.NOT_FOUND),
     SESSION_NOT_FOUND(404, "Phiên đăng nhập không tồn tại", HttpStatus.NOT_FOUND),
+    POST_NOT_FOUND(404, "Bài đăng không tồn tại", HttpStatus.NOT_FOUND),
     PROMOTION_NOT_FOUND(404, "Mã khuyến mại không tồn tại", HttpStatus.NOT_FOUND),
     ORDER_NOT_FOUND(404, "Mã đơn hàng không tồn tại", HttpStatus.NOT_FOUND),
 
