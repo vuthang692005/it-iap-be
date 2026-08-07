@@ -1,5 +1,6 @@
 package com.example.it_iap.repository;
 
+import com.example.it_iap.dto.forumPost.response.StreakLeaderBoardResponse;
 import com.example.it_iap.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,4 +39,20 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     long countByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
 
     java.util.List<User> findAllByScheduled2faDisableAtIsNotNullAndScheduled2faDisableAtBefore(LocalDateTime now);
+
+    @Query("""
+                SELECT new com.example.it_iap.dto.forumPost.response.StreakLeaderBoardResponse(
+                    u.fullName,
+                    u.avatarUrl,
+                    u.currentStreak
+                )
+                FROM User u
+                WHERE u.currentGpa >= 4.0
+                  AND u.deletedAt IS NULL
+                  AND u.isActive = true
+                ORDER BY u.currentStreak DESC,
+                         u.totalCompletedInterviews DESC,
+                         u.longestStreak DESC
+            """)
+    List<StreakLeaderBoardResponse> findTop10ByGpaAndActive(Pageable pageable);
 }

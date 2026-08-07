@@ -2,8 +2,17 @@ package com.example.it_iap.service.impl;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+import com.example.it_iap.cache.CacheRepository;
+import com.example.it_iap.dto.dashboard.response.ProfileAnalyticsResponse;
+import com.example.it_iap.dto.forumPost.response.StreakLeaderBoardResponse;
+import com.example.it_iap.entity.*;
+import com.example.it_iap.entity.enums.InterviewStatus;
+import com.example.it_iap.repository.*;
+import com.example.it_iap.service.ProfileService;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
@@ -15,17 +24,12 @@ import com.example.it_iap.dto.forumPost.response.ForumPostSliceResponse;
 import com.example.it_iap.dto.forumPost.request.ReactPostRequest;
 import com.example.it_iap.dto.forumPost.response.GetForumPostDTO;
 import com.example.it_iap.dto.reaction.response.PostReactionData;
-import com.example.it_iap.entity.ForumPost;
-import com.example.it_iap.entity.PostReaction;
-import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.ForumPostType;
 import com.example.it_iap.entity.enums.ReactionType;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.record.GradeSharedData;
 import com.example.it_iap.record.StreakSharedData;
-import com.example.it_iap.repository.ForumPostRepository;
-import com.example.it_iap.repository.PostReactionRepository;
 import com.example.it_iap.service.ForumPostService;
 import com.example.it_iap.service.UserService;
 
@@ -40,11 +44,17 @@ import tools.jackson.databind.json.JsonMapper;
 public class ForumPostServiceImpl implements ForumPostService {
     private final UserService userService;
     private final DashboardServiceImpl dashboardServiceImpl;
+    private final ProfileService profileService;
 
     private final ForumPostRepository forumPostRepository;
     private final PostReactionRepository postReactionRepository;
+    private final InterviewRepository interviewRepository;
+    private final CacheRepository cacheRepository;
+    private final UserRepository userRepository;
 
     private final JsonMapper jsonMapper;
+
+    private final String STREAK_LEADER_BOARD_CACHE_KEY = "STREAK_LEADER_BOARD";
 
     @Override
     public void shareStreakPost() {
@@ -71,10 +81,11 @@ public class ForumPostServiceImpl implements ForumPostService {
     }
 
     @Override
-    public void shareGradePost() {
+    public void shareGradePost(Long profileId) {
         User user = userService.getCurrentUser();
+        Profile profile = profileService.getValidProfileAndCheckAccess(profileId);
 
-        if (user.getCurrentGpa() < 2) { // Ngu thì share cái gì
+        if (user.getCurrentGpa() < 5) { // Ngu thì share cái gì
             throw new AppException(ErrorCode.CURRENT_GPA_TOO_LOW);
         }
 
@@ -90,7 +101,7 @@ public class ForumPostServiceImpl implements ForumPostService {
         ForumPost forumPost = new ForumPost();
         forumPost.setUser(user);
         forumPost.setPostType(type);
-        forumPost.setSharedData(createGradeData(user));
+        forumPost.setSharedData(createGradeData(user, profileId));
         forumPostRepository.save(forumPost);
     }
 
@@ -98,7 +109,7 @@ public class ForumPostServiceImpl implements ForumPostService {
     public ForumPostSliceResponse<GetForumPostDTO> getPosts(int page, int seed) {
         User user = userService.getCurrentUser();
 
-        Pageable pageable = PageRequest.of(page - 1, 3); // Lấy 3 bài tính toán cho lẹ
+        Pageable pageable = PageRequest.of(page - 1, 5); // Lấy 5 bài tính toán cho lẹ
 
         Slice<GetForumPostDTO> slice = forumPostRepository.getPosts(user.getId(), seed, pageable);
 
@@ -108,13 +119,12 @@ public class ForumPostServiceImpl implements ForumPostService {
     }
 
     @Override
-    public ForumPostSliceResponse<GetForumPostDTO> getMyPosts(int page) {
+    public ForumPostSliceResponse<GetForumPostDTO> getMyPosts(int page, Boolean visible) {
         User user = userService.getCurrentUser();
 
-        Pageable pageable = PageRequest.of(page - 1, 3, Sort.by("createdAt").descending()); // Lấy 3 bài tính toán cho
-                                                                                            // lẹ
+        Pageable pageable = PageRequest.of(page - 1, 5, Sort.by("createdAt").descending()); // Lấy 5 bài tính toán cho lẹ
 
-        Slice<GetForumPostDTO> slice = forumPostRepository.getMyPosts(user.getId(), pageable);
+        Slice<GetForumPostDTO> slice = forumPostRepository.getMyPosts(user.getId(), visible, pageable);
 
         return new ForumPostSliceResponse<>(
                 slice.getContent(),
@@ -190,31 +200,77 @@ public class ForumPostServiceImpl implements ForumPostService {
         return jsonMapper.valueToTree(data);
     }
 
-    private JsonNode createGradeData(User user) {
+    private JsonNode createGradeData(User user, Long profileId) {
         GradeSharedData data = new GradeSharedData(
-                user.getCurrentGpa(),
+                profileGpa(profileId),
+                profileSkillsOverview(profileId),
                 dashboardServiceImpl.determineUserRank(user),
                 user.getTotalCompletedInterviews());
 
         return jsonMapper.valueToTree(data);
     }
 
+    public List<StreakLeaderBoardResponse> getStreakLeaderBoard() {
+        // Lấy từ cache trước
+        List<StreakLeaderBoardResponse> cached = cacheRepository.get(STREAK_LEADER_BOARD_CACHE_KEY, List.class);
+        if (cached != null) {
+            return cached;
+        }
+
+        // Không có trong cache thì lấy từ DB
+        Pageable top10 = PageRequest.of(0, 10);
+        List<StreakLeaderBoardResponse> data = userRepository.findTop10ByGpaAndActive(top10);
+        if (data.isEmpty()) {
+            // Nếu không có dữ liệu thì trả về luôn khỏi cache
+            return data;
+        }
+
+        // Cache 5 phút
+        cacheRepository.save(STREAK_LEADER_BOARD_CACHE_KEY, data, 5, TimeUnit.MINUTES);
+
+        return data;
+    }
+
     // Phương thức hỗ trợ
     private GetForumPostDTO toGetForumPostDTO(
-        User user, 
-        ForumPost forumPost, 
-        PostReactionData reactionData, 
-        ReactionType type) {
+            User user,
+            ForumPost forumPost,
+            PostReactionData reactionData,
+            ReactionType type) {
         return new GetForumPostDTO(
-                forumPost.getId(), 
-                user.getAvatarUrl(), 
-                forumPost.getPostType(), 
-                forumPost.getSharedData(), 
-                forumPost.getCreatedAt(), 
-                forumPost.isVisible(), 
-                reactionData.getTotalLove(), 
-                reactionData.getTotalHaha(), 
-                reactionData.getTotalWow(), 
+                forumPost.getId(),
+                user.getFullName(),
+                user.getAvatarUrl(),
+                forumPost.getPostType(),
+                forumPost.getSharedData(),
+                forumPost.getCreatedAt(),
+                forumPost.isVisible(),
+                reactionData.getTotalLove(),
+                reactionData.getTotalHaha(),
+                reactionData.getTotalWow(),
                 type);
+    }
+
+    private Double profileGpa(Long profileId) {
+        InterviewStatus completedStatus = InterviewStatus.COMPLETED;
+
+        List<Interview> last10Interviews = interviewRepository.findTop10ByProfileIdAndStatusOrderByCompletedAtDesc(
+                profileId, completedStatus);
+
+        return dashboardServiceImpl.calculateAverage(last10Interviews, "totalPoint");
+    }
+
+    private ProfileAnalyticsResponse.SkillOverviewDTO profileSkillsOverview(Long profileId) {
+        InterviewStatus completedStatus = InterviewStatus.COMPLETED;
+        List<Interview> last10Interviews = interviewRepository.findTop10ByProfileIdAndStatusOrderByCompletedAtDesc(
+                profileId, completedStatus);
+
+        return new ProfileAnalyticsResponse.SkillOverviewDTO(
+                dashboardServiceImpl.calculateAverage(last10Interviews, "coreKnowledge"),
+                dashboardServiceImpl.calculateAverage(last10Interviews, "problemSolving"),
+                dashboardServiceImpl.calculateAverage(last10Interviews, "appliedExperience"),
+                dashboardServiceImpl.calculateAverage(last10Interviews, "logicalArticulation"),
+                dashboardServiceImpl.calculateAverage(last10Interviews, "focusAndCompleteness")
+        );
     }
 }

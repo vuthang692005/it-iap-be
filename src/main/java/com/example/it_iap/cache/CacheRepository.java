@@ -1,19 +1,23 @@
 package com.example.it_iap.cache;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @Repository
 @RequiredArgsConstructor
 public class CacheRepository {
     private final StringRedisTemplate redisTemplate;
 
+    private final RedisTemplate<String, Object> redisTemplate2;
+
     // Lưu nội dung vào Redis kèm thời gian hết hạn (TTL)
-    public void save(String key ,String value, Duration ttl) {
+    public void save(String key, String value, Duration ttl) {
         redisTemplate.opsForValue()
                 .set(key, value, ttl);
     }
@@ -50,5 +54,20 @@ public class CacheRepository {
 
     public void removeFromSet(String key, String value) {
         redisTemplate.opsForSet().remove(key, value);
+    }
+
+    // Tùng cũng không biết
+    public <T> T get(String key, Class<T> clazz) {
+        try {
+            Object value = redisTemplate2.opsForValue().get(key);
+            return value == null ? null : clazz.cast(value);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // Tùng cũng không biết
+    public void save(String key, Object value, long duration, TimeUnit timeUnit) {
+        redisTemplate2.opsForValue().set(key, value, duration, timeUnit);
     }
 }
