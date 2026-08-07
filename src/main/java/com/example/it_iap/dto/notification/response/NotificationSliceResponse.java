@@ -1,4 +1,4 @@
-package com.example.it_iap.dto;
+package com.example.it_iap.dto.notification.response;
 
 import java.util.List;
 

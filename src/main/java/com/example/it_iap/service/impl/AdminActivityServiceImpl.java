@@ -40,13 +40,19 @@ public class AdminActivityServiceImpl implements AdminActivityService {
 
         Page<AdminActivityLog> entityPage = adminActivityLogRepository.getLogsWithFilter(actionType, pageable);
 
-        return entityPage.map(log -> new  AdminActivityLogResponse(
-                log.getId(),
-                log.getActionType(),
-                log.getDescription(),
-                log.getUser().getEmail(),
-                log.getCreatedAt()
-            )
-        );
+        return entityPage.map(log -> {
+            String email = null;
+            if (log.getUser() != null){
+                email = log.getUser().getEmail();
+            }
+
+            return new  AdminActivityLogResponse(
+                    log.getId(),
+                    log.getActionType(),
+                    log.getDescription(),
+                    email,
+                    log.getCreatedAt()
+            );
+        });
     }
 }

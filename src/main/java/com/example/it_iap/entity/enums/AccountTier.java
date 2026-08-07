@@ -10,7 +10,7 @@ import java.time.Period;
 public enum AccountTier {
     BASIC(0, 0L, null,
             "Gói Cơ Bản", "Tài khoản miễn phí",
-            3, 1, 16000),
+            3, 5, 16000),
 
     PLUS_MONTH(1, 50000L, Period.ofMonths(1),
             "Gói Plus (Tháng)", "Nâng cấp tài khoản Plus",
@@ -22,11 +22,11 @@ public enum AccountTier {
 
     PRO_MONTH(3, 100000L, Period.ofMonths(1),
             "Gói Pro (Tháng)", "Nâng cấp tài khoản Pro",
-            10, 15, 48000),
+            12, 20, 48000),
 
     PRO_YEAR(4, 1000000L, Period.ofYears(1),
             "Gói Pro (Năm)", "Nâng cấp tài khoản Pro",
-            10, 15, 48000);
+            12, 20, 48000);
 
     private final int level;
     private final Long price;
