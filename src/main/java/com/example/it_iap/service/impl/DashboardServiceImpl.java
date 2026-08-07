@@ -90,7 +90,7 @@ public class DashboardServiceImpl implements DashboardService {
         );
     }
 
-    private Double calculateAverage(List<Interview> interviews, String fieldName) {
+    public Double calculateAverage(List<Interview> interviews, String fieldName) {
         if (interviews == null || interviews.isEmpty()) return 0.0;
 
         double rawAverage = interviews.stream()
@@ -141,14 +141,11 @@ public class DashboardServiceImpl implements DashboardService {
 
         if (totalInterviews > 30 && gpa >= 8.0) {
             return UserRank.DIAMOND;
-        }
-        else if (totalInterviews >= 16 && gpa >= 7.0) {
+        } else if (totalInterviews >= 16 && gpa >= 7.0) {
             return UserRank.GOLD;
-        }
-        else if (totalInterviews >= 5 && gpa >= 5.0) {
+        } else if (totalInterviews >= 5 && gpa >= 5.0) {
             return UserRank.SILVER;
-        }
-        else {
+        } else {
             return UserRank.BRONZE;
         }
     }

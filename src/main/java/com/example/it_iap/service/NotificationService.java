@@ -1,6 +1,6 @@
 package com.example.it_iap.service;
 
-import com.example.it_iap.dto.NotificationSliceResponse;
+import com.example.it_iap.dto.notification.response.NotificationSliceResponse;
 import com.example.it_iap.dto.notification.request.AdminCreateNotificationRequest;
 import com.example.it_iap.dto.notification.request.ReadNotificationRequest;
 import com.example.it_iap.dto.notification.response.AdminGetNotificationResponse;
