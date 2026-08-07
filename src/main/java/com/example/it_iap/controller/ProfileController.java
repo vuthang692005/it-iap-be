@@ -2,6 +2,7 @@ package com.example.it_iap.controller;
 
 import com.example.it_iap.dto.ApiResponse;
 import com.example.it_iap.dto.profile.request.ProfileRequest;
+import com.example.it_iap.dto.profile.request.UpdateProfileRequest;
 import com.example.it_iap.dto.profile.response.ProfileResponse;
 import com.example.it_iap.dto.profile.response.ProfileSummaryResponse;
 import com.example.it_iap.service.ProfileService;
@@ -35,7 +36,7 @@ public class ProfileController {
     @Operation(summary = "Cập nhật hồ sơ", description = "Cập nhật thông tin chi tiết của hồ sơ dựa theo profileId")
     @PutMapping("/{profileId}")
     public ResponseEntity<ApiResponse<ProfileResponse>> updateProfile (
-            @RequestBody @Valid ProfileRequest request,
+            @RequestBody @Valid UpdateProfileRequest request,
             @PathVariable long profileId
             ){
         return ResponseEntity.ok(
