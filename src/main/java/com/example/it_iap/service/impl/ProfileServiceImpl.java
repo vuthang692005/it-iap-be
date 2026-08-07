@@ -3,7 +3,6 @@ package com.example.it_iap.service.impl;
 import com.example.it_iap.dto.profile.request.ProfileRequest;
 import com.example.it_iap.dto.profile.response.ProfileResponse;
 import com.example.it_iap.dto.profile.response.ProfileSummaryResponse;
-import com.example.it_iap.entity.Json.DailyStudyStat;
 import com.example.it_iap.entity.Profile;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.TargetLevel;
@@ -19,10 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -35,6 +32,13 @@ public class ProfileServiceImpl implements ProfileService {
     @Transactional
     public ProfileResponse createProfile (ProfileRequest request){
         User currentUser = userService.getCurrentUser();
+
+        int currentProfiles = profileRepository.countByUserId(currentUser.getId());
+        int maxProfiles = currentUser.getActiveTier().getMaxProfiles();
+
+        if (currentProfiles >= maxProfiles) {
+            throw new AppException(ErrorCode.PROFILE_LIMIT_EXCEEDED);
+        }
 
         Profile profile = new Profile();
         profile.setUser(currentUser);
@@ -89,12 +93,21 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = profileRepository.findWithUserByIdAndDeletedAtIsNull(profileId)
                 .orElseThrow(() -> new AppException(ErrorCode.PROFILE_NOT_FOUND));
 
-        UUID userId = profile.getUser().getId();
+        User user = profile.getUser();
+        UUID userId = user.getId();
         UUID currentId = SecurityUtils.getCurrentUserId();
 
         if (!userId.equals(currentId)) {
             throw new AppException(ErrorCode.ACCESS_DENIED);
         }
+
+        int maxProfiles = user.getActiveTier().getMaxProfiles();
+        int profileRank = profileRepository.countByUserIdAndIdLessThanEqualAndDeletedAtIsNull(userId, profileId);
+
+        if (profileRank > maxProfiles) {
+            throw new AppException(ErrorCode.PROFILE_LOCKED_DUE_TO_DOWNGRADE);
+        }
+
         return profile;
     }
 

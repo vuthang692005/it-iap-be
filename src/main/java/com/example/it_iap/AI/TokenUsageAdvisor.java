@@ -1,6 +1,8 @@
 package com.example.it_iap.AI;
 
 import com.example.it_iap.entity.ChatSession;
+import com.example.it_iap.exception.AppException;
+import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.service.ChatSessionService;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
@@ -17,6 +19,11 @@ public class TokenUsageAdvisor implements CallAdvisor {
 
     @Override
     public @NonNull ChatClientResponse adviseCall(@NonNull ChatClientRequest chatClientRequest, CallAdvisorChain callAdvisorChain) {
+        if(chatSession.getSessionLimitTokens() != null &&
+                chatSession.getTotalTokensUsed() >= chatSession.getSessionLimitTokens()){
+            throw new AppException(ErrorCode.TOKEN_LIMIT_EXCEEDED);
+        }
+
         ChatClientResponse clientResponse = callAdvisorChain.nextCall(chatClientRequest);
 
         ChatResponse chatResponse = clientResponse.chatResponse(); // Tùy version mà có thể là getChatResponse() nhé

@@ -6,4 +6,5 @@ public record ForumPostSliceResponse<T>(
         List<T> posts,
         boolean hasNext
 ) {
+    
 }

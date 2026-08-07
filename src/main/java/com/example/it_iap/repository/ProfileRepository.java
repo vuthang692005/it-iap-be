@@ -47,4 +47,8 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
         TargetPosition getPosition();
         Long getCount();
     }
+
+    int countByUserId(UUID id);
+
+    int countByUserIdAndIdLessThanEqualAndDeletedAtIsNull(UUID userId, Long profileId);
 }
