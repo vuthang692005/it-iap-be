@@ -176,7 +176,7 @@ public class PromotionServiceImpl implements PromotionService {
         int size = 10;
 
         Pageable pageable = PageRequest.of(
-                page1 - 1,
+                page1,
                 size,
                 Sort.by(Sort.Direction.DESC, "createdAt") // Sắp xếp mới nhất lên đầu
         );

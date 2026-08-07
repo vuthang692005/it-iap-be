@@ -3,9 +3,11 @@ package com.example.it_iap.service.impl;
 import com.example.it_iap.dto.dashboardAdmin.response.DashboardAdminResponse;
 import com.example.it_iap.dto.dashboardAdmin.response.PositionDistributionResponse;
 import com.example.it_iap.entity.enums.InterviewStatus;
+import com.example.it_iap.entity.enums.OrderStatus;
 import com.example.it_iap.entity.enums.TargetLevel;
 import com.example.it_iap.enums.TimeFilter;
 import com.example.it_iap.repository.InterviewRepository;
+import com.example.it_iap.repository.OrderRepository;
 import com.example.it_iap.repository.ProfileRepository;
 import com.example.it_iap.repository.UserRepository;
 import com.example.it_iap.service.DashboardAdminService;
@@ -24,6 +26,7 @@ public class DashboardAdminServiceImpl implements DashboardAdminService {
     private final UserRepository userRepository;
     private final InterviewRepository interviewRepository;
     private final ProfileRepository profileRepository;
+    private final OrderRepository orderRepository;
 
     public DashboardAdminResponse getOverviewData(TimeFilter timeFilter) {
         LocalDateTime endDate = LocalDateTime.now();
@@ -53,35 +56,58 @@ public class DashboardAdminServiceImpl implements DashboardAdminService {
                 newAiGradings
         );
 
+        OrderStatus paidStatus = OrderStatus.PAID;
+
+        // Doanh thu kỳ này
+        Long currentRevenueRaw = orderRepository.sumRevenueByStatusAndDateBetween(paidStatus, startDate, endDate);
+        double currentRevenue = currentRevenueRaw != null ? currentRevenueRaw : 0.0;
+
+        // Doanh thu kỳ trước (Để tính % tăng giảm)
+        LocalDateTime previousStartDate = getStartDate(timeFilter, startDate);
+        Long previousRevenueRaw = orderRepository.sumRevenueByStatusAndDateBetween(paidStatus, previousStartDate, startDate);
+        double previousRevenue = previousRevenueRaw != null ? previousRevenueRaw : 0.0;
+
+        // Tính % thay đổi
+        double percentageChange = 0.0;
+        if (previousRevenue > 0) {
+            percentageChange = ((currentRevenue - previousRevenue) / previousRevenue) * 100.0;
+        } else if (previousRevenue == 0 && currentRevenue > 0) {
+            percentageChange = 100.0; // Tăng 100% nếu kỳ trước không có doanh thu
+        }
+        percentageChange = Math.round(percentageChange * 100.0) / 100.0; // Làm tròn 2 chữ số
+
         DashboardAdminResponse.RevenueStat revenueStats = new DashboardAdminResponse.RevenueStat(
-                6283000,
-                12.3
+                currentRevenue,
+                percentageChange
         );
 
         List<DashboardAdminResponse.TrendItem> interviewTrends;
+        List<DashboardAdminResponse.TrendItem> revenueTrends;
         InterviewStatus status = InterviewStatus.COMPLETED;
 
         if (timeFilter == TimeFilter.DAY) {
             // LẤY THEO GIỜ
             List<InterviewRepository.HourlyTrendProjection> hourlyProjections = interviewRepository.countInterviewTrendsByHour(status, startDate, endDate);
-
             interviewTrends = hourlyProjections.stream()
-                    .map(p -> new DashboardAdminResponse.TrendItem(
-                            p.getDate().toLocalDate(),
-                            LocalTime.of(p.getHour(), 0),
-                            p.getCount()
-                    ))
+                    .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), LocalTime.of(p.getHour(), 0), p.getCount()))
+                    .collect(Collectors.toList());
+
+            // Biểu đồ doanh thu
+            List<OrderRepository.HourlyRevenueTrendProjection> hourlyRevProjections = orderRepository.sumRevenueTrendsByHour(paidStatus, startDate, endDate);
+            revenueTrends = hourlyRevProjections.stream()
+                    .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), LocalTime.of(p.getHour(), 0), p.getTotal() != null ? p.getTotal() : 0L))
                     .collect(Collectors.toList());
         } else {
             // LẤY THEO NGÀY
             List<InterviewRepository.TrendProjection> dailyProjections = interviewRepository.countInterviewTrendsByDate(status, startDate, endDate);
-
             interviewTrends = dailyProjections.stream()
-                    .map(p -> new DashboardAdminResponse.TrendItem(
-                            p.getDate().toLocalDate(),
-                            null,
-                            p.getCount()
-                    ))
+                    .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), null, p.getCount()))
+                    .collect(Collectors.toList());
+
+            // Biểu đồ doanh thu
+            List<OrderRepository.RevenueTrendProjection> dailyRevProjections = orderRepository.sumRevenueTrendsByDate(paidStatus, startDate, endDate);
+            revenueTrends = dailyRevProjections.stream()
+                    .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), null, p.getTotal() != null ? p.getTotal() : 0L))
                     .collect(Collectors.toList());
         }
 
@@ -90,7 +116,8 @@ public class DashboardAdminServiceImpl implements DashboardAdminService {
                 interviewStats,
                 aiGradingStats,
                 revenueStats,
-                interviewTrends
+                interviewTrends,
+                revenueTrends
         );
     }
 

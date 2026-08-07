@@ -1,10 +1,8 @@
 package com.example.it_iap.service;
 
-import com.example.it_iap.dto.ForumPostSliceResponse;
+import com.example.it_iap.dto.forumPost.response.ForumPostSliceResponse;
 import com.example.it_iap.dto.forumPost.request.ReactPostRequest;
 import com.example.it_iap.dto.forumPost.response.GetForumPostDTO;
-
-import jakarta.validation.Valid;
 
 public interface ForumPostService {
 

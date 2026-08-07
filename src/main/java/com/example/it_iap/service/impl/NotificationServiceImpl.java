@@ -14,7 +14,7 @@ import com.example.it_iap.util.RandomReplyIdentifyCode;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import com.example.it_iap.dto.NotificationSliceResponse;
+import com.example.it_iap.dto.notification.response.NotificationSliceResponse;
 import com.example.it_iap.dto.notification.response.NotificationResponse;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.repository.NotificationRepository;
