@@ -39,7 +39,7 @@ public class InterviewScheduler {
         expiredInterviews.forEach(interview -> {
             List<InterviewQuestion> interviewQuestions = interview.getInterviewQuestions();
             interviewQuestions.forEach(interviewQuestion -> {
-                        if (interviewQuestion.getStatus() == InterviewQuestionStatus.ANSWERED ||
+                        if (interviewQuestion.getStatus() == InterviewQuestionStatus.UNANSWERED ||
                                 interviewQuestion.getStatus() == InterviewQuestionStatus.ANSWERING){
                             interviewQuestion.setAiFeedback(aiFeedback);
                             interviewQuestion.setStatus(InterviewQuestionStatus.ANSWERED);

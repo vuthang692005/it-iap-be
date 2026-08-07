@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.it_iap.dto.ApiResponse;
-import com.example.it_iap.dto.ForumPostSliceResponse;
+import com.example.it_iap.dto.forumPost.response.ForumPostSliceResponse;
 import com.example.it_iap.dto.forumPost.request.ReactPostRequest;
 import com.example.it_iap.dto.forumPost.response.GetForumPostDTO;
 import com.example.it_iap.service.ForumPostService;

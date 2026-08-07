@@ -208,7 +208,7 @@ public class OrderServiceImpl implements OrderService {
         long remainingValue = calculateRemainingValue(user);
 
         // 3. Tính tiền khuyến mãi (Nếu có truyền mã)
-        long promotionDiscount = promotionService.calculateDiscount(appliedPromotion, originalPrice);
+        long promotionDiscount = promotionService.calculateDiscount(appliedPromotion, targetTier.getPrice()) * quantity;
 
         // 4. CHUẨN HÓA KẾ TOÁN (Đảm bảo tổng trừ không lố giá gốc)
         if (remainingValue + promotionDiscount > originalPrice) {
