@@ -119,7 +119,7 @@ public class ForumPostServiceImpl implements ForumPostService {
     }
 
     @Override
-    public ForumPostSliceResponse<GetForumPostDTO> getMyPosts(int page, boolean visible) {
+    public ForumPostSliceResponse<GetForumPostDTO> getMyPosts(int page, Boolean visible) {
         User user = userService.getCurrentUser();
 
         Pageable pageable = PageRequest.of(page - 1, 3, Sort.by("createdAt").descending()); // Lấy 3 bài tính toán cho lẹ

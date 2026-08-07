@@ -15,7 +15,7 @@ public interface ForumPostService {
 
     ForumPostSliceResponse<GetForumPostDTO> getPosts(int page, int seed);
 
-    ForumPostSliceResponse<GetForumPostDTO> getMyPosts(int page, boolean visible);
+    ForumPostSliceResponse<GetForumPostDTO> getMyPosts(int page, Boolean visible);
 
     void changePostVisible(Long postId);
 

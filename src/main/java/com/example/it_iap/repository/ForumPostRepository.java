@@ -126,7 +126,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, Long> {
                 p.visible,
                 myReaction.type
             """)
-    Slice<GetForumPostDTO> getMyPosts(@Param("userId") UUID userId, @Param("visible") boolean visible, Pageable pageable);
+    Slice<GetForumPostDTO> getMyPosts(@Param("userId") UUID userId, @Param("visible") Boolean visible, Pageable pageable);
 
     Optional<ForumPost> findByIdAndUserId(Long postId, UUID id);
 }   

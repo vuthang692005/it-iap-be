@@ -68,7 +68,7 @@ public class ForumPostController {
     @GetMapping("/me")
     public ResponseEntity<?> getMyPosts(
             @RequestParam @Min(1) int page,
-            @RequestParam boolean visible
+            @RequestParam(required = false) Boolean visible
     ) {
         ForumPostSliceResponse<GetForumPostDTO> response = forumPostService.getMyPosts(page, visible);
         return ResponseEntity.status(HttpStatus.OK).body(
