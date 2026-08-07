@@ -21,6 +21,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, Long> {
     @Query("""
             SELECT new com.example.it_iap.dto.forumPost.response.GetForumPostDTO(
                 p.id,
+                u.fullName,
                 u.avatarUrl,
                 p.postType,
                 p.sharedData,
@@ -61,6 +62,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, Long> {
             WHERE p.visible = true    
             GROUP BY
                 p.id,
+                u.fullName,
                 u.avatarUrl,
                 p.postType,
                 p.sharedData,
@@ -78,6 +80,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, Long> {
     @Query("""
             SELECT new com.example.it_iap.dto.forumPost.response.GetForumPostDTO(
                 p.id,
+                u.fullName,
                 u.avatarUrl,
                 p.postType,
                 p.sharedData,
@@ -119,6 +122,7 @@ public interface ForumPostRepository extends JpaRepository<ForumPost, Long> {
             AND (:visible IS NULL OR p.visible = :visible)
             GROUP BY
                 p.id,
+                u.fullName,
                 u.avatarUrl,
                 p.postType,
                 p.sharedData,
