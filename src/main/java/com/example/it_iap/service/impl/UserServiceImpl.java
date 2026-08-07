@@ -204,19 +204,21 @@ public class UserServiceImpl implements UserService {
         User user = getCurrentUser();
 
         // Lấy ngày hiện tại
-        LocalDateTime today = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = now.toLocalDate();
 
         // Trường hợp 1: User mới hoàn thành phỏng vấn lần đầu tiên trong đời
         if (user.getLastInterviewDate() == null) {
             user.setCurrentStreak(1);
             user.setLongestStreak(1);
-            user.setLastInterviewDate(today);
+            user.setLastInterviewDate(now);
 
             userRepository.save(user);
             return;
         }
 
-        LocalDateTime lastDate = user.getLastInterviewDate();
+        LocalDateTime lastDateTime = user.getLastInterviewDate();
+        LocalDate lastDate = lastDateTime.toLocalDate();
 
         // Trường hợp 2: Đã làm bài phỏng vấn hôm nay rồi -> Bỏ qua, không cộng thêm
         if (lastDate.isEqual(today)) {
@@ -253,7 +255,7 @@ public class UserServiceImpl implements UserService {
         }
 
         // Cuối cùng: Luôn cập nhật ngày phỏng vấn gần nhất là hôm nay
-        user.setLastInterviewDate(today);
+        user.setLastInterviewDate(now);
 
         userRepository.save(user);
     }
