@@ -109,7 +109,7 @@ public class ForumPostServiceImpl implements ForumPostService {
     public ForumPostSliceResponse<GetForumPostDTO> getPosts(int page, int seed) {
         User user = userService.getCurrentUser();
 
-        Pageable pageable = PageRequest.of(page - 1, 3); // Lấy 3 bài tính toán cho lẹ
+        Pageable pageable = PageRequest.of(page - 1, 5); // Lấy 5 bài tính toán cho lẹ
 
         Slice<GetForumPostDTO> slice = forumPostRepository.getPosts(user.getId(), seed, pageable);
 
@@ -122,7 +122,7 @@ public class ForumPostServiceImpl implements ForumPostService {
     public ForumPostSliceResponse<GetForumPostDTO> getMyPosts(int page, Boolean visible) {
         User user = userService.getCurrentUser();
 
-        Pageable pageable = PageRequest.of(page - 1, 3, Sort.by("createdAt").descending()); // Lấy 3 bài tính toán cho lẹ
+        Pageable pageable = PageRequest.of(page - 1, 5, Sort.by("createdAt").descending()); // Lấy 5 bài tính toán cho lẹ
 
         Slice<GetForumPostDTO> slice = forumPostRepository.getMyPosts(user.getId(), visible, pageable);
 
@@ -239,6 +239,7 @@ public class ForumPostServiceImpl implements ForumPostService {
             ReactionType type) {
         return new GetForumPostDTO(
                 forumPost.getId(),
+                user.getFullName(),
                 user.getAvatarUrl(),
                 forumPost.getPostType(),
                 forumPost.getSharedData(),

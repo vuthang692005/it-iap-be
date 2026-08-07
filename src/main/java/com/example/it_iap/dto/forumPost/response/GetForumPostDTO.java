@@ -21,6 +21,8 @@ import lombok.experimental.FieldDefaults;
 public class GetForumPostDTO {
     Long postId;
 
+    String userFullName;
+
     String userAvatarUrl;
 
     ForumPostType postType;
