@@ -13,7 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.it_iap.dto.ApiResponse;
-import com.example.it_iap.dto.NotificationSliceResponse;
+import com.example.it_iap.dto.notification.response.NotificationSliceResponse;
 import com.example.it_iap.dto.notification.response.NotificationResponse;
 import com.example.it_iap.service.NotificationService;
 

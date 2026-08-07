@@ -60,7 +60,7 @@ public enum ErrorCode {
     VERSION_EXISTS(409, "Phiên bản đã tồn tại", HttpStatus.CONFLICT),
     PROMPT_KEY_EXISTS(409, "Prompt key đã tôn tại", HttpStatus.CONFLICT),
     YOU_ALREADY_SHARE_TODAY(409, "Hôm nay bạn đã chia sẻ rồi", HttpStatus.CONFLICT),
-    PROMOTION_CODE_EXISTS(400, "Mã khuyến mãi này đã tồn tại", HttpStatus.CONFLICT),
+    PROMOTION_CODE_EXISTS(409, "Mã khuyến mãi này đã tồn tại", HttpStatus.CONFLICT),
 
 
     //CONFLICT

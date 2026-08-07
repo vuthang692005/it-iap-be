@@ -22,6 +22,8 @@ public class DashboardAdminResponse {
 
     private List<TrendItem> interviewTrends;
 
+    private List<TrendItem> revenueTrends;
+
     @Getter
     @AllArgsConstructor
     public static class StatItem {

@@ -11,7 +11,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.it_iap.dto.ForumPostSliceResponse;
+import com.example.it_iap.dto.forumPost.response.ForumPostSliceResponse;
 import com.example.it_iap.dto.forumPost.request.ReactPostRequest;
 import com.example.it_iap.dto.forumPost.response.GetForumPostDTO;
 import com.example.it_iap.dto.reaction.response.PostReactionData;
