@@ -210,7 +210,9 @@ public class ForumPostServiceImpl implements ForumPostService {
                 dashboardServiceImpl.determineUserRank(user),
                 profile.getTargetLevel(),
                 profile.getTargetPosition(),
-                getTotalCompletedInterviews(profile.getId()));
+                getTotalCompletedInterviews(profile.getId()),
+                user.getTotalCompletedInterviews()
+        );
 
         return jsonMapper.valueToTree(data);
     }

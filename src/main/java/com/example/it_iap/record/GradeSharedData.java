@@ -11,6 +11,7 @@ public record GradeSharedData(
         UserRank userRank,
         TargetLevel level,
         TargetPosition position,
+        int totalCompletedInterviewsProfile,
         int totalCompletedInterviews
 ) {
 
