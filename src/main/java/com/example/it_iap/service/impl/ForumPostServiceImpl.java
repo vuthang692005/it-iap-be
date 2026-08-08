@@ -238,6 +238,18 @@ public class ForumPostServiceImpl implements ForumPostService {
         return data;
     }
 
+    @Transactional
+    @Override
+    public void deleteForumPost(Long forumPostId) {
+        User user = userService.getCurrentUser();
+
+        ForumPost forumPost = forumPostRepository
+                .findByIdAndUserId(forumPostId, user.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.ACCESS_DENIED));
+
+        forumPostRepository.delete(forumPost);
+    }
+
     // Phương thức hỗ trợ
     private GetForumPostDTO toGetForumPostDTO(
             User user,

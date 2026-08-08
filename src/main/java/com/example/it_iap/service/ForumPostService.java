@@ -22,4 +22,6 @@ public interface ForumPostService {
     GetForumPostDTO reactPost(Long postId, ReactPostRequest request);
 
     List<StreakLeaderBoardResponse> getStreakLeaderBoard();
+
+    void deleteForumPost(Long forumPostId);
 }

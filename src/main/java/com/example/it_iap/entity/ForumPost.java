@@ -3,23 +3,13 @@ package com.example.it_iap.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import com.example.it_iap.entity.enums.ForumPostType;
 import tools.jackson.databind.JsonNode;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -49,7 +39,12 @@ public class ForumPost extends Auditable {
     @Column(name = "is_visible", nullable = false)
     boolean visible = true;
 
-    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    @OneToMany(
+            mappedBy = "post",
+            fetch = FetchType.LAZY,
+            cascade = CascadeType.REMOVE,
+            orphanRemoval = true
+    )
     List<PostReaction> reactions = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
