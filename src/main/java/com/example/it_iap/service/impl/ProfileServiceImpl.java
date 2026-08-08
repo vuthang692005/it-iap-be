@@ -1,6 +1,7 @@
 package com.example.it_iap.service.impl;
 
 import com.example.it_iap.dto.profile.request.ProfileRequest;
+import com.example.it_iap.dto.profile.request.UpdateProfileRequest;
 import com.example.it_iap.dto.profile.response.ProfileResponse;
 import com.example.it_iap.dto.profile.response.ProfileSummaryResponse;
 import com.example.it_iap.entity.Profile;
@@ -33,7 +34,7 @@ public class ProfileServiceImpl implements ProfileService {
     public ProfileResponse createProfile (ProfileRequest request){
         User currentUser = userService.getCurrentUser();
 
-        int currentProfiles = profileRepository.countByUserId(currentUser.getId());
+        int currentProfiles = profileRepository.countByUserIdAndDeletedAtIsNull(currentUser.getId());
         int maxProfiles = currentUser.getActiveTier().getMaxProfiles();
 
         if (currentProfiles >= maxProfiles) {
@@ -51,10 +52,11 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Transactional
-    public ProfileResponse updateProfile (ProfileRequest request, long profileId){
+    public ProfileResponse updateProfile (UpdateProfileRequest request, long profileId){
         Profile profile = getValidProfileAndCheckAccess(profileId);
 
-        mapRequestToProfile(request, profile);
+        profile.setTitle(request.getTitle());
+        profile.setResumeData(request.getResumeData());
 
         profile = profileRepository.save(profile);
 

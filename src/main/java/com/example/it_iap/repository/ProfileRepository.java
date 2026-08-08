@@ -48,7 +48,7 @@ public interface ProfileRepository extends JpaRepository<Profile, Long> {
         Long getCount();
     }
 
-    int countByUserId(UUID id);
+    int countByUserIdAndDeletedAtIsNull(UUID id);
 
     int countByUserIdAndIdLessThanEqualAndDeletedAtIsNull(UUID userId, Long profileId);
 }
