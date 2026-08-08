@@ -131,13 +131,9 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
     @EntityGraph(attributePaths = {"interviewQuestions"})
     List<Interview> findByStatusAndStartAtBefore(InterviewStatus status, LocalDateTime time);
 
-    @Query("SELECT COUNT(i) FROM Interview i WHERE i.profile.user.id = :userId " +
-            "AND i.status IN :statuses " +
-            "AND i.createdAt BETWEEN :startDate AND :endDate")
-    int countTodayInterviews(
-            @Param("userId") UUID userId,
-            @Param("statuses") List<InterviewStatus> statuses,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate
+    int countByProfile_UserIdAndCreatedAtBetween(
+            UUID userId,
+            LocalDateTime startDate,
+            LocalDateTime endDate
     );
 }

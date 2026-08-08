@@ -52,7 +52,7 @@ public enum ErrorCode {
     NOT_ABLE_TO_REACT(400, "Bạn không thể thả cảm xúc với bài viết này", HttpStatus.BAD_REQUEST),
     DISCOUNT_PERCENTAGE_INVALID(400,"Giá trị giảm theo phần trăm không được vượt quá 100", HttpStatus.BAD_REQUEST),
     DISCOUNT_AMOUNT_EXCEEDS_PRICE(400,"Số tiền giảm giá phải nhỏ hơn giá gốc của gói cước", HttpStatus.BAD_REQUEST),
-
+    DAILY_FEEDBACK_LIMIT_EXCEEDED(400, "Bạn chỉ được gửi tối đa 3 đánh giá mỗi ngày. Vui lòng quay lại vào ngày mai!", HttpStatus.BAD_REQUEST),
 
     //EXISTED
     EMAIL_EXISTED(409, "Email đã được sử dụng", HttpStatus.CONFLICT),

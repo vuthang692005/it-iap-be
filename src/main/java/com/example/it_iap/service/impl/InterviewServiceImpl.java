@@ -56,6 +56,20 @@ public class InterviewServiceImpl implements InterviewService {
     @Transactional
     public InterviewIdResponse createInterview (String mode, String title, long profileId) {
         Profile profile = profileService.getValidProfileAndCheckAccess(profileId);
+        User user = profile.getUser();
+
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
+
+        int todayUsedInterviews = interviewRepository.countByProfile_UserIdAndCreatedAtBetween(
+                user.getId(), startOfDay, endOfDay);
+
+        int maxInterviews = user.getActiveTier().getMaxDailyInterviews();
+
+        if (todayUsedInterviews >= maxInterviews) {
+            throw new AppException(ErrorCode.DAILY_INTERVIEW_LIMIT_EXCEEDED);
+        }
+
         PromptVersion promptVersion = promptVersionService.getPromptActive(PromptUseCase.GENERAL_FEEDBACK);
         InterviewMode interviewMode = InterviewMode.from(mode);
 
@@ -80,23 +94,6 @@ public class InterviewServiceImpl implements InterviewService {
     public CurrentQuestionResponse startInterview (long interviewId) {
         User user = userService.getCurrentUser();
         UUID userId = user.getId();
-
-        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
-        LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
-
-        List<InterviewStatus> countedStatuses = List.of(
-                InterviewStatus.IN_PROGRESS,
-                InterviewStatus.COMPLETED
-        );
-
-        int todayUsedInterviews = interviewRepository.countTodayInterviews(
-                userId, countedStatuses, startOfDay, endOfDay);
-
-        int maxInterviews = user.getActiveTier().getMaxDailyInterviews();
-
-        if (todayUsedInterviews >= maxInterviews) {
-            throw new AppException(ErrorCode.DAILY_INTERVIEW_LIMIT_EXCEEDED);
-        }
 
         Interview interview = interviewRepository.findByIdAndProfile_UserId(interviewId, userId)
                 .orElseThrow(() -> new AppException(ErrorCode.INTERVIEW_NOT_FOUND));

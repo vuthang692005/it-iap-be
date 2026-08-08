@@ -28,6 +28,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.example.it_iap.dto.feedback.response.FeedbackListResponse;
@@ -46,6 +48,18 @@ public class FeedbackServiceImpl implements FeedbackService {
     @Transactional
     public FeedbackResponse createFeedback(FeedbackRequest request) {
         User user = userService.getCurrentUser();
+
+        LocalDateTime startOfDay = LocalDate.now().atStartOfDay();
+        LocalDateTime endOfDay = LocalDate.now().atTime(23, 59, 59);
+
+        int todayFeedbackCount = feedbackRepository.countByUserIdAndCreatedAtBetween(
+                user.getId(), startOfDay, endOfDay);
+
+        // Kiểm tra giới hạn 3 feedback/ngày
+        if (todayFeedbackCount >= 3) {
+            throw new AppException(ErrorCode.DAILY_FEEDBACK_LIMIT_EXCEEDED);
+        }
+
         String imageUrl = null;
 
         if (request.getImage() != null && !request.getImage().isEmpty()) {
