@@ -11,6 +11,7 @@ import com.example.it_iap.dto.dashboard.response.ProfileAnalyticsResponse;
 import com.example.it_iap.dto.forumPost.response.StreakLeaderBoardResponse;
 import com.example.it_iap.entity.*;
 import com.example.it_iap.entity.enums.InterviewStatus;
+import com.example.it_iap.entity.enums.TargetLevel;
 import com.example.it_iap.repository.*;
 import com.example.it_iap.service.ProfileService;
 import org.springframework.data.domain.PageRequest;
@@ -68,7 +69,7 @@ public class ForumPostServiceImpl implements ForumPostService {
 
         // Kiểm tra xem hôm nay đã share streak post chưa
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-        if (forumPostRepository.existsByUserIdAndPostTypeAndCreatedAtAfter(user.getId(), type, startOfToday)) {
+        if (forumPostRepository.existsPostToday(user.getId(), null, type, startOfToday)) {
             throw new AppException(ErrorCode.YOU_ALREADY_SHARE_TODAY);
         }
 
@@ -77,6 +78,7 @@ public class ForumPostServiceImpl implements ForumPostService {
         forumPost.setUser(user);
         forumPost.setPostType(type);
         forumPost.setSharedData(createStreakData(user));
+        forumPost.setProfile(null);
         forumPostRepository.save(forumPost);
     }
 
@@ -93,7 +95,7 @@ public class ForumPostServiceImpl implements ForumPostService {
 
         // Kiểm tra xem hôm nay đã share grade post chưa
         LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-        if (forumPostRepository.existsByUserIdAndPostTypeAndCreatedAtAfter(user.getId(), type, startOfToday)) {
+        if (forumPostRepository.existsPostToday(user.getId(), profileId, type, startOfToday)) {
             throw new AppException(ErrorCode.YOU_ALREADY_SHARE_TODAY);
         }
 
@@ -101,7 +103,8 @@ public class ForumPostServiceImpl implements ForumPostService {
         ForumPost forumPost = new ForumPost();
         forumPost.setUser(user);
         forumPost.setPostType(type);
-        forumPost.setSharedData(createGradeData(user, profileId));
+        forumPost.setSharedData(createGradeData(user, profile));
+        forumPost.setProfile(profile);
         forumPostRepository.save(forumPost);
     }
 
@@ -200,12 +203,14 @@ public class ForumPostServiceImpl implements ForumPostService {
         return jsonMapper.valueToTree(data);
     }
 
-    private JsonNode createGradeData(User user, Long profileId) {
+    private JsonNode createGradeData(User user, Profile profile) {
         GradeSharedData data = new GradeSharedData(
-                profileGpa(profileId),
-                profileSkillsOverview(profileId),
+                profileGpa(profile.getId()),
+                profileSkillsOverview(profile.getId()),
                 dashboardServiceImpl.determineUserRank(user),
-                user.getTotalCompletedInterviews());
+                profile.getTargetLevel(),
+                profile.getTargetPosition(),
+                getTotalCompletedInterviews(profile.getId()));
 
         return jsonMapper.valueToTree(data);
     }
@@ -272,5 +277,10 @@ public class ForumPostServiceImpl implements ForumPostService {
                 dashboardServiceImpl.calculateAverage(last10Interviews, "logicalArticulation"),
                 dashboardServiceImpl.calculateAverage(last10Interviews, "focusAndCompleteness")
         );
+    }
+
+    private int getTotalCompletedInterviews(Long profileId) {
+        InterviewStatus status = InterviewStatus.COMPLETED;
+        return interviewRepository.countByProfileIdAndStatus(profileId, status);
     }
 }

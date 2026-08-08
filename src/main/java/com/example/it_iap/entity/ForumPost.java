@@ -33,7 +33,7 @@ public class ForumPost extends Auditable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     User user;
@@ -51,4 +51,8 @@ public class ForumPost extends Auditable {
 
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
     List<PostReaction> reactions = new ArrayList<>();
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "profile_id")
+    private Profile profile;
 }

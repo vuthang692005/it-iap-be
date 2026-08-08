@@ -15,8 +15,20 @@ import com.example.it_iap.entity.ForumPost;
 import com.example.it_iap.entity.enums.ForumPostType;
 
 public interface ForumPostRepository extends JpaRepository<ForumPost, Long> {
-
-    boolean existsByUserIdAndPostTypeAndCreatedAtAfter(UUID id, ForumPostType postType, LocalDateTime startOfToday);
+    @Query("""
+                SELECT COUNT(fp) > 0
+                FROM ForumPost fp
+                WHERE fp.user.id = :userId
+                  AND fp.postType = :postType
+                  AND fp.createdAt >= :startOfToday
+                  AND (:profileId IS NULL OR fp.profile.id = :profileId)
+            """)
+    boolean existsPostToday(
+            @Param("userId") UUID userId,
+            @Param("profileId") Long profileId,
+            @Param("postType") ForumPostType postType,
+            @Param("startOfToday") LocalDateTime startOfToday
+    );
 
     @Query("""
             SELECT new com.example.it_iap.dto.forumPost.response.GetForumPostDTO(
