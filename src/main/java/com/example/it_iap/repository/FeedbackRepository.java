@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
@@ -29,4 +30,6 @@ public interface FeedbackRepository extends JpaRepository<Feedback, Long> {
 
     @Query("SELECT COALESCE(AVG(f.rating), 0.0) FROM Feedback f")
     Double getAverageRating();
+
+    int countByUserIdAndCreatedAtBetween(UUID userId, LocalDateTime startDate, LocalDateTime endDate);
 }

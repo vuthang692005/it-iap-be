@@ -128,9 +128,9 @@ public class QuestionServiceImpl implements QuestionService {
     @Transactional(readOnly = true)
     public List<Question> getRandomInterviewQuestions (TargetLevel level, TargetPosition position){
         List<Question> questions = new ArrayList<>();
-        List<Question> questionsTechnical = questionRepository.findRandomQuestions(level, position, QuestionType.TECHNICAL, 4);
-        List<Question> questionsBehavioral = questionRepository.findRandomQuestions(level, position, QuestionType.BEHAVIORAL, 3);
-        List<Question> questionsSituational = questionRepository.findRandomQuestions(level, position, QuestionType.SITUATIONAL, 3);
+        List<Question> questionsTechnical = questionRepository.findRandomQuestions(level, position, QuestionType.TECHNICAL, 2);
+        List<Question> questionsBehavioral = questionRepository.findRandomQuestions(level, position, QuestionType.BEHAVIORAL, 2);
+        List<Question> questionsSituational = questionRepository.findRandomQuestions(level, position, QuestionType.SITUATIONAL, 2);
 
         questions.addAll(questionsTechnical);
         questions.addAll(questionsBehavioral);

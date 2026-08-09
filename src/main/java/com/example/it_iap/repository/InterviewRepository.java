@@ -30,12 +30,12 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
 
     @EntityGraph(attributePaths = {"profile"})
     @Query("""
-    SELECT i FROM Interview i
-    WHERE (:userId IS NULL OR i.profile.user.id = :userId)
-      AND (:profileId IS NULL OR i.profile.id = :profileId)
-      AND (:mode IS NULL OR i.mode = :mode)
-      AND (:status IS NULL OR i.status = :status)
-""")
+                SELECT i FROM Interview i
+                WHERE (:userId IS NULL OR i.profile.user.id = :userId)
+                  AND (:profileId IS NULL OR i.profile.id = :profileId)
+                  AND (:mode IS NULL OR i.mode = :mode)
+                  AND (:status IS NULL OR i.status = :status)
+            """)
     Page<Interview> getInterviewHistory(
             @Param("userId") UUID userId,
             @Param("profileId") Long profileId,
@@ -76,20 +76,22 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
 
     long countByOverallResultNotNull();
 
+    int countByProfileIdAndStatus(Long profileId, InterviewStatus status);
 
     interface UnfinishedInterviewReminder {
         User getUser();
+
         Long getUnfinishedInterviewCount();
     }
 
     @Query("""
-        SELECT FUNCTION('DATE', i.createdAt) AS date, COUNT(i.id) AS count
-        FROM Interview i
-        WHERE i.status = :status
-          AND i.createdAt BETWEEN :startDate AND :endDate
-        GROUP BY FUNCTION('DATE', i.createdAt)
-        ORDER BY FUNCTION('DATE', i.createdAt) ASC
-    """)
+                SELECT FUNCTION('DATE', i.createdAt) AS date, COUNT(i.id) AS count
+                FROM Interview i
+                WHERE i.status = :status
+                  AND i.createdAt BETWEEN :startDate AND :endDate
+                GROUP BY FUNCTION('DATE', i.createdAt)
+                ORDER BY FUNCTION('DATE', i.createdAt) ASC
+            """)
     List<TrendProjection> countInterviewTrendsByDate(
             @Param("status") InterviewStatus status,
             @Param("startDate") LocalDateTime startDate,
@@ -98,19 +100,20 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
 
     interface TrendProjection {
         java.sql.Date getDate();
+
         Long getCount();
     }
 
     @Query("""
-        SELECT FUNCTION('DATE', i.createdAt) AS date,
-               FUNCTION('HOUR', i.createdAt) AS hour,
-               COUNT(i.id) AS count
-        FROM Interview i
-        WHERE i.status = :status
-          AND i.createdAt BETWEEN :startDate AND :endDate
-        GROUP BY FUNCTION('DATE', i.createdAt), FUNCTION('HOUR', i.createdAt)
-        ORDER BY FUNCTION('DATE', i.createdAt) ASC, FUNCTION('HOUR', i.createdAt) ASC
-    """)
+                SELECT FUNCTION('DATE', i.createdAt) AS date,
+                       FUNCTION('HOUR', i.createdAt) AS hour,
+                       COUNT(i.id) AS count
+                FROM Interview i
+                WHERE i.status = :status
+                  AND i.createdAt BETWEEN :startDate AND :endDate
+                GROUP BY FUNCTION('DATE', i.createdAt), FUNCTION('HOUR', i.createdAt)
+                ORDER BY FUNCTION('DATE', i.createdAt) ASC, FUNCTION('HOUR', i.createdAt) ASC
+            """)
     List<HourlyTrendProjection> countInterviewTrendsByHour(
             @Param("status") InterviewStatus status,
             @Param("startDate") LocalDateTime startDate,
@@ -119,20 +122,18 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
 
     interface HourlyTrendProjection {
         java.sql.Date getDate();
+
         Integer getHour(); // Thêm hàm lấy ra Giờ (0 - 23)
+
         Long getCount();
     }
 
     @EntityGraph(attributePaths = {"interviewQuestions"})
     List<Interview> findByStatusAndStartAtBefore(InterviewStatus status, LocalDateTime time);
 
-    @Query("SELECT COUNT(i) FROM Interview i WHERE i.profile.user.id = :userId " +
-            "AND i.status IN :statuses " +
-            "AND i.createdAt BETWEEN :startDate AND :endDate")
-    int countTodayInterviews(
-            @Param("userId") UUID userId,
-            @Param("statuses") List<InterviewStatus> statuses,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate
+    int countByProfile_UserIdAndCreatedAtBetween(
+            UUID userId,
+            LocalDateTime startDate,
+            LocalDateTime endDate
     );
 }

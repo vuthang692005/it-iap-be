@@ -21,6 +21,8 @@ import lombok.experimental.FieldDefaults;
 public class GetForumPostDTO {
     Long postId;
 
+    String userFullName;
+
     String userAvatarUrl;
 
     ForumPostType postType;
@@ -41,6 +43,7 @@ public class GetForumPostDTO {
 
     public GetForumPostDTO(
             Long postId,
+            String userFullName,
             String userAvatarUrl,
             ForumPostType postType,
             JsonNode sharedData,
@@ -52,6 +55,7 @@ public class GetForumPostDTO {
             ReactionType myReaction
     ) {
         this.postId = postId;
+        this.userFullName = userFullName;
         this.userAvatarUrl = userAvatarUrl;
         this.postType = postType;
         this.sharedData = sharedData;

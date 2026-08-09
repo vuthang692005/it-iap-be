@@ -1,15 +1,9 @@
 package com.example.it_iap.controller;
 
+import com.example.it_iap.dto.forumPost.response.StreakLeaderBoardResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.it_iap.dto.ApiResponse;
 import com.example.it_iap.dto.forumPost.response.ForumPostSliceResponse;
@@ -22,6 +16,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/forum-posts")
@@ -40,9 +36,9 @@ public class ForumPostController {
     }
 
     @Operation(summary = "Chia sẻ bài đăng GPA", description = "Chia sẻ điểm GPA thành bài đăng")
-    @PostMapping("/share/grade")
-    public ResponseEntity<?> shareGradePost() {
-        forumPostService.shareGradePost();
+    @PostMapping("/share/grade/{profileId}")
+    public ResponseEntity<?> shareGradePost(@PathVariable Long profileId) {
+        forumPostService.shareGradePost(profileId);
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 ApiResponse.builder()
                         .code(201)
@@ -52,24 +48,26 @@ public class ForumPostController {
     @Operation(summary = "Lấy bài đăng của chung", description = "Seed từ (10000 - 99999)")
     @GetMapping
     public ResponseEntity<?> getPosts(
-        @RequestParam @Min(1) int page, 
-        @RequestParam @Min(10000) @Max(99999) int seed) {
+            @RequestParam @Min(1) int page,
+            @RequestParam @Min(10000) @Max(99999) int seed) {
         ForumPostSliceResponse<GetForumPostDTO> response = forumPostService.getPosts(page, seed);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.<ForumPostSliceResponse<GetForumPostDTO>>builder()
-                    .data(response)
-                    .build());
+                        .data(response)
+                        .build());
     }
 
     @Operation(summary = "Lấy bài đăng của bản thân")
     @GetMapping("/me")
     public ResponseEntity<?> getMyPosts(
-        @RequestParam @Min(1) int page) {
-        ForumPostSliceResponse<GetForumPostDTO> response = forumPostService.getMyPosts(page);
+            @RequestParam @Min(1) int page,
+            @RequestParam(required = false) Boolean visible
+    ) {
+        ForumPostSliceResponse<GetForumPostDTO> response = forumPostService.getMyPosts(page, visible);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.<ForumPostSliceResponse<GetForumPostDTO>>builder()
-                    .data(response)
-                    .build());
+                        .data(response)
+                        .build());
     }
 
     @Operation(summary = "Đổi chế độ hiển thị bài đăng")
@@ -78,7 +76,7 @@ public class ForumPostController {
         forumPostService.changePostVisible(postId);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.builder()
-                    .build());
+                        .build());
     }
 
     @Operation(summary = "Thả cảm xúc bài đăng", description = "LOVE - HAHA - WOW")
@@ -87,7 +85,24 @@ public class ForumPostController {
         GetForumPostDTO response = forumPostService.reactPost(postId, request);
         return ResponseEntity.status(HttpStatus.OK).body(
                 ApiResponse.<GetForumPostDTO>builder()
-                    .data(response)
-                    .build());
+                        .data(response)
+                        .build());
+    }
+
+    @GetMapping("/streak-leader-board")
+    public ResponseEntity<?> getStreakLeaderBoard() {
+        List<StreakLeaderBoardResponse> response = forumPostService.getStreakLeaderBoard();
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.<List<StreakLeaderBoardResponse>>builder()
+                        .data(response)
+                        .build());
+    }
+
+    @DeleteMapping("/{forumPostId}")
+    public ResponseEntity<?> deleteForumPost(@PathVariable Long forumPostId) {
+        forumPostService.deleteForumPost(forumPostId);
+        return ResponseEntity.status(HttpStatus.OK).body(
+                ApiResponse.builder()
+                        .build());
     }
 }

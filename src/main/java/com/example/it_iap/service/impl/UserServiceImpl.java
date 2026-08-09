@@ -10,6 +10,7 @@ import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.NotificationType;
 import com.example.it_iap.enums.UploadFolder;
 import com.example.it_iap.entity.enums.Role;
+import com.example.it_iap.entity.enums.UserActionType;
 import com.example.it_iap.enums.VerificationPurpose;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
@@ -17,6 +18,7 @@ import com.example.it_iap.repository.NotificationRepository;
 import com.example.it_iap.repository.UserRepository;
 import com.example.it_iap.service.CloudinaryService;
 import com.example.it_iap.service.EmailService;
+import com.example.it_iap.service.UserActivityService;
 import com.example.it_iap.service.UserService;
 import com.example.it_iap.service.VerificationService;
 import com.example.it_iap.util.RandomReplyIdentifyCode;
@@ -47,6 +49,7 @@ public class UserServiceImpl implements UserService {
     private final EmailService emailService;
     private final CacheRepository cacheRepository;
     private final NotificationRepository notificationRepository;
+    private final UserActivityService userActivityService;
 
     private static final Set<Integer> STREAK_MILESTONES = Set.of(3, 7, 14, 20, 30, 40, 60, 75, 90);
 
@@ -70,6 +73,7 @@ public class UserServiceImpl implements UserService {
         if (match) {
             user.setPassword(encodeNewPassword);
             userRepository.save(user);
+            userActivityService.logActivity(UserActionType.CHANGE_PASSWORD, "Đổi mật khẩu thành công", user);
         } else {
             throw new AppException(ErrorCode.OLD_PASSWORD_MISMATCH);
         }
@@ -134,7 +138,9 @@ public class UserServiceImpl implements UserService {
         User user = getCurrentUser();
         user.setFullName(request.getFullName());
         user.setPhoneNumber(request.getPhoneNumber());
-        return buildProfileResponse(userRepository.save(user));
+        UserResponse response = buildProfileResponse(userRepository.save(user));
+        userActivityService.logActivity(UserActionType.UPDATE_PROFILE, "Cập nhật thông tin cá nhân", user);
+        return response;
     }
 
     public void changeEmail(ChangeEmailRequest request) {

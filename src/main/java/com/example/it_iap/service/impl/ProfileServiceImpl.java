@@ -1,16 +1,19 @@
 package com.example.it_iap.service.impl;
 
 import com.example.it_iap.dto.profile.request.ProfileRequest;
+import com.example.it_iap.dto.profile.request.UpdateProfileRequest;
 import com.example.it_iap.dto.profile.response.ProfileResponse;
 import com.example.it_iap.dto.profile.response.ProfileSummaryResponse;
 import com.example.it_iap.entity.Profile;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.TargetLevel;
 import com.example.it_iap.entity.enums.TargetPosition;
+import com.example.it_iap.entity.enums.UserActionType;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.ProfileRepository;
 import com.example.it_iap.service.ProfileService;
+import com.example.it_iap.service.UserActivityService;
 import com.example.it_iap.service.UserService;
 import com.example.it_iap.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -28,12 +31,13 @@ import java.util.UUID;
 public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final UserService userService;
+    private final UserActivityService userActivityService;
 
     @Transactional
     public ProfileResponse createProfile (ProfileRequest request){
         User currentUser = userService.getCurrentUser();
 
-        int currentProfiles = profileRepository.countByUserId(currentUser.getId());
+        int currentProfiles = profileRepository.countByUserIdAndDeletedAtIsNull(currentUser.getId());
         int maxProfiles = currentUser.getActiveTier().getMaxProfiles();
 
         if (currentProfiles >= maxProfiles) {
@@ -51,10 +55,11 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Transactional
-    public ProfileResponse updateProfile (ProfileRequest request, long profileId){
+    public ProfileResponse updateProfile (UpdateProfileRequest request, long profileId){
         Profile profile = getValidProfileAndCheckAccess(profileId);
 
-        mapRequestToProfile(request, profile);
+        profile.setTitle(request.getTitle());
+        profile.setResumeData(request.getResumeData());
 
         profile = profileRepository.save(profile);
 
@@ -68,6 +73,9 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setDeletedAt(LocalDateTime.now());
 
         profileRepository.save(profile);
+
+        User user = userService.getCurrentUser();
+        userActivityService.logActivity(UserActionType.DELETE_PROFILE, "Xóa hồ sơ: " + profile.getTitle(), user);
     }
 
     public ProfileResponse getProfile (long profileId){
