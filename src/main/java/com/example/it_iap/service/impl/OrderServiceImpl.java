@@ -160,24 +160,29 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId()).stream()
                 .map(order -> {
                     String displayStatus = order.getStatus().name();
+                    boolean isExpired = false;
 
                     if (order.getStatus() == OrderStatus.PENDING
                             && order.getExpiredAt() != null
                             && order.getExpiredAt().isBefore(now)) {
                         displayStatus = OrderStatus.EXPIRED.name();
+                        isExpired = true;
                     }
 
-                    return new OrderHistoryResponse(
-                            order.getOrderCode(),
-                            order.getAccountTier().getProductName(),
-                            order.getQuantity(),
-                            order.getOriginalPrice(),
-                            order.getDiscountAmount(),
-                            order.getUpgradeDiscount(),
-                            order.getAmount(),
-                            displayStatus,
-                            order.getCreatedAt()
-                    );
+                    boolean isPendingAndValid = order.getStatus() == OrderStatus.PENDING && !isExpired;
+
+                    return OrderHistoryResponse.builder()
+                            .orderCode(order.getOrderCode())
+                            .productName(order.getAccountTier().getProductName())
+                            .quantity(order.getQuantity())
+                            .originalPrice(order.getOriginalPrice())
+                            .discountAmount(order.getDiscountAmount())
+                            .upgradeDiscount(order.getUpgradeDiscount())
+                            .amount(order.getAmount())
+                            .status(displayStatus)
+                            .checkoutUrl(isPendingAndValid ? order.getCheckoutUrl() : null)
+                            .createdAt(order.getCreatedAt())
+                            .build();
                 })
                 .toList();
     }
@@ -208,7 +213,7 @@ public class OrderServiceImpl implements OrderService {
         long remainingValue = calculateRemainingValue(user);
 
         // 3. Tính tiền khuyến mãi (Nếu có truyền mã)
-        long promotionDiscount = promotionService.calculateDiscount(appliedPromotion, targetTier.getPrice()) * quantity;
+        long promotionDiscount = promotionService.calculateDiscount(appliedPromotion, targetTier.getPrice());
 
         // 4. CHUẨN HÓA KẾ TOÁN (Đảm bảo tổng trừ không lố giá gốc)
         if (remainingValue + promotionDiscount > originalPrice) {
