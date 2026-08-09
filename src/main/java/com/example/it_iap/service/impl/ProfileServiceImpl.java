@@ -8,10 +8,12 @@ import com.example.it_iap.entity.Profile;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.TargetLevel;
 import com.example.it_iap.entity.enums.TargetPosition;
+import com.example.it_iap.entity.enums.UserActionType;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
 import com.example.it_iap.repository.ProfileRepository;
 import com.example.it_iap.service.ProfileService;
+import com.example.it_iap.service.UserActivityService;
 import com.example.it_iap.service.UserService;
 import com.example.it_iap.util.SecurityUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ import java.util.UUID;
 public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final UserService userService;
+    private final UserActivityService userActivityService;
 
     @Transactional
     public ProfileResponse createProfile (ProfileRequest request){
@@ -70,6 +73,9 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setDeletedAt(LocalDateTime.now());
 
         profileRepository.save(profile);
+
+        User user = userService.getCurrentUser();
+        userActivityService.logActivity(UserActionType.DELETE_PROFILE, "Xóa hồ sơ: " + profile.getTitle(), user);
     }
 
     public ProfileResponse getProfile (long profileId){

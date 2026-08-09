@@ -9,6 +9,7 @@ import com.example.it_iap.entity.Notification;
 import com.example.it_iap.entity.User;
 import com.example.it_iap.entity.enums.NotificationType;
 import com.example.it_iap.entity.enums.Role;
+import com.example.it_iap.entity.enums.UserActionType;
 import com.example.it_iap.enums.CookieKey;
 import com.example.it_iap.enums.VerificationPurpose;
 import com.example.it_iap.exception.AppException;
@@ -61,6 +62,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserService userService;
     private final SessionService sessionService;
     private final NotificationRepository notificationRepository;
+    private final UserActivityService userActivityService;
 
     private final SecretGenerator secretGenerator = new DefaultSecretGenerator();
     private final CodeVerifier verifier = new DefaultCodeVerifier(new DefaultCodeGenerator(), new SystemTimeProvider());
@@ -188,6 +190,8 @@ public class AuthServiceImpl implements AuthService {
         notification.setLink(null);
         notificationRepository.save(notification);
 
+        userActivityService.logActivity(UserActionType.LOGIN, "Đăng nhập bằng Email và Mật khẩu", user);
+
         userRoles = user.getRoles();
         return new RoleResponse(userRoles, user.isEnable2fa());
     }
@@ -306,6 +310,8 @@ public class AuthServiceImpl implements AuthService {
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
+
+        userActivityService.logActivity(UserActionType.RESET_PASSWORD, "Đặt lại mật khẩu qua OTP", user);
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) throws ParseException, JOSEException {
@@ -382,6 +388,8 @@ public class AuthServiceImpl implements AuthService {
         user.setSecret2fa(secret); // Đã mã hóa từ bước lưu redis
         userRepository.save(user);
         cacheRepository.delete(key); // Lưu xong thì xóa khỏi redis
+
+        userActivityService.logActivity(UserActionType.ENABLE_2FA, "Bật xác thực 2 bước (2FA)", user);
     }
 
     public void disable2fa(TwoFactorRequest request) {
@@ -409,6 +417,8 @@ public class AuthServiceImpl implements AuthService {
             cacheRepository.delete(VerificationPurpose.SCHEDULED_2FA_DISABLE.getPrefix() + cancel24hToken);
             cacheRepository.delete("2fa:user_cancel_24h:" + user.getId());
         }
+
+        userActivityService.logActivity(UserActionType.DISABLE_2FA, "Tắt xác thực 2 bước (2FA)", user);
     }
 
     public boolean status2fa() {
