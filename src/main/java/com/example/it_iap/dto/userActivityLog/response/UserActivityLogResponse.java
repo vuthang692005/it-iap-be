@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Getter
 @AllArgsConstructor
 public class UserActivityLogResponse {
-    private Long id;
     private UserActionType actionType;
     private String description;
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss")

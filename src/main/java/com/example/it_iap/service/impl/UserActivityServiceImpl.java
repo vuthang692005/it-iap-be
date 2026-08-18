@@ -45,7 +45,6 @@ public class UserActivityServiceImpl implements UserActivityService {
         );
 
         return entityPage.map(log -> new UserActivityLogResponse(
-                log.getId(),
                 log.getActionType(),
                 log.getDescription(),
                 log.getCreatedAt()

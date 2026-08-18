@@ -33,6 +33,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -82,7 +83,7 @@ public class UserServiceImpl implements UserService {
     public Page<UserResponse> searchUser(SearchUserRequest request) {
         int page = Math.max(0, request.getPages() - 1);
         int size = 10;
-        PageRequest pageable = PageRequest.of(page, size);
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         Page<User> users = userRepository.searchUsers(
                 request.getEmail(),

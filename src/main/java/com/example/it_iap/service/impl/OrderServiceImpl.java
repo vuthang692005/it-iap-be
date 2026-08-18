@@ -60,6 +60,32 @@ public class OrderServiceImpl implements OrderService {
             throw new AppException(ErrorCode.PAYMENT_NOT_REQUIRED);
         }
 
+        List<Order> oldOrders = orderRepository.findByUserIdOrderByCreatedAtDesc(user.getId());
+        List<Order> pendingOrders = oldOrders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.PENDING)
+                .toList();
+
+        if (!pendingOrders.isEmpty()) {
+            LocalDateTime now = LocalDateTime.now();
+
+            for (Order pendingOrder : pendingOrders) {
+                // Kiểm tra xem đơn hàng đã quá hạn chưa
+                if (pendingOrder.getExpiredAt() != null && pendingOrder.getExpiredAt().isBefore(now)) {
+                    // Đã hết hạn thực tế -> Chỉ đổi trạng thái nội bộ, không gọi PayOS
+                    pendingOrder.setStatus(OrderStatus.EXPIRED);
+                } else {
+                    // Vẫn còn hạn nhưng khách tạo đơn mới -> Gọi PayOS hủy link & đổi trạng thái
+                    try {
+                        payOSService.cancelOrder(pendingOrder.getOrderCode(), "Người dùng tạo đơn thanh toán mới");
+                    } catch (Exception e) {
+                        log.warn("Không thể hủy đơn hàng {} trên PayOS: {}", pendingOrder.getOrderCode(), e.getMessage());
+                    }
+                    pendingOrder.setStatus(OrderStatus.CANCELLED);
+                }
+            }
+            orderRepository.saveAll(pendingOrders);
+        }
+
         long orderCode = Long.parseLong(System.currentTimeMillis() + String.valueOf((int) (Math.random() * 100)));
         int expiredInMinutes = 10;
 
