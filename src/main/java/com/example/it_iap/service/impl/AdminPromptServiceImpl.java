@@ -20,6 +20,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -119,7 +120,7 @@ public class AdminPromptServiceImpl implements AdminPromptService {
 
         int page = Math.max(0, pages - 1);
         int size = 10;
-        PageRequest pageable = PageRequest.of(page, size);
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         return adminPromptRepository.findAllSummaryWithFilters(promptKey, applyFor, active, pageable);
     }

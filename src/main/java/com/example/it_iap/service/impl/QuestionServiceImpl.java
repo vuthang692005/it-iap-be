@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import com.example.it_iap.service.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.example.it_iap.dto.question.request.QuestionRequest;
@@ -76,7 +77,7 @@ public class QuestionServiceImpl implements QuestionService {
     public Page<QuestionResponse> searchQuestion(SearchQuestionRequest request) {
         int page = Math.max(0, request.getPage() - 1);
         int size = Math.max(10, request.getSize());
-        PageRequest pageable = PageRequest.of(page, size);
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         TargetPosition position = TargetPosition.fromString(request.getPosition());
         TargetLevel level = TargetLevel.fromString(request.getLevel());

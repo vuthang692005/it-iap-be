@@ -57,7 +57,12 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/v1/auth/**", "/swagger-ui/**", "/v3/api-docs/**", "/oauth2/**", "/api/v1/orders/webhook/payos")
+                        .requestMatchers("/api/v1/auth/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/oauth2/**",
+                                "/api/v1/orders/webhook/payos",
+                                "/api/v1/promotions/tiers")
                         .permitAll()
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2
