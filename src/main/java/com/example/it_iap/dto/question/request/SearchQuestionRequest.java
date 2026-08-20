@@ -37,8 +37,10 @@ public class SearchQuestionRequest { //content, position, level, category, sourc
 
     @Min(value = 1, message = "PAGE_VALUE_INVALID")
     int page = 1;
-    
+
     @Min(value = 10, message = "SIZE_VALUE_INVALID")
     @Max(value = 50, message = "SIZE_VALUE_INVALID")
     Integer size = 10;
+
+    Boolean isDeleted;
 }
