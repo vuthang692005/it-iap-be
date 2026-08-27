@@ -12,8 +12,12 @@ import com.example.it_iap.enums.UploadFolder;
 import com.example.it_iap.entity.enums.Role;
 import com.example.it_iap.entity.enums.UserActionType;
 import com.example.it_iap.enums.VerificationPurpose;
+import com.example.it_iap.entity.Interview;
+import com.example.it_iap.entity.Json.OverallResult;
+import com.example.it_iap.entity.enums.InterviewStatus;
 import com.example.it_iap.exception.AppException;
 import com.example.it_iap.exception.ErrorCode;
+import com.example.it_iap.repository.InterviewRepository;
 import com.example.it_iap.repository.NotificationRepository;
 import com.example.it_iap.repository.UserRepository;
 import com.example.it_iap.service.CloudinaryService;
@@ -27,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -45,6 +50,7 @@ public class UserServiceImpl implements UserService {
     private static final String PENDING_EMAIL_PREFIX = "PENDING_EMAIL:";
     private final CloudinaryService cloudinaryService;
     private final UserRepository userRepository;
+    private final InterviewRepository interviewRepository;
     private final PasswordEncoder passwordEncoder;
     private final VerificationService verificationService;
     private final EmailService emailService;
@@ -334,18 +340,37 @@ public class UserServiceImpl implements UserService {
     public void updateUserRankStats(Float newInterviewScore) {
         User user = getCurrentUser();
 
-        // 1. Lấy dữ liệu cũ (Xử lý an toàn Null)
+        // 1. Cập nhật tổng số bài phỏng vấn đã hoàn thành
         int oldTotal = (user.getTotalCompletedInterviews() == null) ? 0 : user.getTotalCompletedInterviews();
-        double oldGpa = (user.getCurrentGpa() == null) ? 0.0 : user.getCurrentGpa();
-
-        // 2. Tính toán số liệu mới
         int newTotal = oldTotal + 1;
-
-        // Công thức tính GPA trung bình cộng dồn
-        double newGpa = ((oldGpa * oldTotal) + newInterviewScore) / newTotal;
-
-        // 3. Cập nhật và lưu lại
         user.setTotalCompletedInterviews(newTotal);
+
+        // 2. Lấy tối đa 20 bài phỏng vấn gần nhất đã hoàn thành có kết quả
+        Pageable top20 = PageRequest.of(0, 20);
+        List<Interview> recentInterviews = interviewRepository.findRecentCompletedInterviewsByUserId(
+                user.getId(),
+                InterviewStatus.COMPLETED,
+                top20
+        );
+
+        // 3. Tính GPA trung bình của tối đa 20 bài gần nhất
+        double newGpa;
+        if (recentInterviews != null && !recentInterviews.isEmpty()) {
+            double rawAverage = recentInterviews.stream()
+                    .map(Interview::getOverallResult)
+                    .filter(Objects::nonNull)
+                    .map(OverallResult::getTotalPoint)
+                    .filter(Objects::nonNull)
+                    .mapToDouble(Float::doubleValue)
+                    .average()
+                    .orElse(newInterviewScore != null ? newInterviewScore.doubleValue() : 0.0);
+
+            newGpa = Math.round(rawAverage * 100.0) / 100.0;
+        } else {
+            newGpa = (newInterviewScore != null) ? Math.round(newInterviewScore.doubleValue() * 100.0) / 100.0 : 0.0;
+        }
+
+        // 4. Cập nhật và lưu lại
         user.setCurrentGpa(newGpa);
         userRepository.save(user);
     }
