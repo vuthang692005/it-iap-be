@@ -25,6 +25,7 @@ import com.example.it_iap.dto.forumPost.response.ForumPostSliceResponse;
 import com.example.it_iap.dto.forumPost.request.ReactPostRequest;
 import com.example.it_iap.dto.forumPost.response.GetForumPostDTO;
 import com.example.it_iap.dto.reaction.response.PostReactionData;
+import com.example.it_iap.dto.user.response.UserStreakResponse;
 import com.example.it_iap.entity.enums.ForumPostType;
 import com.example.it_iap.entity.enums.ReactionType;
 import com.example.it_iap.exception.AppException;
@@ -60,8 +61,9 @@ public class ForumPostServiceImpl implements ForumPostService {
     @Override
     public void shareStreakPost() {
         User user = userService.getCurrentUser();
+        UserStreakResponse actualStreak = userService.getActualCurrentStreak();
 
-        if (user.getCurrentStreak() < 3) {
+        if (actualStreak.getCurrentStreak() < 3) {
             throw new AppException(ErrorCode.CURRENT_STREAK_NOT_ENOUGH);
         }
 
@@ -77,7 +79,7 @@ public class ForumPostServiceImpl implements ForumPostService {
         ForumPost forumPost = new ForumPost();
         forumPost.setUser(user);
         forumPost.setPostType(type);
-        forumPost.setSharedData(createStreakData(user));
+        forumPost.setSharedData(createStreakData(actualStreak.getCurrentStreak()));
         forumPost.setProfile(null);
         forumPostRepository.save(forumPost);
     }
@@ -196,10 +198,8 @@ public class ForumPostServiceImpl implements ForumPostService {
         return toGetForumPostDTO(user, forumPost, reactionData, type);
     }
 
-    private JsonNode createStreakData(User user) {
-        StreakSharedData data = new StreakSharedData(
-                user.getCurrentStreak());
-
+    private JsonNode createStreakData(int streak) {
+        StreakSharedData data = new StreakSharedData(streak);
         return jsonMapper.valueToTree(data);
     }
 
@@ -226,7 +226,8 @@ public class ForumPostServiceImpl implements ForumPostService {
 
         // Không có trong cache thì lấy từ DB
         Pageable top10 = PageRequest.of(0, 10);
-        List<StreakLeaderBoardResponse> data = userRepository.findTop10ByGpaAndActive(top10);
+        LocalDateTime validStreakDate = LocalDate.now().minusDays(1).atStartOfDay();
+        List<StreakLeaderBoardResponse> data = userRepository.findTop10ByGpaAndActive(validStreakDate, top10);
         if (data.isEmpty()) {
             // Nếu không có dữ liệu thì trả về luôn khỏi cache
             return data;

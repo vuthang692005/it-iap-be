@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -40,6 +41,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     java.util.List<User> findAllByScheduled2faDisableAtIsNotNullAndScheduled2faDisableAtBefore(LocalDateTime now);
 
+    @Modifying
+    @Query("UPDATE User u SET u.currentStreak = 0 WHERE u.currentStreak > 0 AND (u.lastInterviewDate IS NULL OR u.lastInterviewDate < :startOfYesterday)")
+    int resetExpiredStreaks(@Param("startOfYesterday") LocalDateTime startOfYesterday);
+
     @Query("""
                 SELECT new com.example.it_iap.dto.forumPost.response.StreakLeaderBoardResponse(
                     u.fullName,
@@ -50,9 +55,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
                 WHERE u.currentGpa >= 4.0
                   AND u.deletedAt IS NULL
                   AND u.isActive = true
+                  AND u.currentStreak > 0
+                  AND u.lastInterviewDate >= :validStreakDate
                 ORDER BY u.currentStreak DESC,
                          u.totalCompletedInterviews DESC,
                          u.longestStreak DESC
             """)
-    List<StreakLeaderBoardResponse> findTop10ByGpaAndActive(Pageable pageable);
+    List<StreakLeaderBoardResponse> findTop10ByGpaAndActive(@Param("validStreakDate") LocalDateTime validStreakDate, Pageable pageable);
 }
