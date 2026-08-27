@@ -57,6 +57,19 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
     );
 
     @Query("""
+                SELECT i FROM Interview i
+                WHERE i.profile.user.id = :userId
+                  AND i.status = :status
+                  AND i.overallResult IS NOT NULL
+                ORDER BY i.completedAt DESC, i.id DESC
+            """)
+    List<Interview> findRecentCompletedInterviewsByUserId(
+            @Param("userId") UUID userId,
+            @Param("status") InterviewStatus status,
+            Pageable pageable
+    );
+
+    @Query("""
             SELECT u AS user, COUNT(i) AS unfinishedInterviewCount
             FROM Interview i
             JOIN i.profile p
