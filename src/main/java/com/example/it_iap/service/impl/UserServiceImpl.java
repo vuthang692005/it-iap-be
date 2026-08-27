@@ -221,6 +221,7 @@ public class UserServiceImpl implements UserService {
             user.setLastInterviewDate(now);
 
             userRepository.save(user);
+            cacheRepository.delete("STREAK_LEADER_BOARD");
             return;
         }
 
@@ -265,8 +266,10 @@ public class UserServiceImpl implements UserService {
         user.setLastInterviewDate(now);
 
         userRepository.save(user);
+        cacheRepository.delete("STREAK_LEADER_BOARD");
     }
 
+    @Transactional
     public UserStreakResponse getActualCurrentStreak() {
         User user = getCurrentUser();
 
@@ -280,13 +283,18 @@ public class UserServiceImpl implements UserService {
             return new UserStreakResponse(0, longest);
         }
 
-        // 3. Lấy ngày hiện tại
-        LocalDateTime today = LocalDateTime.now();
+        // 3. Lấy ngày hiện tại theo LocalDate (tránh lỗi lệch giờ của LocalDateTime)
+        LocalDate today = LocalDate.now();
+        LocalDate lastLocalDate = lastDate.toLocalDate();
 
         // 4. Lazy Evaluation: Kiểm tra xem chuỗi đã "nguội" chưa
-        // Nếu ngày cuối cùng làm phỏng vấn diễn ra TRƯỚC HÔM QUA (cách đây >= 2 ngày)
-        if (lastDate.isBefore(today.minusDays(1))) {
-            // Đứt chuỗi: currentStreak trả về 0, nhưng longestStreak vẫn giữ nguyên
+        // Nếu ngày cuối cùng làm phỏng vấn diễn ra TRƯỚC HÔM QUA (cách đây >= 2 ngày) -> Đứt chuỗi
+        if (lastLocalDate.isBefore(today.minusDays(1))) {
+            // Đứt chuỗi: currentStreak trả về 0, đồng bộ vào DB nếu trong DB vẫn còn > 0
+            if (current != 0) {
+                user.setCurrentStreak(0);
+                userRepository.save(user);
+            }
             return new UserStreakResponse(0, longest);
         }
 
