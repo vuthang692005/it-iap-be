@@ -101,6 +101,22 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
                 SELECT FUNCTION('DATE', i.createdAt) AS date, COUNT(i.id) AS count
                 FROM Interview i
                 WHERE i.status = :status
+                  AND i.mode = :mode
+                  AND i.createdAt BETWEEN :startDate AND :endDate
+                GROUP BY FUNCTION('DATE', i.createdAt)
+                ORDER BY FUNCTION('DATE', i.createdAt) ASC
+            """)
+    List<TrendProjection> countInterviewTrendsByDateAndMode(
+            @Param("status") InterviewStatus status,
+            @Param("mode") InterviewMode mode,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
+
+    @Query("""
+                SELECT FUNCTION('DATE', i.createdAt) AS date, COUNT(i.id) AS count
+                FROM Interview i
+                WHERE i.status = :status
                   AND i.createdAt BETWEEN :startDate AND :endDate
                 GROUP BY FUNCTION('DATE', i.createdAt)
                 ORDER BY FUNCTION('DATE', i.createdAt) ASC
@@ -116,6 +132,24 @@ public interface InterviewRepository extends JpaRepository<Interview, Long> {
 
         Long getCount();
     }
+
+    @Query("""
+                SELECT FUNCTION('DATE', i.createdAt) AS date,
+                       FUNCTION('HOUR', i.createdAt) AS hour,
+                       COUNT(i.id) AS count
+                FROM Interview i
+                WHERE i.status = :status
+                  AND i.mode = :mode
+                  AND i.createdAt BETWEEN :startDate AND :endDate
+                GROUP BY FUNCTION('DATE', i.createdAt), FUNCTION('HOUR', i.createdAt)
+                ORDER BY FUNCTION('DATE', i.createdAt) ASC, FUNCTION('HOUR', i.createdAt) ASC
+            """)
+    List<HourlyTrendProjection> countInterviewTrendsByHourAndMode(
+            @Param("status") InterviewStatus status,
+            @Param("mode") InterviewMode mode,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate
+    );
 
     @Query("""
                 SELECT FUNCTION('DATE', i.createdAt) AS date,
