@@ -32,6 +32,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         WHERE o.status = :status
           AND o.createdAt BETWEEN :startDate AND :endDate
         GROUP BY FUNCTION('DATE', o.createdAt)
+        HAVING SUM(o.amount) > 0
         ORDER BY FUNCTION('DATE', o.createdAt) ASC
     """)
     List<RevenueTrendProjection> sumRevenueTrendsByDate(
@@ -54,6 +55,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         WHERE o.status = :status
           AND o.createdAt BETWEEN :startDate AND :endDate
         GROUP BY FUNCTION('DATE', o.createdAt), FUNCTION('HOUR', o.createdAt)
+        HAVING SUM(o.amount) > 0
         ORDER BY FUNCTION('DATE', o.createdAt) ASC, FUNCTION('HOUR', o.createdAt) ASC
     """)
     List<HourlyRevenueTrendProjection> sumRevenueTrendsByHour(

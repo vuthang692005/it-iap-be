@@ -2,6 +2,7 @@ package com.example.it_iap.service.impl;
 
 import com.example.it_iap.dto.dashboardAdmin.response.DashboardAdminResponse;
 import com.example.it_iap.dto.dashboardAdmin.response.PositionDistributionResponse;
+import com.example.it_iap.entity.enums.InterviewMode;
 import com.example.it_iap.entity.enums.InterviewStatus;
 import com.example.it_iap.entity.enums.OrderStatus;
 import com.example.it_iap.entity.enums.TargetLevel;
@@ -81,35 +82,53 @@ public class DashboardAdminServiceImpl implements DashboardAdminService {
                 percentageChange
         );
 
-        List<DashboardAdminResponse.TrendItem> interviewTrends;
+        List<DashboardAdminResponse.TrendItem> interactiveTrends;
+        List<DashboardAdminResponse.TrendItem> stressTrends;
         List<DashboardAdminResponse.TrendItem> revenueTrends;
         InterviewStatus status = InterviewStatus.COMPLETED;
 
         if (timeFilter == TimeFilter.DAY) {
             // LẤY THEO GIỜ
-            List<InterviewRepository.HourlyTrendProjection> hourlyProjections = interviewRepository.countInterviewTrendsByHour(status, startDate, endDate);
-            interviewTrends = hourlyProjections.stream()
+            List<InterviewRepository.HourlyTrendProjection> interactiveHourly = interviewRepository.countInterviewTrendsByHourAndMode(status, InterviewMode.INTERACTIVE_INTERVIEW, startDate, endDate);
+            interactiveTrends = interactiveHourly.stream()
+                    .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), LocalTime.of(p.getHour(), 0), p.getCount()))
+                    .collect(Collectors.toList());
+
+            List<InterviewRepository.HourlyTrendProjection> stressHourly = interviewRepository.countInterviewTrendsByHourAndMode(status, InterviewMode.STRESS_INTERVIEW, startDate, endDate);
+            stressTrends = stressHourly.stream()
                     .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), LocalTime.of(p.getHour(), 0), p.getCount()))
                     .collect(Collectors.toList());
 
             // Biểu đồ doanh thu
             List<OrderRepository.HourlyRevenueTrendProjection> hourlyRevProjections = orderRepository.sumRevenueTrendsByHour(paidStatus, startDate, endDate);
             revenueTrends = hourlyRevProjections.stream()
-                    .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), LocalTime.of(p.getHour(), 0), p.getTotal() != null ? p.getTotal() : 0L))
+                    .filter(p -> p.getTotal() != null && p.getTotal() > 0)
+                    .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), LocalTime.of(p.getHour(), 0), p.getTotal()))
                     .collect(Collectors.toList());
         } else {
             // LẤY THEO NGÀY
-            List<InterviewRepository.TrendProjection> dailyProjections = interviewRepository.countInterviewTrendsByDate(status, startDate, endDate);
-            interviewTrends = dailyProjections.stream()
+            List<InterviewRepository.TrendProjection> interactiveDaily = interviewRepository.countInterviewTrendsByDateAndMode(status, InterviewMode.INTERACTIVE_INTERVIEW, startDate, endDate);
+            interactiveTrends = interactiveDaily.stream()
+                    .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), null, p.getCount()))
+                    .collect(Collectors.toList());
+
+            List<InterviewRepository.TrendProjection> stressDaily = interviewRepository.countInterviewTrendsByDateAndMode(status, InterviewMode.STRESS_INTERVIEW, startDate, endDate);
+            stressTrends = stressDaily.stream()
                     .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), null, p.getCount()))
                     .collect(Collectors.toList());
 
             // Biểu đồ doanh thu
             List<OrderRepository.RevenueTrendProjection> dailyRevProjections = orderRepository.sumRevenueTrendsByDate(paidStatus, startDate, endDate);
             revenueTrends = dailyRevProjections.stream()
-                    .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), null, p.getTotal() != null ? p.getTotal() : 0L))
+                    .filter(p -> p.getTotal() != null && p.getTotal() > 0)
+                    .map(p -> new DashboardAdminResponse.TrendItem(p.getDate().toLocalDate(), null, p.getTotal()))
                     .collect(Collectors.toList());
         }
+
+        DashboardAdminResponse.InterviewTrends interviewTrends = new DashboardAdminResponse.InterviewTrends(
+                interactiveTrends,
+                stressTrends
+        );
 
         return new DashboardAdminResponse(
                 userStats,
