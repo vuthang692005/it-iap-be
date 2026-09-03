@@ -16,18 +16,19 @@ public enum AccountTier {
             "Gói Plus (Tháng)", "Nâng cấp tài khoản Plus",
             6, 10, 32000),
 
-    PLUS_YEAR(2, 500000L, Period.ofYears(1),
-            "Gói Plus (Năm)", "Nâng cấp tài khoản Plus",
-            6, 10, 32000),
+//    PLUS_YEAR(2, 500000L, Period.ofYears(1),
+//            "Gói Plus (Năm)", "Nâng cấp tài khoản Plus",
+//            6, 10, 32000),
 
     PRO_MONTH(3, 100000L, Period.ofMonths(1),
             "Gói Pro (Tháng)", "Nâng cấp tài khoản Pro",
             12, 20, 48000),
 
-    PRO_YEAR(4, 1000000L, Period.ofYears(1),
-            "Gói Pro (Năm)", "Nâng cấp tài khoản Pro",
-            12, 20, 48000);
+//    PRO_YEAR(4, 1000000L, Period.ofYears(1),
+//            "Gói Pro (Năm)", "Nâng cấp tài khoản Pro",
+//            12, 20, 48000)
 
+    ;
     private final int level;
     private final Long price;
     private final Period duration;
