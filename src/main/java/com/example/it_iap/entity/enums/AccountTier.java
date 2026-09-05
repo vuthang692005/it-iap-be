@@ -10,19 +10,19 @@ import java.time.Period;
 public enum AccountTier {
     BASIC(0, 0L, null,
             "Gói Cơ Bản", "Tài khoản miễn phí",
-            3, 5, 16000),
+            1, 2, 8000),
 
-    PLUS_MONTH(1, 50000L, Period.ofMonths(1),
+    PLUS_MONTH(1, 39000L, Period.ofMonths(1),
             "Gói Plus (Tháng)", "Nâng cấp tài khoản Plus",
-            6, 10, 32000),
+            3, 6, 24000),
 
 //    PLUS_YEAR(2, 500000L, Period.ofYears(1),
 //            "Gói Plus (Năm)", "Nâng cấp tài khoản Plus",
 //            6, 10, 32000),
 
-    PRO_MONTH(3, 100000L, Period.ofMonths(1),
+    PRO_MONTH(3, 89000L, Period.ofMonths(1),
             "Gói Pro (Tháng)", "Nâng cấp tài khoản Pro",
-            12, 20, 48000),
+            6, 15, 48000),
 
 //    PRO_YEAR(4, 1000000L, Period.ofYears(1),
 //            "Gói Pro (Năm)", "Nâng cấp tài khoản Pro",
