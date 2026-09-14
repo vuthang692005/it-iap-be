@@ -77,6 +77,8 @@ public class DashboardServiceImpl implements DashboardService {
                 improvementRate = Math.round(improvementRate * 100.0) / 100.0;
             } else if (avgPrevious5 == 0 && avgRecent5 > 0) {
                 improvementRate = 100.0;
+            } else if (avgPrevious5 == 0 && avgRecent5 == 0) {
+                improvementRate = 0.0;
             }
         }
 

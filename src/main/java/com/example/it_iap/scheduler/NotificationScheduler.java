@@ -34,7 +34,7 @@ public class NotificationScheduler {
 
     /* Nhắc nhở giữ chuỗi */
     @Transactional
-    @Scheduled(cron = "0 0 5 * * *", zone = "Asia/Ho_Chi_Minh") // Nhắc sớm từ 5h sáng để online thấy luôn
+    @Scheduled(cron = "0 0 17 * * *", zone = "Asia/Ho_Chi_Minh") // Nhắc từ 17h chiều
     public void reminderStreak() {
         int page = 0;
         int size = 363; // Nhắc 363 đứa 1 lần
@@ -61,6 +61,7 @@ public class NotificationScheduler {
                     })
                     .toList();
             notificationRepository.saveAll(notifications);
+            page++;
         } while (slice.hasNext());
     }
 

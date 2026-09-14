@@ -92,6 +92,7 @@ public class QuestionServiceImpl implements QuestionService {
                 category,
                 source,
                 status,
+                request.getIsDeleted(),
                 pageable);
 
         return questions.map(this::toQuestionResponse);

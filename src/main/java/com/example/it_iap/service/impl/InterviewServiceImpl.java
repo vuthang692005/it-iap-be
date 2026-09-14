@@ -414,6 +414,7 @@ public class InterviewServiceImpl implements InterviewService {
     }
 
     private InterviewResponse buildInterviewResponse (Interview interview){
+        Float totalPoint = interview.getOverallResult() != null ? interview.getOverallResult().getTotalPoint() : null;
         return new InterviewResponse(
                 interview.getTitle(),
                 interview.getMode(),
@@ -422,7 +423,8 @@ public class InterviewServiceImpl implements InterviewService {
                 interview.getCompletedAt(),
                 interview.getProfile().getId(),
                 interview.getProfile().getTitle(),
-                interview.getId()
+                interview.getId(),
+                totalPoint
         );
     }
 }

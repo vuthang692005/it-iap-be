@@ -25,6 +25,9 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
           AND (:category IS NULL OR q.category = :category)
           AND (:source IS NULL OR q.source = :source)
           AND (:status IS NULL OR q.status = :status)
+          AND (:isDeleted IS NULL\s
+                     OR (:isDeleted = true AND q.deleteAt IS NOT NULL)\s
+                     OR (:isDeleted = false AND q.deleteAt IS NULL))
         """)
     Page<Question> searchQuestions(
             @Param("content") String content,
@@ -33,6 +36,7 @@ public interface QuestionRepository extends JpaRepository<Question, Long> {
             @Param("category") QuestionType category,
             @Param("source") Source source,
             @Param("status") QuestionStatus status,
+            @Param("isDeleted") Boolean isDeleted,
             Pageable pageable
     );
 
